@@ -69,6 +69,9 @@ kollaudo push ctrf-report.json \
   results of a different image under the same version ([ADR 0005](adr/0005-create-on-first-use.md)).
 - **`--kind`**: `e2e` by default. Use `smoke`, `uat`, `api`… to tell suites apart: the verdict
   judges each kind by its latest run.
+- **`--dry-run`**: reads the reports and prints what `push` would send, without sending anything.
+  It needs no `KOLLAUDO_URL` or `KOLLAUDO_TOKEN`, so you can check that a new pipeline finds and
+  reads its reports before it has a token.
 
 Send the report **even when tests fail**. In most CI systems a failing test step stops the job,
 so run `push` in a step that runs anyway (`if: ${{ !cancelled() }}` in GitHub Actions, `when: always`

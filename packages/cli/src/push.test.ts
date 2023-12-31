@@ -166,6 +166,89 @@ describe("kollaudo push", () => {
     expect(noToken.err).toContain("Set KOLLAUDO_TOKEN");
   });
 
+  describe("--dry-run", () => {
+    const checked = {
+      results: {
+        tool: { name: "playwright" },
+        summary: { tests: 4 },
+        tests: [
+          { name: "a", status: "passed", duration: 1 },
+          { name: "b", status: "passed", duration: 1, flaky: true },
+          { name: "c", status: "failed", duration: 1 },
+          { name: "d", status: "skipped", duration: 1 },
+        ],
+      },
+    };
+
+    it("prints the summary without the server URL and token, and sends nothing", async () => {
+      const { requests, fetch } = server(201, created);
+      const result = await runWith(run, [...args, "--env", "staging", "--dry-run"], {
+        files: { "report.json": JSON.stringify(checked) },
+        fetch,
+      });
+
+      expect(result).toEqual({
+        code: 0,
+        out:
+          "Would send 4 tests (e2e) for frontend 1.2.0 on staging: 2 passed, 1 failed, 1 skipped, 1 flaky\n" +
+          "Nothing was sent (--dry-run).\n",
+        err: "",
+      });
+      expect(requests).toHaveLength(0);
+    });
+
+    it("never calls the server, even when the URL and token are set", async () => {
+      const { requests, fetch } = server(201, created);
+      const result = await runWith(run, [...args, "--dry-run"], {
+        env,
+        files: { "report.json": JSON.stringify(checked) },
+        fetch,
+      });
+
+      expect(result.code).toBe(0);
+      expect(requests).toHaveLength(0);
+      expect(result.out + result.err).not.toContain(env.KOLLAUDO_TOKEN);
+    });
+
+    it("still fails on a report Kollaudo would refuse", async () => {
+      const notCtrf = await runWith(run, [...args, "--dry-run"], {
+        files: { "report.json": JSON.stringify({ results: {} }) },
+      });
+      const badStatus = await runWith(run, [...args, "--dry-run"], {
+        files: {
+          "report.json": JSON.stringify({
+            results: { ...checked.results, tests: [{ name: "a", status: "ok", duration: 1 }] },
+          }),
+        },
+      });
+
+      expect(notCtrf).toEqual({
+        code: 1,
+        out: "",
+        err: "Error: report.json isn't a CTRF report: it has no results.tests.\n",
+      });
+      expect(badStatus.err).toBe(
+        'Error: report.json: results.tests.0.status is "ok", not passed, failed, skipped, pending or other.\n',
+      );
+    });
+
+    it("refuses a status that names a property of every object", async () => {
+      const proto = await runWith(run, [...args, "--dry-run"], {
+        files: {
+          "report.json": JSON.stringify({
+            results: {
+              ...checked.results,
+              tests: [{ name: "a", status: "__proto__", duration: 1 }],
+            },
+          }),
+        },
+      });
+
+      expect(proto).toMatchObject({ code: 1, out: "" });
+      expect(proto.err).toContain('results.tests.0.status is "__proto__"');
+    });
+  });
+
   it("needs a report, a component and a version", async () => {
     expect((await runWith(run, ["push", "--component", "a", "--version", "1"])).err).toContain(
       "Give at least one report file.",
@@ -223,6 +306,20 @@ describe("kollaudo push", () => {
         { name: "works", status: "passed", duration: 500, suite: ["a"] },
         { name: "works", status: "failed", duration: 500, suite: ["b"], message: "boom" },
       ]);
+    });
+
+    it("counts converted JUnit files with --dry-run", async () => {
+      const result = await runWith(run, ["push", "results/unit/*.xml", ...flags, "--dry-run"], {
+        files: reports,
+      });
+
+      expect(result).toEqual({
+        code: 0,
+        out:
+          "Would send 2 tests (unit) from 2 JUnit files for api 3f2a9c1: 1 passed, 1 failed\n" +
+          "Nothing was sent (--dry-run).\n",
+        err: "",
+      });
     });
 
     it("merges CTRF reports, such as the shards of a Playwright run", async () => {

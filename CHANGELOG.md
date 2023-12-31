@@ -14,6 +14,12 @@ the API.
   The release that adds them needs this migration, which can't be undone: it adds the value to the
   `token_scope` enum.
 
+### CLI
+
+- `kollaudo push --dry-run` reads the reports and prints the summary it would send, with the number
+  of tests, failures and flaky tests, without calling Kollaudo. It needs no `KOLLAUDO_URL` or
+  `KOLLAUDO_TOKEN`, so a pipeline can be checked before it has a token.
+
 ## [0.4.0] - 2026-10-08
 
 The `kollaudo/action` gate and `push` actions run this release of the CLI. `kollaudo verdict --json`
