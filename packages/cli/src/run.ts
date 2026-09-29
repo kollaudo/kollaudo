@@ -1,4 +1,6 @@
 import { parseArgs } from "node:util";
+import type { Io } from "./io.ts";
+import { push } from "./push.ts";
 
 export const VERSION = "0.0.0";
 
@@ -7,7 +9,7 @@ export const HELP = `Usage: kollaudo <command> [options]
 Send test results to Kollaudo from any CI or script.
 
 Commands:
-  push <report>   Send a CTRF test report (coming in v0.1)
+  push <report>   Send a CTRF test report
 
 Options:
   -h, --help      Show this help
@@ -16,15 +18,15 @@ Options:
 Environment:
   KOLLAUDO_URL    URL of your Kollaudo server
   KOLLAUDO_TOKEN  API token of your project
+
+Run "kollaudo <command> --help" for the options of a command.
 `;
 
-export interface Io {
-  out: (text: string) => void;
-  err: (text: string) => void;
-}
-
 /** Runs the CLI with the given arguments and returns the exit code. */
-export function run(args: string[], io: Io): number {
+export async function run(args: string[], io: Io): Promise<number> {
+  // Commands parse their own options: `push --version` is the version under test, not the CLI's.
+  if (args[0] === "push") return push(args.slice(1), io);
+
   let parsed: ReturnType<typeof parse>;
   try {
     parsed = parse(args);
