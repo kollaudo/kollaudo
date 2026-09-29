@@ -99,7 +99,7 @@ export async function getTestRun(
 
   return {
     ...toTestRun(row),
-    results: results.map(({ id: _, testRunId: __, suite, tags, ...result }) => ({
+    results: results.map(({ testRunId: _, suite, tags, ...result }) => ({
       ...result,
       suite: suite ?? [],
       tags: tags ?? [],

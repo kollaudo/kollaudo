@@ -77,6 +77,7 @@ export type TestRun = z.infer<typeof TestRun>;
 
 export const TestResult = z
   .object({
+    id: z.uuid(),
     name: z.string(),
     suite: z.array(z.string()),
     file: z.string().nullable(),

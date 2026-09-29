@@ -20,6 +20,10 @@ export default defineConfig({
         extends: true,
         test: { name: "schema", root: "packages/schema" },
       },
+      {
+        extends: true,
+        test: { name: "web", root: "apps/web" },
+      },
     ],
   },
 });

@@ -150,9 +150,11 @@ pnpm install
 docker compose -f deploy/docker-compose.yml up -d   # PostgreSQL for local development
 cp apps/server/.env.example apps/server/.env
 pnpm admin project create demo                      # prints an ingest and a read token
-pnpm dev                                            # server on :8080, UI on :5173
+pnpm dev                                            # API on :8080, UI with hot reload on :5173
 pnpm check && pnpm typecheck && pnpm test           # what CI runs
 ```
+
+`pnpm build` also builds the UI, which the server then serves on :8080 as in production.
 
 Tests that need a database create a temporary one on the local PostgreSQL, or on
 `TEST_DATABASE_URL`, and drop it when they finish.

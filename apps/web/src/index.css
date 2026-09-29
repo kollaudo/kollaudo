@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+/* Palette from docs/brand.md: violet is Kollaudo, the other colors are results. */
+@theme {
+  --color-brand: #5b3e96;
+  --color-paper: #f3eee3;
+  --color-passed: #1a7f37;
+  --color-failed: #cf222e;
+  --color-flaky: #9a6700;
+  --color-muted: #6e7781;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-brand: #b49ae6;
+    --color-passed: #3fb950;
+    --color-failed: #f85149;
+    --color-flaky: #d29922;
+    --color-muted: #8b949e;
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-white text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100;
+  }
+}

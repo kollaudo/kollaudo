@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { serve } from "@hono/node-server";
 import { HELP, runAdmin } from "./admin/run.ts";
 import { createApp } from "./app.ts";
@@ -28,7 +30,13 @@ await migrateDb(db);
 
 if (args.length === 0 || args[0] === "serve") {
   const port = Number(process.env.PORT ?? 8080);
-  serve({ fetch: createApp({ db }).fetch, port }, (info) => {
+  // Next to the server in the repository and in the container image.
+  const webDir =
+    process.env.KOLLAUDO_WEB_DIR ?? fileURLToPath(new URL("../../web/dist", import.meta.url));
+  const hasWeb = existsSync(webDir);
+  if (!hasWeb) console.warn(`No web UI in ${webDir}: serving the API only.`);
+  const app = createApp({ db, webDir: hasWeb ? webDir : undefined });
+  serve({ fetch: app.fetch, port }, (info) => {
     console.log(`Kollaudo listening on http://localhost:${info.port}`);
   });
 } else {

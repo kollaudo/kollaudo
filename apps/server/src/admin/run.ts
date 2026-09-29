@@ -20,8 +20,9 @@ Commands:
   token revoke <token-id>                       Revoke a token
 
 Environment:
-  DATABASE_URL  PostgreSQL connection string (required)
-  PORT          HTTP port of the server (default 8080)
+  DATABASE_URL      PostgreSQL connection string (required)
+  PORT              HTTP port of the server (default 8080)
+  KOLLAUDO_WEB_DIR  Directory of the built web UI (default: apps/web/dist)
 `;
 
 export interface Io {

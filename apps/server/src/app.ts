@@ -1,3 +1,4 @@
+import { serveStatic } from "@hono/node-server/serve-static";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import {
   ApiError,
@@ -39,10 +40,12 @@ const errors = {
 
 export interface AppOptions {
   db: Db;
+  /** Directory of the built web UI. Without it, the server only serves the API. */
+  webDir?: string;
 }
 
 /** Builds the HTTP application. Kept separate from `main.ts` so tests can call it without a network. */
-export function createApp({ db }: AppOptions) {
+export function createApp({ db, webDir }: AppOptions) {
   const app = new OpenAPIHono<AuthEnv>({
     defaultHook: (result, c) => {
       if (!result.success) return validationResponse(c, result.error);
@@ -180,6 +183,8 @@ export function createApp({ db }: AppOptions) {
     },
   });
 
+  if (webDir) serveWeb(app, webDir);
+
   app.notFound((c) => errorResponse(c, 404, "not_found", "Not found."));
 
   app.onError((error, c) => {
@@ -193,4 +198,21 @@ export function createApp({ db }: AppOptions) {
   });
 
   return app;
+}
+
+/** Serves the web UI. Paths that aren't files, such as `/test-runs/<id>`, are routes of the UI. */
+function serveWeb(app: OpenAPIHono<AuthEnv>, root: string) {
+  app.use("/assets/*", async (c, next) => {
+    await next();
+    // Vite puts a content hash in these file names, so they never change.
+    if (c.res.ok) c.header("Cache-Control", "public, max-age=31536000, immutable");
+  });
+  app.use("*", serveStatic({ root }));
+
+  const index = serveStatic({ root, path: "index.html" });
+  app.get("*", async (c, next) => {
+    if (c.req.path.startsWith("/v1/") || c.req.path.startsWith("/assets/")) return next();
+    c.header("Cache-Control", "no-cache");
+    return index(c, next);
+  });
 }
