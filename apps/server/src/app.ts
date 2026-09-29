@@ -1,13 +1,25 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { ApiError, Healthz, Project, TestRunCreated, TestRunInput } from "@kollaudo/schema";
+import {
+  ApiError,
+  HealthMatrix,
+  Healthz,
+  Project,
+  TestRunCreated,
+  TestRunDetail,
+  TestRunInput,
+  TestRunList,
+  TestRunQuery,
+} from "@kollaudo/schema";
 import { eq } from "drizzle-orm";
 import { bodyLimit } from "hono/body-limit";
 import { HTTPException } from "hono/http-exception";
+import { z } from "zod";
 import { type AuthEnv, requireScope } from "./auth.ts";
 import type { Db } from "./db/client.ts";
 import { projects } from "./db/schema.ts";
 import { errorResponse, HttpError, validationResponse } from "./errors.ts";
 import { ingestTestRun } from "./ingest.ts";
+import { getHealth, getTestRun, listTestRuns } from "./reads.ts";
 
 export const VERSION = "0.0.0";
 
@@ -102,6 +114,60 @@ export function createApp({ db }: AppOptions) {
       const run = await ingestTestRun(db, c.var.projectId, c.req.valid("json"));
       return c.json(run, 201);
     },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/v1/test-runs",
+      summary: "List test runs",
+      description: "Newest first, optionally filtered. Follow `next` to get older runs.",
+      security: [{ token: [] }],
+      middleware: [requireScope(db, "read")] as const,
+      request: { query: TestRunQuery },
+      responses: { 200: json(TestRunList, "A page of test runs"), ...errors },
+    }),
+    async (c) => c.json(await listTestRuns(db, c.var.projectId, c.req.valid("query")), 200),
+  );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/v1/test-runs/{id}",
+      summary: "Get a test run with its results",
+      security: [{ token: [] }],
+      middleware: [requireScope(db, "read")] as const,
+      request: { params: z.object({ id: z.uuid() }) },
+      responses: {
+        200: json(TestRunDetail, "The test run"),
+        ...errors,
+        404: json(ApiError, "The project has no test run with this id"),
+      },
+    }),
+    async (c) => {
+      const run = await getTestRun(db, c.var.projectId, c.req.valid("param").id);
+      if (!run) throw new HttpError(404, "not_found", "Test run not found.");
+      return c.json(run, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/v1/health",
+      summary: "Health of the project",
+      description:
+        "The components and environments of the project, with the latest run for each " +
+        "component, environment and kind.",
+      security: [{ token: [] }],
+      middleware: [requireScope(db, "read")] as const,
+      responses: {
+        200: json(HealthMatrix, "The health matrix"),
+        401: errors[401],
+        403: errors[403],
+      },
+    }),
+    async (c) => c.json(await getHealth(db, c.var.projectId), 200),
   );
 
   app.doc31("/v1/openapi.json", {

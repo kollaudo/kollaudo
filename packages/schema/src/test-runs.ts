@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CtrfReport } from "./ctrf.ts";
+import { CtrfReport, CtrfStatus } from "./ctrf.ts";
 
 /** Names of components and environments: they end up in URLs and CLI output. */
 const Name = z
@@ -60,3 +60,62 @@ export const TestRunCreated = z
   })
   .meta({ id: "TestRunCreated" });
 export type TestRunCreated = z.infer<typeof TestRunCreated>;
+
+const Timestamp = z.iso.datetime({ offset: true });
+
+export const TestRun = TestRunCreated.extend({
+  commit: z.string().nullable(),
+  branch: z.string().nullable(),
+  tag: z.string().nullable(),
+  pullRequest: z.string().nullable(),
+  tool: z.string().nullable().meta({ example: "playwright" }),
+  startedAt: Timestamp.nullable(),
+  finishedAt: Timestamp.nullable(),
+  createdAt: Timestamp.meta({ description: "When Kollaudo received the run." }),
+}).meta({ id: "TestRun" });
+export type TestRun = z.infer<typeof TestRun>;
+
+export const TestResult = z
+  .object({
+    name: z.string(),
+    suite: z.array(z.string()),
+    file: z.string().nullable(),
+    status: CtrfStatus,
+    durationMs: z.number().int(),
+    message: z.string().nullable(),
+    trace: z.string().nullable(),
+    retries: z.number().int(),
+    flaky: z.boolean(),
+    tags: z.array(z.string()),
+    extra: z
+      .record(z.string(), z.unknown())
+      .nullable()
+      .meta({ description: "Fields of the CTRF test that Kollaudo doesn't model, as sent." }),
+  })
+  .meta({ id: "TestResult" });
+export type TestResult = z.infer<typeof TestResult>;
+
+export const TestRunDetail = TestRun.extend({ results: z.array(TestResult) }).meta({
+  id: "TestRunDetail",
+});
+export type TestRunDetail = z.infer<typeof TestRunDetail>;
+
+export const TestRunQuery = z.object({
+  component: z.string().optional(),
+  environment: z.string().optional(),
+  version: z.string().optional(),
+  kind: z.string().optional(),
+  limit: z.coerce.number().int().min(1).max(200).default(50),
+  before: z.uuid().optional().meta({ description: "The `next` value of the previous page." }),
+});
+
+export const TestRunList = z
+  .object({
+    items: z.array(TestRun).meta({ description: "Newest first." }),
+    next: z
+      .uuid()
+      .nullable()
+      .meta({ description: "Pass it as `before` to get the next page. Null on the last page." }),
+  })
+  .meta({ id: "TestRunList" });
+export type TestRunList = z.infer<typeof TestRunList>;
