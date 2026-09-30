@@ -16,7 +16,7 @@ export async function createTestDb() {
     await admin.end();
     throw new Error(
       `Can't create a test database on ${adminUrl}. Start PostgreSQL with ` +
-        `"docker compose -f deploy/docker-compose.yml up -d", or set TEST_DATABASE_URL.`,
+        `"docker compose up -d", or set TEST_DATABASE_URL.`,
       { cause: error },
     );
   }

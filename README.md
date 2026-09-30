@@ -127,7 +127,8 @@ Ready-made **recipes** turn popular tools' events into those calls.
 *Coming with v0.1.* See the [v0.1 scope](docs/milestones/v0.1.md).
 
 ```bash
-docker compose up
+curl -O https://raw.githubusercontent.com/kollaudo/kollaudo/main/deploy/docker-compose.yml
+docker compose up -d
 docker compose exec kollaudo kollaudo-server project create demo   # prints an ingest and a read token
 
 export KOLLAUDO_URL=http://localhost:8080
@@ -169,7 +170,7 @@ Requires Node.js 24 and Docker. The repository is a pnpm monorepo
 ```bash
 corepack enable                                     # provides the pinned pnpm version
 pnpm install
-docker compose -f deploy/docker-compose.yml up -d   # PostgreSQL for local development
+docker compose up -d                                # PostgreSQL for local development
 cp apps/server/.env.example apps/server/.env
 pnpm admin project create demo                      # prints an ingest and a read token
 pnpm dev                                            # API on :8080, UI with hot reload on :5173
@@ -177,6 +178,8 @@ pnpm check && pnpm typecheck && pnpm test           # what CI runs
 ```
 
 `pnpm build` also builds the UI, which the server then serves on :8080 as in production.
+`docker compose --profile app up -d --build` builds the container image from the sources and runs it
+on :8080, with the same database.
 
 Tests that need a database create a temporary one on the local PostgreSQL, or on
 `TEST_DATABASE_URL`, and drop it when they finish.
