@@ -1,0 +1,7 @@
+{
+  "results": {
+    "tool": { "name": "playwright" },
+    "summary": { "tests": 1 },
+    "tests": [{ "name": "signs in", "status": "broken", "duration": 12 }]
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "reportFormat": "CTRF",
+  "specVersion": "0.0.0",
+  "results": {
+    "tool": {
+      "name": "playwright"
+    },
+    "summary": {
+      "tests": 2,
+      "start": 0,
+      "stop": 0
+    },
+    "tests": [
+      {
+        "name": "shows the home page",
+        "status": "passed",
+        "duration": 12
+      },
+      {
+        "name": "signs in",
+        "status": "passed",
+        "duration": 12
+      }
+    ]
+  }
+}

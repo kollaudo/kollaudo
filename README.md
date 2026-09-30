@@ -112,11 +112,14 @@ kollaudo verdict --component api --env staging --version 1.4.2
 # exit code 0 = pass, 1 = fail, 2 = unknown, 3 = no verdict (network, token, usage error)
 ```
 
-Ready-made **recipes** turn popular tools' events into those calls.
+[Sending test results](docs/sending-results.md) explains the three steps for any test framework
+and any CI: write a CTRF report, `kollaudo push` it, gate on `kollaudo verdict`.
+
+Ready-made **recipes** are complete examples for popular tools.
 
 | Recipe | Status |
 |---|---|
-| Playwright (CTRF reporter) | planned for v0.1 |
+| [Playwright with GitHub Actions](docs/recipes/playwright.md) | available |
 | GitHub Actions | planned |
 | Argo CD notifications | planned |
 | Kargo verification gate | planned |
@@ -175,6 +178,16 @@ cp apps/server/.env.example apps/server/.env
 pnpm admin project create demo                      # prints an ingest and a read token
 pnpm dev                                            # API on :8080, UI with hot reload on :5173
 pnpm check && pnpm typecheck && pnpm test           # what CI runs
+```
+
+The end-to-end test runs Kollaudo in its container and uses it as a team would, with the CLI and
+Playwright:
+
+```bash
+pnpm build
+pnpm --filter @kollaudo/e2e exec playwright install chromium
+docker compose --profile app up -d --build --wait
+e2e/run.sh
 ```
 
 `pnpm build` also builds the UI, which the server then serves on :8080 as in production.

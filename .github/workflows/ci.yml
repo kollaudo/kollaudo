@@ -39,16 +39,26 @@ jobs:
       - run: pnpm test
       - run: pnpm build
 
-  image:
+  e2e:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm --filter @kollaudo/e2e exec playwright install --with-deps chromium
       - name: Build the image and start it with PostgreSQL
         run: docker compose --profile app up -d --build --wait
-      - name: Check that the API and the UI answer
-        run: |
-          curl -fsS http://localhost:8080/healthz
-          curl -fsS http://localhost:8080/ | grep -q '<div id="root">'
+      - run: e2e/run.sh
       - name: Show the logs
         if: failure()
         run: docker compose --profile app logs
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-traces
+          path: e2e/test-results/
