@@ -16,7 +16,7 @@ data would make adoption heavy, which [0002](0002-judge-never-orchestrate.md) ru
   need to name the project.
 - **Components**, **environments** and **versions** are created automatically the first time data
   refers to them, matched by name within the project (and, for versions, within the component).
-- Metadata sent later for an existing version (`commit`, `branch`, `tag`, `pullRequest`) fills in
+- Metadata sent later for an existing version (`commit`, `branch`, `tag`, `pullRequest`, `digest`) fills in
   missing fields. It never overwrites a field that is already set with a different value: that
   request is rejected, because it means two different builds share the same version identifier.
 
@@ -27,3 +27,6 @@ data would make adoption heavy, which [0002](0002-judge-never-orchestrate.md) ru
   rename, merge and archive them.
 - Version identifiers must be unique per component. Teams that reuse tags such as `latest` should
   send a unique version (for example the commit SHA) and put the tag in the metadata.
+- The same commit can produce different artifacts, for example when a base image is rebuilt.
+  Sending the `digest` makes Kollaudo reject results of a different artifact under the same version.
+- In a monorepo, one commit gives a version to each component it builds, and each is judged on its own.

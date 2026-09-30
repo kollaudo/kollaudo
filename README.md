@@ -24,6 +24,19 @@ It **collects their results and judges**.
 
 > ⚠️ Early development. Not ready for production use yet.
 
+## Who it's for
+
+Teams that ship several components through several environments, with tests at each step, and
+want one answer before promoting a version: *can it go?*
+
+- Your delivery is split across tools: one CI builds, another runs e2e tests, Argo CD or Flux
+  deploys, Kargo or a pipeline promotes, and testers sign off somewhere else.
+- You want promotion gates that don't depend on any one of them, and that you can move when you
+  change tools.
+- You want a missing test run to block a release, not to go unnoticed.
+
+If one CI system does all of this for you and its gates are enough, you probably don't need Kollaudo.
+
 ## What it does
 
 - **Tracks tests on deployed versions**: e2e, smoke, UAT and manual acceptance checks, per
@@ -45,6 +58,8 @@ Test results come from any framework and any CI, via open formats ([CTRF](https:
 - **Not a CI system.** It doesn't build your code.
 - **Not a test runner.** Your CI and your testers run the tests; Kollaudo receives the results.
 - **Not a deployment or promotion tool.** It doesn't deploy or promote anything; it tells your tools whether they should.
+- **Not a test management tool.** It doesn't store test cases or plan test campaigns. It records
+  the results and sign-offs that come out of them.
 - **Not a DORA or observability dashboard.** It decides whether a version is healthy,
   not how fast your team delivers.
 
@@ -59,7 +74,8 @@ Kollaudo's model is tool-agnostic. Every delivery process has these, whatever it
 | **Version** | whatever identifies what you test: a git SHA, a pull request build, an image tag, a release candidate, a semver tag, a Kargo Freight. It can carry its commit, branch, tag and pull request |
 | **Deployment** | "version X of component Y is now running in environment Z" |
 | **Test run** | results of a test session, tied to a version: on the build (unit, static analysis) or in an environment (e2e, smoke, UAT, manual) |
-| **Verdict** | *pass* or *fail* for a version in an environment, with the reasons |
+| **Verdict** | *pass*, *fail* or *unknown* for a version in an environment, with the reasons. *Unknown* means evidence is missing, and it never counts as a pass |
+| **Policy** | the rules a verdict applies: which kinds of test each environment requires, whether flaky tests count, how old a run can be |
 
 A **release** is simply a version you tagged and shipped: Kollaudo shows releases as a view over
 versions, not as a separate concept.
@@ -92,7 +108,8 @@ The verdict is just as generic: any promotion tool that can call a URL or run a 
 as a gate.
 
 ```bash
-kollaudo verdict --component api --env staging --version 1.4.2   # exit code 0 = pass, 1 = fail
+kollaudo verdict --component api --env staging --version 1.4.2
+# exit code 0 = pass, 1 = fail, 2 = unknown, 3 = no verdict (network, token, usage error)
 ```
 
 Ready-made **recipes** turn popular tools' events into those calls.
@@ -119,6 +136,9 @@ export KOLLAUDO_TOKEN=<ingest token>
 # e2e results from Playwright's CTRF reporter, run against staging
 npx @kollaudo/cli push ctrf-report.json \
   --component frontend --env staging --version 1.2.0
+
+# can 1.2.0 leave staging?
+npx @kollaudo/cli verdict --component frontend --env staging --version 1.2.0
 ```
 
 Then open the UI, add the project with its read token, and see the health of each component in
@@ -127,9 +147,11 @@ each environment.
 ## Roadmap
 
 1. **Tests on deployed versions** (the core)
-   - **v0.1**: CTRF ingest, CLI, component × environment health view
-   - **v0.2**: JUnit, deployments, verdict API, first recipes (GitHub Actions, Argo CD)
-   - **v0.3**: bugs linked to failed tests, UAT and manual acceptance checks
+   - **v0.1**: CTRF ingest, CLI, verdict API and `kollaudo verdict` with the default policy,
+     component × environment health view
+   - **v0.2**: policies as code, JUnit, deployments, first recipes (GitHub Actions, Argo CD)
+   - **v0.3**: bugs linked to failed tests, UAT sign-offs and manual check results from the tools
+     where testers work
    - **v0.4**: gate recipes (Kargo, CI step, GitHub deployment protection), CDEvents in/out
 2. **Build signals**: unit tests, coverage, static analysis and SARIF as version context
 3. **After production**: post-deploy checks, rollbacks and incidents linked to versions

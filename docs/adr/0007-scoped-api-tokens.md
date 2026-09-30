@@ -18,6 +18,9 @@ let them send fake ones. One person can also follow several projects on the same
 - Every token belongs to **one project** and has **one scope**:
   - `ingest`: can only send data (test runs, and later deployments and events);
   - `read`: can only read data through the API and the UI.
+- Asking for a verdict ([0013](0013-verdict-pass-fail-unknown.md)) is allowed with either scope.
+  A gate in CI can use the `ingest` token it already has, and the verdict only tells it the outcome
+  and the runs behind it, not the tests.
 - Tokens look like `kol_<random>`, with at least 256 bits of randomness. The prefix makes leaked
   tokens easy to recognize and to find with secret scanners.
 - Only a SHA-256 hash of each token is stored. A token is shown once, when it is created, and can be

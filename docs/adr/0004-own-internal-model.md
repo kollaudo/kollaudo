@@ -19,7 +19,8 @@ Kollaudo has its own data model, independent of any input format:
   preview environment for a pull request.
 - **Version**: an identifier chosen by the user for what is tested (git SHA, pull request build,
   image tag, release candidate, semver tag, Kargo Freight…), treated as an opaque string and unique
-  per component. It can carry optional metadata: `commit`, `branch`, `tag`, `pullRequest`.
+  per component. It can carry optional metadata: `commit`, `branch`, `tag`, `pullRequest`, and the `digest` of the
+  artifact that was built, such as a container image digest.
 - **Deployment**: a version of a component running in an environment, at a point in time.
 - **Test run**: results of a test session, tied to a component and a version. It has a *kind*
   (`unit`, `e2e`, `smoke`, `uat`, `manual`…) and belongs to one of two levels:
@@ -28,7 +29,9 @@ Kollaudo has its own data model, independent of any input format:
   - **environment level**, with an environment: tests on the deployed version (e2e, smoke, UAT,
     manual checks), whose result can differ between staging and production. They are the core of
     the verdict.
-- **Verdict**: *pass* or *fail* for a version in an environment, with the reasons.
+- **Verdict**: *pass*, *fail* or *unknown* for a version in an environment, with the reasons
+  ([0013](0013-verdict-pass-fail-unknown.md)).
+- **Policy**: the rules a verdict applies ([0014](0014-policy.md)).
 
 Input formats are converted into this model at the edge, by ingest adapters.
 
