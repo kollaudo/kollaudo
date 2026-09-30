@@ -1,7 +1,8 @@
 # Kollaudo server with its web UI. Build from the repository root:
 #   docker build -t kollaudo .
 
-FROM node:24-alpine AS build
+# The build runs on the machine's own platform: its output is JavaScript, the same on every platform.
+FROM --platform=$BUILDPLATFORM node:24-alpine AS build
 WORKDIR /src
 RUN corepack enable
 COPY . .

@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { HELP, run, VERSION } from "./run.ts";
 import { runWith } from "./testing.ts";
@@ -11,6 +12,11 @@ describe("kollaudo", () => {
 
   it("prints its version", async () => {
     expect(await runCli(["--version"])).toMatchObject({ code: 0, out: `${VERSION}\n` });
+  });
+
+  it("has the version of its package", () => {
+    const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+    expect(VERSION).toBe(pkg.version);
   });
 
   it("fails on an unknown command", async () => {

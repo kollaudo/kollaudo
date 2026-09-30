@@ -1,7 +1,8 @@
+import { readFileSync } from "node:fs";
 import { ApiError, Healthz, TestRunCreated } from "@kollaudo/schema";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createApp } from "./app.ts";
+import { createApp, VERSION } from "./app.ts";
 import { components, testResults, testRuns, versions } from "./db/schema.ts";
 import { createProject } from "./projects.ts";
 import { createTestDb } from "./testing.ts";
@@ -58,6 +59,11 @@ describe("GET /healthz", () => {
     const res = await app.request("/healthz");
     expect(res.status).toBe(200);
     expect(Healthz.parse(await res.json()).status).toBe("ok");
+  });
+
+  it("reports the version of the server package", () => {
+    const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+    expect(VERSION).toBe(pkg.version);
   });
 });
 

@@ -127,8 +127,6 @@ Ready-made **recipes** are complete examples for popular tools.
 
 ## Quick start
 
-*Coming with v0.1.* See the [v0.1 scope](docs/milestones/v0.1.md).
-
 ```bash
 curl -O https://raw.githubusercontent.com/kollaudo/kollaudo/main/deploy/docker-compose.yml
 docker compose up -d
@@ -145,8 +143,8 @@ npx @kollaudo/cli push ctrf-report.json \
 npx @kollaudo/cli verdict --component frontend --env staging --version 1.2.0
 ```
 
-Then open the UI, add the project with its read token, and see the health of each component in
-each environment.
+Then open http://localhost:8080, add the project with its read token, and see the health of each
+component in each environment.
 
 ## Roadmap
 
