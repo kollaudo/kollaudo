@@ -135,16 +135,18 @@ docker compose exec kollaudo kollaudo-server project create demo   # prints an i
 export KOLLAUDO_URL=http://localhost:8080
 export KOLLAUDO_TOKEN=<ingest token>
 
-# e2e results from Playwright's CTRF reporter, run against staging
-npx @kollaudo/cli push ctrf-report.json \
+# an example report of e2e tests run against staging, as Playwright's CTRF reporter writes it
+curl -O https://raw.githubusercontent.com/kollaudo/kollaudo/main/docs/examples/ctrf-report.json
+npx --yes @kollaudo/cli push ctrf-report.json \
   --component frontend --env staging --version 1.2.0
 
-# can 1.2.0 leave staging?
-npx @kollaudo/cli verdict --component frontend --env staging --version 1.2.0
+# can 1.2.0 leave staging? No: a test failed, so the verdict is FAIL and the exit code 1
+npx --yes @kollaudo/cli verdict --component frontend --env staging --version 1.2.0
 ```
 
-Then open http://localhost:8080, add the project with its read token, and see the health of each
-component in each environment.
+Then open http://localhost:8080, add the project with its **read** token, and see the health of
+each component in each environment. To send your own results, see
+[sending test results](docs/sending-results.md).
 
 ## Roadmap
 

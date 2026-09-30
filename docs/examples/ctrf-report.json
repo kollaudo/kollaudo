@@ -1,0 +1,50 @@
+{
+  "reportFormat": "CTRF",
+  "specVersion": "0.0.0",
+  "results": {
+    "tool": { "name": "playwright" },
+    "summary": { "tests": 5, "start": 1790755200000, "stop": 1790755262000 },
+    "tests": [
+      {
+        "name": "shows the latest products",
+        "status": "passed",
+        "duration": 1840,
+        "suite": "chromium > home.spec.ts > home",
+        "filePath": "tests/home.spec.ts"
+      },
+      {
+        "name": "signs in with email and password",
+        "status": "passed",
+        "duration": 2310,
+        "suite": "chromium > auth.spec.ts > sign in",
+        "filePath": "tests/auth.spec.ts",
+        "retries": 1,
+        "flaky": true
+      },
+      {
+        "name": "adds a product to the cart",
+        "status": "passed",
+        "duration": 3120,
+        "suite": "chromium > checkout.spec.ts > cart",
+        "filePath": "tests/checkout.spec.ts"
+      },
+      {
+        "name": "pays with a credit card",
+        "status": "failed",
+        "duration": 30000,
+        "suite": "chromium > checkout.spec.ts > payment",
+        "filePath": "tests/checkout.spec.ts",
+        "message": "Error: expect(page.getByText('Thank you for your order')).toBeVisible() failed\n\nTimeout: 30000ms",
+        "trace": "at tests/checkout.spec.ts:42:61",
+        "retries": 1
+      },
+      {
+        "name": "pays with a gift card",
+        "status": "skipped",
+        "duration": 0,
+        "suite": "chromium > checkout.spec.ts > payment",
+        "filePath": "tests/checkout.spec.ts"
+      }
+    ]
+  }
+}
