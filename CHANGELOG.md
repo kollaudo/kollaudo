@@ -4,6 +4,13 @@ Notable changes of each release. The format follows [Keep a Changelog](https://k
 and versions follow [Semantic Versioning](https://semver.org). Until 1.0, a minor version can break
 the API.
 
+## [Unreleased]
+
+### CLI
+
+- The npm package no longer lists `devDependencies` and build scripts, which pointed to the private
+  `@kollaudo/schema` package.
+
 ## [0.1.0] - 2026-09-30
 
 First release: send test results from any CI, gate promotions on the verdict, and see the health of

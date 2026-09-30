@@ -38,12 +38,13 @@ published by hand, before its tag. The workflow then sees it on npm and skips it
 
    ```bash
    pnpm install && pnpm --filter @kollaudo/cli build
-   cd packages/cli && pnpm pack
+   cd packages/cli && npm pkg delete devDependencies scripts && pnpm pack
    npm login
    npm publish kollaudo-cli-0.1.0.tgz --access public
    ```
 
-   `pnpm pack` replaces the `workspace:` versions, which `npm publish` wouldn't understand.
+   The published manifest has no `devDependencies`, which point to private workspace packages such
+   as `@kollaudo/schema`, and no `scripts`. Run `git restore package.json` afterwards.
 3. In the settings of `@kollaudo/cli` on npmjs.com, add a trusted publisher: GitHub Actions,
    organization `kollaudo`, repository `kollaudo`, workflow `release.yml`, and allow `npm publish`.
    Then, under *Publishing access*, require two-factor authentication and disallow tokens: only the

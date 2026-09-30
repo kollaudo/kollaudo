@@ -92,7 +92,9 @@ jobs:
             echo "@kollaudo/cli $VERSION is already on npm: nothing to publish."
             exit 0
           fi
-          # pnpm pack replaces workspace: versions, then npm publishes with OIDC.
+          # Only what users need: devDependencies point to private workspace packages, such as
+          # @kollaudo/schema, and the scripts build from sources that aren't published.
+          npm pkg delete devDependencies scripts
           pnpm pack
           tag=$([[ $VERSION == *-* ]] && echo next || echo latest)
           npm publish "kollaudo-cli-$VERSION.tgz" --access public --tag "$tag"
