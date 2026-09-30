@@ -14,6 +14,9 @@ const VersionName = z.string().min(1).max(255).regex(/^\S+$/, "Must not contain 
 
 const Metadata = z.string().min(1).max(255);
 
+/** Kinds of test run, such as `e2e`. */
+export const KIND_PATTERN = "[a-z][a-z0-9-]{0,31}";
+
 export const TestRunInput = z
   .object({
     component: Name.meta({ example: "frontend" }),
@@ -24,13 +27,17 @@ export const TestRunInput = z
     }),
     kind: z
       .string()
-      .regex(/^[a-z][a-z0-9-]{0,31}$/)
+      .regex(new RegExp(`^${KIND_PATTERN}$`))
       .default("e2e")
       .meta({ description: "unit, e2e, smoke, uat, manual…", example: "e2e" }),
     commit: Metadata.optional(),
     branch: Metadata.optional(),
     tag: Metadata.optional(),
     pullRequest: Metadata.optional(),
+    digest: Metadata.optional().meta({
+      description: "Digest of the artifact that was built, such as a container image digest.",
+      example: "sha256:4f5c2d7e…",
+    }),
     report: CtrfReport,
   })
   .meta({ id: "TestRunInput" });
@@ -68,6 +75,7 @@ export const TestRun = TestRunCreated.extend({
   branch: z.string().nullable(),
   tag: z.string().nullable(),
   pullRequest: z.string().nullable(),
+  digest: z.string().nullable(),
   tool: z.string().nullable().meta({ example: "playwright" }),
   startedAt: Timestamp.nullable(),
   finishedAt: Timestamp.nullable(),

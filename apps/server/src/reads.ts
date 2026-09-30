@@ -12,7 +12,7 @@ import { components, environments, testResults, testRuns, versions } from "./db/
 
 type Query = z.output<typeof TestRunQuery>;
 
-const runColumns = {
+export const runColumns = {
   id: testRuns.id,
   component: components.name,
   version: versions.name,
@@ -22,6 +22,7 @@ const runColumns = {
   branch: versions.branch,
   tag: versions.tag,
   pullRequest: versions.pullRequest,
+  digest: versions.digest,
   tool: testRuns.tool,
   startedAt: testRuns.startedAt,
   finishedAt: testRuns.finishedAt,
@@ -48,7 +49,7 @@ function selectRuns(db: Db, projectId: string, ...conditions: (SQL | undefined)[
 
 type RunRow = Awaited<ReturnType<typeof selectRuns>>[number];
 
-function toTestRun(row: RunRow): TestRun {
+export function toTestRun(row: RunRow): TestRun {
   const { tests, passed, failed, skipped, pending, other, flaky, ...run } = row;
   return {
     ...run,

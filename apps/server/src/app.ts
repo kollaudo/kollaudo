@@ -10,6 +10,8 @@ import {
   TestRunInput,
   TestRunList,
   TestRunQuery,
+  Verdict,
+  VerdictQuery,
 } from "@kollaudo/schema";
 import { eq } from "drizzle-orm";
 import { bodyLimit } from "hono/body-limit";
@@ -21,6 +23,7 @@ import { projects } from "./db/schema.ts";
 import { errorResponse, HttpError, validationResponse } from "./errors.ts";
 import { ingestTestRun } from "./ingest.ts";
 import { getHealth, getTestRun, listTestRuns } from "./reads.ts";
+import { getVerdict } from "./verdict.ts";
 
 export const VERSION = "0.0.0";
 
@@ -55,7 +58,8 @@ export function createApp({ db, webDir }: AppOptions) {
   app.openAPIRegistry.registerComponent("securitySchemes", "token", {
     type: "http",
     scheme: "bearer",
-    description: "A project API token: `ingest` to send data, `read` to read it.",
+    description:
+      "A project API token: `ingest` to send data and get verdicts, `read` to read everything.",
   });
 
   app.use(
@@ -171,6 +175,23 @@ export function createApp({ db, webDir }: AppOptions) {
       },
     }),
     async (c) => c.json(await getHealth(db, c.var.projectId), 200),
+  );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/v1/verdict",
+      summary: "Verdict of a version in an environment",
+      description:
+        "`pass`, `fail` or `unknown`, with the reasons for each kind of test. A version, component " +
+        "or environment Kollaudo has never seen is `unknown`: evidence is missing. Accepts `read` " +
+        "and `ingest` tokens, so a CI gate can use the token it sends results with.",
+      security: [{ token: [] }],
+      middleware: [requireScope(db, "read", "ingest")] as const,
+      request: { query: VerdictQuery },
+      responses: { 200: json(Verdict, "The verdict"), ...errors },
+    }),
+    async (c) => c.json(await getVerdict(db, c.var.projectId, c.req.valid("query")), 200),
   );
 
   app.doc31("/v1/openapi.json", {

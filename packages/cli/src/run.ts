@@ -1,15 +1,17 @@
 import { parseArgs } from "node:util";
 import type { Io } from "./io.ts";
 import { push } from "./push.ts";
+import { verdict } from "./verdict.ts";
 
 export const VERSION = "0.0.0";
 
 export const HELP = `Usage: kollaudo <command> [options]
 
-Send test results to Kollaudo from any CI or script.
+Send test results to Kollaudo and gate promotions on its verdict, from any CI or script.
 
 Commands:
   push <report>   Send a CTRF test report
+  verdict         Ask whether a version is healthy in an environment
 
 Options:
   -h, --help      Show this help
@@ -26,6 +28,7 @@ Run "kollaudo <command> --help" for the options of a command.
 export async function run(args: string[], io: Io): Promise<number> {
   // Commands parse their own options: `push --version` is the version under test, not the CLI's.
   if (args[0] === "push") return push(args.slice(1), io);
+  if (args[0] === "verdict") return verdict(args.slice(1), io);
 
   let parsed: ReturnType<typeof parse>;
   try {

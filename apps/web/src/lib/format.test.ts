@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { duration, shortVersion, timeAgo } from "./format.ts";
+import { duration, shortDigest, shortVersion, timeAgo } from "./format.ts";
 
 describe("timeAgo", () => {
   const now = Date.parse("2026-09-29T12:00:00Z");
@@ -26,5 +26,12 @@ describe("shortVersion", () => {
     expect(shortVersion("a1b2c3d4e5f60718293a4b5c6d7e8f9012345678")).toBe("a1b2c3d");
     expect(shortVersion("1.2.0")).toBe("1.2.0");
     expect(shortVersion("a1b2c3d")).toBe("a1b2c3d");
+  });
+});
+
+describe("shortDigest", () => {
+  it("keeps the algorithm and 12 hex digits", () => {
+    expect(shortDigest(`sha256:4f5c2d7e8a1b${"0".repeat(52)}`)).toBe("sha256:4f5c2d7e8a1b");
+    expect(shortDigest("sha256:4f5c")).toBe("sha256:4f5c");
   });
 });

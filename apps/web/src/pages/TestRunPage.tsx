@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Counts } from "../components/Counts.tsx";
 import { Message } from "../components/Message.tsx";
 import { type ApiRequestError, apiGet } from "../lib/api.ts";
-import { duration, shortVersion, timeAgo } from "../lib/format.ts";
+import { duration, shortDigest, shortVersion, timeAgo } from "../lib/format.ts";
 import { type SavedProject, selectProject, useProjects } from "../lib/projects.ts";
 import { groupBySuite } from "../lib/results.ts";
 import { Link } from "../lib/router.tsx";
@@ -63,6 +63,7 @@ export function TestRunPage({ id }: { id: string }) {
         <Meta label="Branch" value={run.branch} />
         <Meta label="Tag" value={run.tag} />
         <Meta label="Pull request" value={run.pullRequest} />
+        <Meta label="Digest" value={run.digest && shortDigest(run.digest)} />
       </dl>
 
       <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">

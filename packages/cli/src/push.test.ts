@@ -43,6 +43,8 @@ describe("kollaudo push", () => {
         "a1b2c3",
         "--pull-request",
         "42",
+        "--digest",
+        "sha256:4f5c",
       ],
       { env, files, fetch },
     );
@@ -66,6 +68,7 @@ describe("kollaudo push", () => {
       kind: "smoke",
       commit: "a1b2c3",
       pullRequest: "42",
+      digest: "sha256:4f5c",
       report,
     });
   });

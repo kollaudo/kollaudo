@@ -176,6 +176,17 @@ describe("POST /v1/test-runs", () => {
     expect(ApiError.parse(await res.json()).error.code).toBe("version_conflict");
   });
 
+  it("refuses results of another artifact under the same version", async () => {
+    const send = (digest: string) =>
+      post({ component: "frontend", version: "1.2.0", digest, report: report([]) });
+
+    expect((await send("sha256:aaa")).status).toBe(201);
+    expect((await send("sha256:aaa")).status).toBe(201);
+    const res = await send("sha256:bbb");
+    expect(res.status).toBe(409);
+    expect(ApiError.parse(await res.json()).error.message).toContain('digest "sha256:aaa"');
+  });
+
   it("rejects an invalid report with the path of each problem", async () => {
     const res = await post({
       component: "frontend",

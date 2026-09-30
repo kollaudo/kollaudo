@@ -31,3 +31,9 @@ export function duration(ms: number) {
 export function shortVersion(version: string) {
   return /^[0-9a-f]{40}([0-9a-f]{24})?$/.test(version) ? version.slice(0, 7) : version;
 }
+
+/** "sha256:4f5c2d7e8a1b…" keeps the algorithm and 12 hex digits, like container tools do. */
+export function shortDigest(digest: string) {
+  const match = /^([a-z0-9]+):([0-9a-f]{12})[0-9a-f]{20,}$/.exec(digest);
+  return match ? `${match[1]}:${match[2]}` : digest;
+}

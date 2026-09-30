@@ -1,5 +1,6 @@
 import { parseArgs } from "node:util";
-import type { ApiError, TestRunCreated, TestRunInput } from "@kollaudo/schema";
+import type { TestRunCreated, TestRunInput } from "@kollaudo/schema";
+import { call, describeError, server } from "./api.ts";
 import type { Io } from "./io.ts";
 
 export const PUSH_HELP = `Usage: kollaudo push <report> --component <name> --version <version> [options]
@@ -17,6 +18,7 @@ Options:
   --branch <name>        Branch of the version
   --tag <tag>            Git tag of the version
   --pull-request <id>    Pull request of the version
+  --digest <digest>      Digest of the built artifact, such as a container image digest
   -h, --help             Show this help
 
 Environment:
@@ -59,10 +61,8 @@ export async function push(args: string[], io: Io): Promise<number> {
     return 1;
   }
 
-  const url = io.env.KOLLAUDO_URL?.replace(/\/+$/, "");
-  const token = io.env.KOLLAUDO_TOKEN;
-  if (!url) return fail("Set KOLLAUDO_URL to the URL of your Kollaudo server.");
-  if (!token) return fail("Set KOLLAUDO_TOKEN to an ingest token of your project.");
+  const target = server(io, "an ingest token");
+  if (typeof target === "string") return fail(target);
 
   const [file] = positionals as [string];
   let report: unknown;
@@ -82,50 +82,26 @@ export async function push(args: string[], io: Io): Promise<number> {
     branch: values.branch,
     tag: values.tag,
     pullRequest: values["pull-request"],
+    digest: values.digest,
     report: report as TestRunInput["report"],
   } satisfies TestRunInput;
 
-  let response: Response;
+  let answer: Awaited<ReturnType<typeof call>>;
   try {
-    response = await io.fetch(`${url}/v1/test-runs`, {
+    answer = await call(io, target, "/v1/test-runs", {
       method: "POST",
-      headers: {
-        authorization: `Bearer ${token}`,
-        "content-type": "application/json",
-        "user-agent": "kollaudo-cli",
-      },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(TIMEOUT_MS),
+      timeoutMs: TIMEOUT_MS,
     });
   } catch (error) {
-    const cause = (error as Error & { cause?: Error }).cause?.message ?? (error as Error).message;
-    return fail(`Can't reach Kollaudo at ${url}: ${cause}`);
+    return fail((error as Error).message);
   }
-
-  const text = await response.text();
+  const { response, text } = answer;
   if (!response.ok) return fail(describeError(response, text, file));
 
   const run = JSON.parse(text) as TestRunCreated;
-  io.out(`${summary(run)}\n${url}/test-runs/${run.id}\n`);
+  io.out(`${summary(run)}\n${target.url}/test-runs/${run.id}\n`);
   return 0;
-}
-
-function describeError(response: Response, text: string, file: string) {
-  let error: ApiError["error"] | undefined;
-  try {
-    error = (JSON.parse(text) as ApiError).error;
-  } catch {
-    // Not a Kollaudo error: a proxy, a wrong URL…
-  }
-  if (!error?.message) {
-    return `Kollaudo answered ${response.status} ${response.statusText}. Is KOLLAUDO_URL right?`;
-  }
-
-  const issues = (error.issues ?? []).map(({ path, message }) => {
-    const where = path.startsWith("report.") ? `${file}: ${path.slice("report.".length)}` : path;
-    return `\n  ${where}: ${message}`;
-  });
-  return `${error.message} (${response.status} ${error.code})${issues.join("")}`;
 }
 
 function summary(run: TestRunCreated) {
@@ -153,6 +129,7 @@ function parse(args: string[]) {
       branch: { type: "string" },
       tag: { type: "string" },
       "pull-request": { type: "string" },
+      digest: { type: "string" },
       help: { type: "boolean", short: "h" },
     },
   });

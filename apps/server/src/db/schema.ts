@@ -79,6 +79,8 @@ export const versions = pgTable(
     branch: text(),
     tag: text(),
     pullRequest: text(),
+    /** Digest of the built artifact, such as a container image digest. */
+    digest: text(),
     createdAt: createdAt(),
   },
   (t) => [unique().on(t.componentId, t.name)],

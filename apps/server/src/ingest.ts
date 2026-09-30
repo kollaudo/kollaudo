@@ -141,7 +141,7 @@ async function environmentIdFor(tx: Executor, projectId: string, name: string) {
   return row.id;
 }
 
-const METADATA = ["commit", "branch", "tag", "pullRequest"] as const;
+const METADATA = ["commit", "branch", "tag", "pullRequest", "digest"] as const;
 
 /**
  * Finds or creates a version. Metadata fills in missing fields, but never changes a field that is
