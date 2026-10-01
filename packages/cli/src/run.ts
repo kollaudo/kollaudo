@@ -1,4 +1,5 @@
 import { parseArgs } from "node:util";
+import { deployed } from "./deployed.ts";
 import type { Io } from "./io.ts";
 import { push } from "./push.ts";
 import { verdict } from "./verdict.ts";
@@ -12,6 +13,7 @@ Send test results to Kollaudo and gate promotions on its verdict, from any CI or
 
 Commands:
   push <report>   Send test results: CTRF or JUnit reports
+  deployed        Record that a version now runs in an environment
   verdict         Ask whether a version is healthy in an environment
 
 Options:
@@ -29,6 +31,7 @@ Run "kollaudo <command> --help" for the options of a command.
 export async function run(args: string[], io: Io): Promise<number> {
   // Commands parse their own options: `push --version` is the version under test, not the CLI's.
   if (args[0] === "push") return push(args.slice(1), io);
+  if (args[0] === "deployed") return deployed(args.slice(1), io);
   if (args[0] === "verdict") return verdict(args.slice(1), io);
 
   let parsed: ReturnType<typeof parse>;
