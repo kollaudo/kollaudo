@@ -184,6 +184,7 @@ Ready-made **recipes** are complete examples for popular tools.
 | GitHub Actions | planned |
 | Argo CD notifications | planned |
 | Kargo verification gate | planned |
+| Backstage plugin | planned |
 | Flux, GitLab, Argo Rollouts, Flagger, Spinnaker… | contributions welcome |
 
 ## Roadmap
@@ -197,6 +198,10 @@ Ready-made **recipes** are complete examples for popular tools.
    - **v0.4**: gate recipes (Kargo, CI step, GitHub deployment protection), CDEvents in/out
 2. **Build signals**: unit tests, coverage, static analysis and SARIF as version context
 3. **After production**: post-deploy checks, rollbacks and incidents linked to versions
+4. **Where teams already look**: a [Backstage](https://backstage.io) plugin that shows, on the page
+   of each component in the catalog, its environments and the verdict of its latest versions. It
+   reads `/v1/health` and `/v1/verdict`, and an annotation in `catalog-info.yaml`, such as
+   `kollaudo/component: api`, links the two catalogs
 
 ## Design decisions
 
