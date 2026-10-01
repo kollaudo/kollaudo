@@ -20,6 +20,11 @@ the API.
   its outcome.
 - Several instances can start together on the same database: they take turns to run the migrations.
 
+### Web UI
+
+- The health matrix shows the version that runs in each environment, marks test runs of another
+  version, and shows deployed versions with no tests yet.
+
 ### CLI
 
 - `kollaudo deployed` records a deployment, after your deployment tool did it.

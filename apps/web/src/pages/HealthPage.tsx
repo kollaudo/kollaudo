@@ -1,4 +1,4 @@
-import type { HealthMatrix, TestRun } from "@kollaudo/schema";
+import type { Deployment, HealthMatrix, TestRun } from "@kollaudo/schema";
 import { Counts } from "../components/Counts.tsx";
 import { Message } from "../components/Message.tsx";
 import { shortVersion, timeAgo } from "../lib/format.ts";
@@ -39,6 +39,8 @@ export function HealthPage() {
     data.latest.filter(
       (run) => run.component === component && (run.environment ?? BUILD) === column,
     );
+  const deployedIn = (component: string, column: string) =>
+    data.deployed.find((d) => d.component === component && d.environment === column);
 
   return (
     <>
@@ -59,15 +61,23 @@ export function HealthPage() {
             {data.components.map((component) => (
               <tr key={component}>
                 <th className="px-2 text-left align-top font-medium">{component}</th>
-                {columns.map((column) => (
-                  <td key={column} className="min-w-48 align-top">
-                    <div className="flex flex-col gap-2">
-                      {cell(component, column).map((run) => (
-                        <RunCard key={run.id} run={run} />
-                      ))}
-                    </div>
-                  </td>
-                ))}
+                {columns.map((column) => {
+                  const runs = cell(component, column);
+                  const deployed = deployedIn(component, column);
+                  return (
+                    <td key={column} className="min-w-48 align-top">
+                      <div className="flex flex-col gap-2">
+                        {deployed && <DeployedLine deployment={deployed} />}
+                        {runs.map((run) => (
+                          <RunCard key={run.id} run={run} deployed={deployed} />
+                        ))}
+                        {deployed && !runs.some((run) => run.version === deployed.version) && (
+                          <NotTested deployment={deployed} />
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>
@@ -84,7 +94,39 @@ const CARD: Record<Outcome, string> = {
   empty: "shadow-[inset_4px_0_0_var(--color-muted)]",
 };
 
-function RunCard({ run }: { run: TestRun }) {
+/** What runs in the environment now. */
+function DeployedLine({ deployment }: { deployment: Deployment }) {
+  const by = deployment.tool ? ` with ${deployment.tool}` : "";
+  return (
+    <div
+      className="flex items-baseline gap-1.5 px-1 text-xs text-muted"
+      title={`Deployed ${new Date(deployment.deployedAt).toLocaleString()}${by}`}
+    >
+      <span aria-hidden="true">▸</span>
+      <span>
+        runs{" "}
+        <span className="font-mono text-neutral-900 dark:text-neutral-100">
+          {shortVersion(deployment.version)}
+        </span>
+        {" · "}
+        {timeAgo(deployment.deployedAt)}
+      </span>
+    </div>
+  );
+}
+
+/** The deployed version has no test run in this environment. */
+function NotTested({ deployment }: { deployment: Deployment }) {
+  return (
+    <div className="rounded-md border border-dashed border-neutral-300 py-2 pr-3 pl-4 text-xs text-muted dark:border-neutral-700">
+      No tests of <span className="font-mono">{shortVersion(deployment.version)}</span> here yet
+    </div>
+  );
+}
+
+function RunCard({ run, deployed }: { run: TestRun; deployed?: Deployment }) {
+  // The tests judged a version that doesn't run here: an older one, or one not deployed yet.
+  const stale = deployed !== undefined && deployed.version !== run.version;
   return (
     <Link
       href={`/test-runs/${run.id}`}
@@ -102,6 +144,7 @@ function RunCard({ run }: { run: TestRun }) {
       <div className="mt-1 text-xs text-muted" title={new Date(run.createdAt).toLocaleString()}>
         {timeAgo(run.createdAt)}
       </div>
+      {stale && <div className="mt-1 text-xs text-flaky">Not the version running here</div>}
     </Link>
   );
 }
