@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="shop.SearchTest" tests="6" skipped="0" failures="4" errors="0" timestamp="2026-10-01T12:56:54.423Z" hostname="394d3797fd08" time="1.249">
+  <properties/>
+  <testcase name="handlesAccents()" classname="shop.SearchTest" time="0.026">
+    <failure message="org.opentest4j.AssertionFailedError: accents are kept ==&gt; expected: &lt;caffe&gt; but was: &lt;caffè&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: accents are kept ==&gt; expected: &lt;caffe&gt; but was: &lt;caffè&gt;
+	at app//org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at app//org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at app//org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at app//org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:182)
+	at app//org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1156)
+	at app//shop.SearchTest.handlesAccents(SearchTest.java:17)
+	at java.base@21.0.12.1/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base@21.0.12.1/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base@21.0.12.1/java.util.ArrayList.forEach(ArrayList.java:1596)
+</failure>
+  </testcase>
+  <testcase name="findsByName()" classname="shop.SearchTest" time="0.0"/>
+  <testcase name="ranksBestSellersFirst()" classname="shop.SearchTest" time="0.004">
+    <failure message="org.opentest4j.AssertionFailedError: index not warm yet ==&gt; expected: &lt;true&gt; but was: &lt;false&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: index not warm yet ==&gt; expected: &lt;true&gt; but was: &lt;false&gt;
+	at app//org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at app//org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at app//org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at app//org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at app//org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:214)
+	at app//shop.SearchTest.ranksBestSellersFirst(SearchTest.java:14)
+	at java.base@21.0.12.1/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base@21.0.12.1/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base@21.0.12.1/java.util.ArrayList.forEach(ArrayList.java:1596)
+</failure>
+  </testcase>
+  <testcase name="handlesAccents()" classname="shop.SearchTest" time="0.026">
+    <failure message="org.opentest4j.AssertionFailedError: accents are kept ==&gt; expected: &lt;caffe&gt; but was: &lt;caffè&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: accents are kept ==&gt; expected: &lt;caffe&gt; but was: &lt;caffè&gt;
+	at app//org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at app//org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at app//org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at app//org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:182)
+	at app//org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1156)
+	at app//shop.SearchTest.handlesAccents(SearchTest.java:17)
+	at java.base@21.0.12.1/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base@21.0.12.1/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base@21.0.12.1/java.util.ArrayList.forEach(ArrayList.java:1596)
+</failure>
+  </testcase>
+  <testcase name="ranksBestSellersFirst()" classname="shop.SearchTest" time="0.004"/>
+  <testcase name="handlesAccents()" classname="shop.SearchTest" time="0.026">
+    <failure message="org.opentest4j.AssertionFailedError: accents are kept ==&gt; expected: &lt;caffe&gt; but was: &lt;caffè&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: accents are kept ==&gt; expected: &lt;caffe&gt; but was: &lt;caffè&gt;
+	at app//org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at app//org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at app//org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at app//org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:182)
+	at app//org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1156)
+	at app//shop.SearchTest.handlesAccents(SearchTest.java:17)
+	at java.base@21.0.12.1/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base@21.0.12.1/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base@21.0.12.1/java.util.ArrayList.forEach(ArrayList.java:1596)
+</failure>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

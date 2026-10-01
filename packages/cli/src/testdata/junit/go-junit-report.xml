@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="5" failures="1" skipped="1">
+	<testsuite name="example.com/shop" tests="5" failures="1" errors="0" id="0" hostname="1d90459bc934" skipped="1" time="0.002" timestamp="2026-10-01T12:57:58Z">
+		<testcase name="TestCreatesAnOrder" classname="example.com/shop" time="0.000"></testcase>
+		<testcase name="TestRejectsAnEmptyCart" classname="example.com/shop" time="0.000">
+			<failure message="Failed"><![CDATA[    orders_test.go:8: expected status 400, got 201]]></failure>
+		</testcase>
+		<testcase name="TestShipping" classname="example.com/shop" time="0.000"></testcase>
+		<testcase name="TestShipping/express" classname="example.com/shop" time="0.000"></testcase>
+		<testcase name="TestShipping/pickup" classname="example.com/shop" time="0.000">
+			<skipped message="Skipped"><![CDATA[    orders_test.go:13: no pickup points in the test data]]></skipped>
+		</testcase>
+	</testsuite>
+</testsuites>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="1" failures="1" skipped="1" tests="5" time="0.034" timestamp="2026-10-01T12:55:16.318830+00:00" hostname="7f2fc8dd0064"><testcase classname="test_shop.TestCart" name="test_adds_a_product" time="0.000" /><testcase classname="test_shop.TestCart" name="test_total_includes_vat" time="0.001"><failure message="AssertionError: VAT is 22%&#10;assert 12.2 == 12.0&#10; +  where 12.2 = round((10 * 1.22), 2)">self = &lt;test_shop.TestCart object at 0x7d734c85a0d0&gt;
+
+    def test_total_includes_vat(self):
+&gt;       assert round(10 * 1.22, 2) == 12.0, "VAT is 22%"
+E       AssertionError: VAT is 22%
+E       assert 12.2 == 12.0
+E        +  where 12.2 = round((10 * 1.22), 2)
+
+test_shop.py:8: AssertionError</failure></testcase><testcase classname="test_shop.TestCart" name="test_pays_with_a_card" time="0.000"><skipped type="pytest.skip" message="payments sandbox is down">/w/test_shop.py:10: payments sandbox is down</skipped></testcase><testcase classname="test_shop" name="test_crashes_in_setup" time="0.000"><error message="failed on setup with &quot;RuntimeError: database not reachable&quot;">@pytest.fixture
+    def broken():
+&gt;       raise RuntimeError("database not reachable")
+E       RuntimeError: database not reachable
+
+test_shop.py:19: RuntimeError</error></testcase><testcase classname="test_shop" name="test_flaky_search" time="0.001" /></testsuite></testsuites>

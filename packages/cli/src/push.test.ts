@@ -159,11 +159,96 @@ describe("kollaudo push", () => {
 
   it("needs a report, a component and a version", async () => {
     expect((await runWith(run, ["push", "--component", "a", "--version", "1"])).err).toContain(
-      "Give exactly one report file.",
+      "Give at least one report file.",
     );
     expect((await runWith(run, ["push", "report.json"])).err).toContain(
       "Missing --component and --version.",
     );
+  });
+
+  describe("JUnit and several files", () => {
+    const junit = (name: string, status = "") =>
+      `<testsuite name="${name}"><testcase classname="${name}" name="works" time="0.5">${status}</testcase></testsuite>`;
+    const reports = {
+      "results/unit/a.xml": junit("a"),
+      "results/unit/b.xml": junit("b", '<failure message="boom"/>'),
+      "results/e2e.json": JSON.stringify(report),
+      "shard-1.json": JSON.stringify({
+        results: {
+          tool: { name: "playwright" },
+          summary: { tests: 1, start: 20 },
+          tests: [{ name: "one", status: "passed", duration: 1 }],
+        },
+      }),
+      "shard-2.json": JSON.stringify({
+        results: {
+          tool: { name: "playwright" },
+          summary: { tests: 1, start: 10 },
+          tests: [{ name: "two", status: "failed", duration: 2 }],
+        },
+      }),
+    };
+    const sent = (requests: { init: RequestInit }[]) =>
+      JSON.parse(requests[0]?.init.body as string);
+    const flags = ["--component", "api", "--version", "3f2a9c1", "--kind", "unit"];
+
+    it("converts JUnit files matched by a pattern into one CTRF report", async () => {
+      const { requests, fetch } = server(201, { ...created, kind: "unit", environment: null });
+      const result = await runWith(
+        run,
+        ["push", "results/unit/*.xml", ...flags, "--tool", "maven"],
+        {
+          env,
+          files: reports,
+          fetch,
+        },
+      );
+
+      expect(result.code).toBe(0);
+      expect(result.out).toMatch(
+        /^Sent 42 tests \(unit\) from 2 JUnit files for frontend 1\.2\.0: /,
+      );
+      const body = sent(requests);
+      expect(body.report.results.tool).toEqual({ name: "maven" });
+      expect(body.report.results.tests).toEqual([
+        { name: "works", status: "passed", duration: 500, suite: ["a"] },
+        { name: "works", status: "failed", duration: 500, suite: ["b"], message: "boom" },
+      ]);
+    });
+
+    it("merges CTRF reports, such as the shards of a Playwright run", async () => {
+      const { requests, fetch } = server(201, created);
+      const result = await runWith(run, ["push", "shard-1.json", "shard-2.json", ...flags], {
+        env,
+        files: reports,
+        fetch,
+      });
+
+      expect(result.out).toContain("from 2 CTRF files");
+      expect(sent(requests).report.results).toMatchObject({
+        tool: { name: "playwright" },
+        summary: { tests: 2, start: 10 },
+        tests: [{ name: "one" }, { name: "two" }],
+      });
+    });
+
+    it("refuses to mix formats, and patterns that match nothing", async () => {
+      const mixed = await runWith(run, ["push", "results/**/*", ...flags], { env, files: reports });
+      const none = await runWith(run, ["push", "out/*.xml", ...flags], { env, files: reports });
+      const notJunit = await runWith(run, ["push", "pom.xml", ...flags], {
+        env,
+        files: { "pom.xml": "<project/>" },
+      });
+
+      expect(mixed).toMatchObject({ code: 1, out: "" });
+      expect(mixed.err).toBe(
+        "Error: Send CTRF and JUnit files in separate pushes: they make separate runs.\n",
+      );
+      expect(none.err).toBe("Error: No file matches out/*.xml.\n");
+      expect(notJunit.err).toBe(
+        "Error: pom.xml isn't a JUnit report: it has no <testsuites> or <testsuite>.\n",
+      );
+    });
   });
 
   it("prints its help", async () => {

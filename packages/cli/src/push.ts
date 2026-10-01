@@ -2,11 +2,14 @@ import { parseArgs } from "node:util";
 import type { TestRunCreated, TestRunInput } from "@kollaudo/schema";
 import { call, describeError, server } from "./api.ts";
 import type { Io } from "./io.ts";
+import { JunitError } from "./junit.ts";
+import { type Loaded, loadReport, ReportError } from "./reports.ts";
 
-export const PUSH_HELP = `Usage: kollaudo push <report> --component <name> --version <version> [options]
+export const PUSH_HELP = `Usage: kollaudo push <report>... --component <name> --version <version> [options]
 
-Send a CTRF test report to Kollaudo. Exits with 0 when Kollaudo accepts the report, even if some
-tests failed: failing the pipeline on test results is the job of your test runner.
+Send test results to Kollaudo, as CTRF reports (JSON) or JUnit reports (XML). Several files, or
+glob patterns in quotes, make one test run. Exits with 0 when Kollaudo accepts the results, even if
+some tests failed: failing the pipeline on test results is the job of your test runner.
 
 Options:
   --component <name>     Component under test, such as "frontend" (required)
@@ -19,14 +22,17 @@ Options:
   --tag <tag>            Git tag of the version
   --pull-request <id>    Pull request of the version
   --digest <digest>      Digest of the built artifact, such as a container image digest
+  --tool <name>          Tool that ran the tests, such as "pytest". JUnit reports don't say it
+                         (default: junit)
   -h, --help             Show this help
 
 Environment:
   KOLLAUDO_URL    URL of your Kollaudo server (required)
   KOLLAUDO_TOKEN  An ingest token of your project (required)
 
-Example:
+Examples:
   kollaudo push ctrf-report.json --component frontend --env staging --version 1.2.0
+  kollaudo push "test-results/**/*.xml" --component api --version 3f2a9c1 --kind unit --tool maven
 `;
 
 /** How long to wait for Kollaudo. Large reports can take a while to store. */
@@ -51,8 +57,8 @@ export async function push(args: string[], io: Io): Promise<number> {
     io.out(PUSH_HELP);
     return 0;
   }
-  if (positionals.length !== 1) {
-    io.err(`Give exactly one report file.\n\n${PUSH_HELP}`);
+  if (positionals.length === 0) {
+    io.err(`Give at least one report file.\n\n${PUSH_HELP}`);
     return 1;
   }
   const missing = (["component", "version"] as const).filter((name) => !values[name]);
@@ -64,14 +70,15 @@ export async function push(args: string[], io: Io): Promise<number> {
   const target = server(io, "an ingest token");
   if (typeof target === "string") return fail(target);
 
-  const [file] = positionals as [string];
-  let report: unknown;
+  let loaded: Loaded;
   try {
-    report = JSON.parse(await io.readFile(file));
+    loaded = await loadReport(positionals, io, values.tool);
   } catch (error) {
-    const reason = error instanceof SyntaxError ? "it isn't valid JSON" : (error as Error).message;
-    return fail(`Can't read ${file}: ${reason}`);
+    if (error instanceof ReportError || error instanceof JunitError) return fail(error.message);
+    throw error;
   }
+  // Errors in the report point to the file, when there is one file as it was sent.
+  const file = loaded.format === "CTRF" && loaded.files.length === 1 ? loaded.files[0] : undefined;
 
   const body = {
     component: values.component as string,
@@ -83,7 +90,7 @@ export async function push(args: string[], io: Io): Promise<number> {
     tag: values.tag,
     pullRequest: values["pull-request"],
     digest: values.digest,
-    report: report as TestRunInput["report"],
+    report: loaded.report as TestRunInput["report"],
   } satisfies TestRunInput;
 
   let answer: Awaited<ReturnType<typeof call>>;
@@ -100,18 +107,22 @@ export async function push(args: string[], io: Io): Promise<number> {
   if (!response.ok) return fail(describeError(response, text, file));
 
   const run = JSON.parse(text) as TestRunCreated;
-  io.out(`${summary(run)}\n${target.url}/test-runs/${run.id}\n`);
+  io.out(`${summary(run, loaded)}\n${target.url}/test-runs/${run.id}\n`);
   return 0;
 }
 
-function summary(run: TestRunCreated) {
+function summary(run: TestRunCreated, { format, files }: Loaded) {
   const { tests, passed, failed, skipped, pending, other, flaky } = run.summary;
   const counts = Object.entries({ passed, failed, skipped, pending, other, flaky })
     .filter(([name, count]) => count > 0 || name === "passed" || name === "failed")
     .map(([name, count]) => `${count} ${name}`);
   const where = run.environment ? ` on ${run.environment}` : "";
+  const from =
+    format === "JUnit" || files.length > 1
+      ? ` from ${files.length} ${format} ${files.length === 1 ? "file" : "files"}`
+      : "";
   return (
-    `Sent ${tests} ${tests === 1 ? "test" : "tests"} (${run.kind}) for ${run.component} ` +
+    `Sent ${tests} ${tests === 1 ? "test" : "tests"} (${run.kind})${from} for ${run.component} ` +
     `${run.version}${where}: ${counts.join(", ")}`
   );
 }
@@ -130,6 +141,7 @@ function parse(args: string[]) {
       tag: { type: "string" },
       "pull-request": { type: "string" },
       digest: { type: "string" },
+      tool: { type: "string" },
       help: { type: "boolean", short: "h" },
     },
   });

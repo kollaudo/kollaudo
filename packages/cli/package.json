@@ -24,5 +24,8 @@
   },
   "devDependencies": {
     "@kollaudo/schema": "workspace:*"
+  },
+  "dependencies": {
+    "fast-xml-parser": "5.11.1"
   }
 }

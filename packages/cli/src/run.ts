@@ -11,7 +11,7 @@ export const HELP = `Usage: kollaudo <command> [options]
 Send test results to Kollaudo and gate promotions on its verdict, from any CI or script.
 
 Commands:
-  push <report>   Send a CTRF test report
+  push <report>   Send test results: CTRF or JUnit reports
   verdict         Ask whether a version is healthy in an environment
 
 Options:

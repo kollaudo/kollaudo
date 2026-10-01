@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="shop.CheckoutTest" time="0.004" tests="2" errors="1" skipped="0" failures="1">
+  <properties>
+    <property name="java.specification.version" value="21"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.vendor" value="Eclipse Adoptium"/>
+  </properties>
+  <testcase name="crashesOnNullCart" classname="shop.CheckoutTest" time="0.022">
+    <error message="Cannot invoke &quot;Object.toString()&quot; because &quot;cart&quot; is null" type="java.lang.NullPointerException"><![CDATA[java.lang.NullPointerException: Cannot invoke "Object.toString()" because "cart" is null
+	at shop.CheckoutTest.crashesOnNullCart(CheckoutTest.java:20)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></error>
+    <rerunError message="Cannot invoke &quot;Object.toString()&quot; because &quot;cart&quot; is null" type="java.lang.NullPointerException">
+      <stackTrace><![CDATA[java.lang.NullPointerException: Cannot invoke "Object.toString()" because "cart" is null
+	at shop.CheckoutTest.crashesOnNullCart(CheckoutTest.java:20)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></stackTrace>
+    </rerunError>
+    <rerunError message="Cannot invoke &quot;Object.toString()&quot; because &quot;cart&quot; is null" type="java.lang.NullPointerException">
+      <stackTrace><![CDATA[java.lang.NullPointerException: Cannot invoke "Object.toString()" because "cart" is null
+	at shop.CheckoutTest.crashesOnNullCart(CheckoutTest.java:20)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></stackTrace>
+    </rerunError>
+  </testcase>
+  <testcase name="handles3DSecure" classname="shop.CheckoutTest" time="0.0">
+    <skipped message="3-D Secure sandbox is down"/>
+  </testcase>
+  <testcase name="appliesADiscountCode" classname="shop.CheckoutTest" time="0.003"/>
+  <testcase name="paysWithACreditCard" classname="shop.CheckoutTest" time="0.003">
+    <failure message="payment status ==&gt; expected: &lt;PAID&gt; but was: &lt;DECLINED&gt;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: payment status ==> expected: <PAID> but was: <DECLINED>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:182)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1156)
+	at shop.CheckoutTest.paysWithACreditCard(CheckoutTest.java:11)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure>
+    <rerunFailure message="payment status ==&gt; expected: &lt;PAID&gt; but was: &lt;DECLINED&gt;" type="org.opentest4j.AssertionFailedError">
+      <stackTrace><![CDATA[org.opentest4j.AssertionFailedError: payment status ==> expected: <PAID> but was: <DECLINED>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:182)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1156)
+	at shop.CheckoutTest.paysWithACreditCard(CheckoutTest.java:11)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></stackTrace>
+    </rerunFailure>
+    <rerunFailure message="payment status ==&gt; expected: &lt;PAID&gt; but was: &lt;DECLINED&gt;" type="org.opentest4j.AssertionFailedError">
+      <stackTrace><![CDATA[org.opentest4j.AssertionFailedError: payment status ==> expected: <PAID> but was: <DECLINED>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:182)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1156)
+	at shop.CheckoutTest.paysWithACreditCard(CheckoutTest.java:11)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></stackTrace>
+    </rerunFailure>
+  </testcase>
+  <testcase name="retriesTheGatewayOnce" classname="shop.CheckoutTest" time="0.001">
+    <flakyFailure message="gateway timed out ==&gt; expected: &lt;true&gt; but was: &lt;false&gt;" type="org.opentest4j.AssertionFailedError">
+      <stackTrace><![CDATA[org.opentest4j.AssertionFailedError: gateway timed out ==> expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:214)
+	at shop.CheckoutTest.retriesTheGatewayOnce(CheckoutTest.java:15)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></stackTrace>
+    </flakyFailure>
+  </testcase>
+</testsuite>

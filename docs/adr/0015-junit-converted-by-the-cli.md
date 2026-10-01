@@ -32,8 +32,8 @@ The mapping, from each `<testcase>`:
 | `file`, when the tool writes it | `filePath` |
 | `time`, in seconds | `duration`, in milliseconds |
 | no child element | `passed` |
-| `<failure>` or `<error>` | `failed`, with the `message` attribute as `message` and the text as `trace`. An error fails the run like a failure: the test didn't pass |
-| `<skipped>` | `skipped`, with its message |
+| `<failure>` or `<error>` | `failed`, with the `message` attribute as `message` and the text as `trace`. An error fails the run like a failure: the test didn't pass. A message that only repeats the status, such as `Failed` (go-junit-report), gives way to the first line of the text |
+| `<skipped>` | `skipped`, with its message, or its text when the message only says `Skipped` |
 | `<flakyFailure>` or `<flakyError>` (Maven Surefire), in a test case that passed | `passed`, `flaky`, and one retry per element |
 | `<rerunFailure>` or `<rerunError>` (Maven Surefire), in a test case that failed | `failed`, and one retry per element |
 | the same `classname` and `name` more than once (Gradle and others write one test case per attempt) | one test, with the status of the last attempt, `retries` for the others, and `flaky` when the last attempt passed after a failure |

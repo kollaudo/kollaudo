@@ -1,3 +1,4 @@
+import { matchesGlob } from "node:path";
 import type { Io } from "./io.ts";
 
 interface FakeIo {
@@ -27,6 +28,10 @@ export async function runWith(
       if (content === undefined) throw new Error(`ENOENT: no such file or directory '${path}'`);
       return content;
     },
+    glob: async (pattern) =>
+      Object.keys(fake.files ?? {})
+        .filter((path) => matchesGlob(path, pattern))
+        .sort(),
     fetch: fake.fetch ?? (() => Promise.reject(new Error("No network in tests"))),
   });
   return { code, out, err };

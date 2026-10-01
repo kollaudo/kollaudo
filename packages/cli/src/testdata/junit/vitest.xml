@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="4" failures="1" errors="0" time="0.018499085">
+    <testsuite name="cart.spec.mjs" timestamp="2026-10-01T12:57:28.586Z" hostname="36fa8909860f" tests="4" failures="1" errors="0" skipped="1" time="0.018499085">
+        <testcase classname="cart.spec.mjs" name="cart &gt; adds a product" time="0.003055649">
+        </testcase>
+        <testcase classname="cart.spec.mjs" name="cart &gt; removes a product" time="0.012140742">
+            <failure message="expected [ 1 ] to deeply equal [ 2 ]" type="AssertionError">
+AssertionError: expected [ 1 ] to deeply equal [ 2 ]
+
+- Expected
++ Received
+
+  [
+-   2,
++   1,
+  ]
+
+ ❯ cart.spec.mjs:4:73
+            </failure>
+        </testcase>
+        <testcase classname="cart.spec.mjs" name="cart &gt; keeps the cart after sign in" time="0">
+            <skipped/>
+        </testcase>
+        <testcase classname="cart.spec.mjs" name="cart &gt; totals &gt; includes VAT" time="0.000199546">
+        </testcase>
+    </testsuite>
+</testsuites>
