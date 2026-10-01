@@ -1,4 +1,5 @@
-// Test helper: a fresh, migrated database for each test file, dropped afterwards.
+// Test helper: a fresh database for each test file, migrated unless asked otherwise, and dropped
+// afterwards.
 
 import { randomBytes } from "node:crypto";
 import postgres from "postgres";
@@ -7,7 +8,7 @@ import { createDb, migrateDb } from "./db/client.ts";
 const adminUrl =
   process.env.TEST_DATABASE_URL ?? "postgres://kollaudo:kollaudo@localhost:5432/kollaudo";
 
-export async function createTestDb() {
+export async function createTestDb({ migrate = true } = {}) {
   const name = `kollaudo_test_${randomBytes(6).toString("hex")}`;
   const admin = postgres(adminUrl, { max: 1, onnotice: () => {} });
   try {
@@ -24,10 +25,11 @@ export async function createTestDb() {
   const url = new URL(adminUrl);
   url.pathname = `/${name}`;
   const { db, close } = createDb(url.toString());
-  await migrateDb(db);
+  if (migrate) await migrateDb(db);
 
   return {
     db,
+    url: url.toString(),
     async drop() {
       await close();
       await admin.unsafe(`DROP DATABASE ${name} WITH (FORCE)`);

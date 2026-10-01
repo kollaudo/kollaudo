@@ -4,6 +4,17 @@ Notable changes of each release. The format follows [Keep a Changelog](https://k
 and versions follow [Semantic Versioning](https://semver.org). Until 1.0, a minor version can break
 the API.
 
+## [Unreleased]
+
+### Helm chart
+
+- A Helm chart installs Kollaudo on Kubernetes, next to an existing PostgreSQL such as one from
+  CloudNativePG. It is published with each release on `oci://ghcr.io/kollaudo/charts/kollaudo`.
+
+### Server
+
+- Several instances can start together on the same database: they take turns to run the migrations.
+
 ## [0.1.1] - 2026-10-01
 
 Send JUnit XML from any test tool, as well as CTRF.

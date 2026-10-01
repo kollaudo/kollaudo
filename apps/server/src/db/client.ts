@@ -17,7 +17,22 @@ export function createDb(url: string) {
   return { db, close: () => client.end() };
 }
 
-/** Applies pending migrations. Safe to run on every start. */
+/** Any number, the same in every instance: it names the lock that migrations hold. */
+const MIGRATION_LOCK = 0x6b6f6c6c; // "koll"
+
+/**
+ * Applies pending migrations. Safe to run on every start, and from several instances at once, such
+ * as replicas starting together: they take turns, and only the first one finds work to do.
+ */
 export async function migrateDb(db: Db) {
-  await migrate(db, { migrationsFolder });
+  // An advisory lock belongs to the connection that took it: one connection holds it while the
+  // migrations run on the others.
+  const connection = await db.$client.reserve();
+  try {
+    await connection`select pg_advisory_lock(${MIGRATION_LOCK})`;
+    await migrate(db, { migrationsFolder });
+  } finally {
+    await connection`select pg_advisory_unlock(${MIGRATION_LOCK})`;
+    connection.release();
+  }
 }

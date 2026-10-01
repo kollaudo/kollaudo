@@ -1,0 +1,104 @@
+name: Helm
+
+# Installs the chart in a kind cluster, with PostgreSQL from CloudNativePG, and runs the end-to-end
+# test against it. It takes a few minutes, so it runs when the chart or the image change, weekly,
+# and on demand.
+on:
+  pull_request:
+    paths:
+      - charts/**
+      - Dockerfile
+      - apps/server/src/db/**
+      - .github/workflows/helm.yml
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CNPG_VERSION: 1.30.1
+
+jobs:
+  kind:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: azure/setup-helm@v5
+      - name: Lint the chart
+        run: |
+          helm lint charts/kollaudo --strict --set database.existingSecret=db
+          # Without a database Secret, the chart must refuse to install.
+          ! helm template charts/kollaudo 2>/dev/null
+
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm --filter @kollaudo/e2e exec playwright install --with-deps chromium
+
+      - uses: helm/kind-action@v1
+        with:
+          cluster_name: kollaudo
+      - name: Build the image and load it into kind
+        run: |
+          docker build -t kollaudo:ci .
+          kind load docker-image kollaudo:ci --name kollaudo
+
+      - name: Install CloudNativePG and a PostgreSQL cluster
+        run: |
+          minor=${CNPG_VERSION%.*}
+          kubectl apply --server-side -f \
+            "https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-$minor/releases/cnpg-$CNPG_VERSION.yaml"
+          kubectl -n cnpg-system rollout status deploy/cnpg-controller-manager --timeout=180s
+          kubectl create namespace kollaudo
+          kubectl apply -n kollaudo -f - <<'EOF'
+          apiVersion: postgresql.cnpg.io/v1
+          kind: Cluster
+          metadata:
+            name: kollaudo-db
+          spec:
+            instances: 1
+            storage:
+              size: 1Gi
+            bootstrap:
+              initdb:
+                database: kollaudo
+                owner: kollaudo
+          EOF
+          kubectl -n kollaudo wait cluster/kollaudo-db --for=condition=Ready --timeout=300s
+
+      # Three replicas start together: they must take turns on the migrations.
+      - name: Install Kollaudo with the chart
+        run: |
+          helm install kollaudo charts/kollaudo -n kollaudo --wait --timeout 5m \
+            --set database.existingSecret=kollaudo-db-app \
+            --set image.repository=kollaudo --set image.tag=ci --set image.pullPolicy=Never \
+            --set replicaCount=3
+          kubectl -n kollaudo exec kollaudo-db-1 -c postgres -- \
+            psql -U postgres -d kollaudo -tAc "select count(*) from drizzle.__drizzle_migrations"
+
+      - name: Run the end-to-end test against the cluster
+        env:
+          KOLLAUDO_URL: http://localhost:8080
+          KOLLAUDO_ADMIN: kubectl exec -n kollaudo deploy/kollaudo --
+        run: |
+          kubectl -n kollaudo port-forward svc/kollaudo 8080:8080 &
+          sleep 3
+          e2e/run.sh
+
+      - name: Show what went wrong
+        if: failure()
+        run: |
+          kubectl -n kollaudo get pods
+          kubectl -n kollaudo describe pods -l app.kubernetes.io/name=kollaudo
+          kubectl -n kollaudo logs -l app.kubernetes.io/name=kollaudo --tail=100 --prefix
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-traces
+          path: e2e/test-results/

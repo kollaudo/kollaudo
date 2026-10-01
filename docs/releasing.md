@@ -1,12 +1,14 @@
 # Releasing
 
-A release publishes the container image `ghcr.io/kollaudo/kollaudo`, the CLI `@kollaudo/cli` on npm,
-and a GitHub release. Pushing a tag `v<version>` starts [`release.yml`](../.github/workflows/release.yml),
-which refuses the tag unless:
+A release publishes the container image `ghcr.io/kollaudo/kollaudo`, the Helm chart
+`oci://ghcr.io/kollaudo/charts/kollaudo`, the CLI `@kollaudo/cli` on npm, and a GitHub release.
+Pushing a tag `v<version>` starts [`release.yml`](../.github/workflows/release.yml), which refuses
+the tag unless:
 
 - it points to a commit on `main`;
 - every `package.json` in `apps/`, `packages/` and `e2e/` has that version (tests check that the
   `VERSION` constants of the server and the CLI match them);
+- `charts/kollaudo/Chart.yaml` has that `version` and `appVersion`;
 - `CHANGELOG.md` has a section `## [<version>] - <date>`.
 
 A version with a suffix, such as `0.2.0-rc.1`, is a pre-release: the image doesn't get the
@@ -15,8 +17,9 @@ marked as a pre-release.
 
 ## Steps
 
-1. On a branch, set the version in every `package.json` and in the `VERSION` constants of
-   `apps/server/src/app.ts` and `packages/cli/src/run.ts`. Date the section of `CHANGELOG.md`.
+1. On a branch, set the version in every `package.json`, in the `VERSION` constants of
+   `apps/server/src/app.ts` and `packages/cli/src/run.ts`, and as `version` and `appVersion` of
+   `charts/kollaudo/Chart.yaml`. Date the section of `CHANGELOG.md`.
    Merge the pull request.
 2. Tag the merge commit and push the tag:
 
@@ -56,3 +59,4 @@ published by hand, before its tag. The workflow then sees it on npm and skips it
    disallow tokens.
 4. After the first release, open the `kollaudo` package in the organization's *Packages* on GitHub,
    and in *Package settings* change its visibility to public. Images on ghcr.io are private until then.
+   Do the same for the `charts/kollaudo` package after the first release with the Helm chart.

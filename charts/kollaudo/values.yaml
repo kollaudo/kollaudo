@@ -1,0 +1,64 @@
+# Kollaudo needs PostgreSQL. Point it to a Secret with the connection URI, such as the "<cluster>-app"
+# Secret that CloudNativePG creates, whose "uri" key has the right format.
+database:
+  # Name of an existing Secret in the namespace of the release. Required.
+  existingSecret: ""
+  # Key of the Secret that holds the URI: postgresql://user:password@host:5432/database
+  secretKey: uri
+
+image:
+  repository: ghcr.io/kollaudo/kollaudo
+  # Defaults to the appVersion of the chart.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+# Replicas can start together: they take turns to run the database migrations.
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: kollaudo.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: kollaudo-tls
+  #    hosts: [kollaudo.example.com]
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    memory: 512Mi
+
+# Extra environment variables, such as PORT. DATABASE_URL comes from database.existingSecret.
+extraEnv: []
+
+podAnnotations: {}
+podLabels: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: [ALL]

@@ -57,6 +57,14 @@ Then open http://localhost:8080, add the project with its **read** token, and se
 each component in each environment. To send your own results, see
 [sending test results](docs/sending-results.md).
 
+**On Kubernetes**, install the [Helm chart](charts/kollaudo/README.md) next to a PostgreSQL database,
+such as one from CloudNativePG:
+
+```bash
+helm install kollaudo oci://ghcr.io/kollaudo/charts/kollaudo -n kollaudo \
+  --set database.existingSecret=<secret with the database URI>
+```
+
 ## How it fits in your delivery
 
 ```

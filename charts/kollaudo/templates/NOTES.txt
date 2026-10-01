@@ -1,0 +1,16 @@
+Kollaudo {{ .Chart.AppVersion }} is starting. Create a project, which prints its ingest and read tokens:
+
+  kubectl exec -n {{ .Release.Namespace }} deploy/{{ include "kollaudo.fullname" . }} -- kollaudo-server project create <name>
+
+{{- if .Values.ingress.enabled }}
+
+Then open {{ if .Values.ingress.tls }}https{{ else }}http{{ end }}://{{ (index .Values.ingress.hosts 0).host }}
+{{- else }}
+
+Then reach the API and the UI, for example with:
+
+  kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "kollaudo.fullname" . }} 8080:{{ .Values.service.port }}
+{{- end }}
+
+CI jobs send results with KOLLAUDO_URL and an ingest token: see
+https://github.com/kollaudo/kollaudo/blob/main/docs/sending-results.md

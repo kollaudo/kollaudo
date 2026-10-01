@@ -5,6 +5,9 @@
 #   docker compose --profile app up -d --build --wait
 #   pnpm build
 #   e2e/run.sh
+#
+# Against the Helm chart, with a port-forward to the service:
+#   KOLLAUDO_ADMIN="kubectl exec -n kollaudo deploy/kollaudo --" e2e/run.sh
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -16,7 +19,10 @@ OUT=$(mktemp -d)
 trap 'rm -rf "$OUT"' EXIT
 
 kollaudo() { node ../packages/cli/dist/main.js "$@"; }
-admin() { docker compose -f ../compose.yaml exec -T kollaudo kollaudo-server "$@"; }
+# The admin command runs where Kollaudo runs: in compose by default, or with KOLLAUDO_ADMIN, such as
+# "kubectl exec -n kollaudo deploy/kollaudo --" for the Helm chart.
+read -ra ADMIN <<<"${KOLLAUDO_ADMIN:-docker compose -f ../compose.yaml exec -T kollaudo}"
+admin() { "${ADMIN[@]}" kollaudo-server "$@"; }
 
 # Runs a command and checks its exit code. Its output goes to $OUT/out and $OUT/err.
 expect_exit() {
