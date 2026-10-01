@@ -33,7 +33,12 @@ test("shows the health matrix and the tests of a run", async ({ page }) => {
   await expect(page.getByRole("heading", { name: project() })).toBeVisible();
   const row = page.getByRole("row", { name: /^kollaudo/ });
   await expect(page.getByRole("columnheader", { name: "ci" })).toBeVisible();
-  const card = row.getByRole("link", { name: new RegExp(version().slice(0, 7)) });
+  // The unit tests sent as JUnit XML, at build level.
+  await expect(page.getByRole("columnheader", { name: "Build" })).toBeVisible();
+  await expect(
+    row.getByRole("link", { name: new RegExp(`${version().slice(0, 7)} unit`) }),
+  ).toBeVisible();
+  const card = row.getByRole("link", { name: new RegExp(`${version().slice(0, 7)} e2e`) });
   await expect(card).toContainText("e2e");
   await expect(card).toContainText("4 passed");
   await expect(page.getByRole("row", { name: /^checkout/ })).toContainText("1 failed");

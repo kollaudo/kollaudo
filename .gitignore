@@ -4,5 +4,6 @@ coverage/
 *.tsbuildinfo
 .env
 e2e/ctrf/
+e2e/junit/
 e2e/test-results/
 e2e/playwright-report/

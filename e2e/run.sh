@@ -65,6 +65,18 @@ expect_exit 0 kollaudo push ctrf/ctrf-report.json --component kollaudo --env ci 
 expect_output "Sent 4 tests (e2e) for kollaudo"
 expect_output "$KOLLAUDO_URL/test-runs/"
 
+echo "## 2b. Unit tests as JUnit XML, at build level"
+(cd .. && pnpm vitest run --project cli --reporter=junit --outputFile=e2e/junit/cli.xml >/dev/null)
+expect_exit 0 kollaudo push junit/cli.xml --component kollaudo --version "$VERSION" --kind unit \
+  --tool vitest
+expect_output "(unit) from 1 JUnit file for kollaudo"
+# The real reports of six tools, matched by a pattern, make one run.
+expect_exit 0 kollaudo push "../packages/cli/src/testdata/junit/*.xml" --component junit-tools \
+  --env ci --version 1.0.0 --kind unit
+expect_output "Sent 26 tests (unit) from 6 JUnit files for junit-tools 1.0.0 on ci: 13 passed, 8 failed, 5 skipped, 2 flaky"
+expect_exit 1 kollaudo verdict --component junit-tools --env ci --version 1.0.0
+expect_output "unit failed."
+
 echo "## 3. The verdict gates on the results"
 expect_exit 0 kollaudo verdict --component kollaudo --env ci --version "$VERSION"
 expect_output "PASS  kollaudo"
