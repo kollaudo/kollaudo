@@ -2,6 +2,10 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import {
   ApiError,
+  Deployment,
+  DeploymentInput,
+  DeploymentList,
+  DeploymentQuery,
   HealthMatrix,
   Healthz,
   Project,
@@ -20,6 +24,7 @@ import { z } from "zod";
 import { type AuthEnv, requireScope } from "./auth.ts";
 import type { Db } from "./db/client.ts";
 import { projects } from "./db/schema.ts";
+import { listDeployments, recordDeployment } from "./deployments.ts";
 import { errorResponse, HttpError, validationResponse } from "./errors.ts";
 import { ingestTestRun } from "./ingest.ts";
 import { getHealth, getTestRun, listTestRuns } from "./reads.ts";
@@ -157,6 +162,40 @@ export function createApp({ db, webDir }: AppOptions) {
       if (!run) throw new HttpError(404, "not_found", "Test run not found.");
       return c.json(run, 200);
     },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/v1/deployments",
+      summary: "Record a deployment",
+      description:
+        "Records that a version of a component runs in an environment. The component, environment " +
+        "and version are created if they don't exist yet, as for test runs.",
+      security: [{ token: [] }],
+      middleware: [requireScope(db, "ingest")] as const,
+      request: { body: { ...json(DeploymentInput, "The deployment"), required: true } },
+      responses: {
+        201: json(Deployment, "The deployment was recorded"),
+        ...errors,
+        409: json(ApiError, "The version already exists with different metadata"),
+      },
+    }),
+    async (c) => c.json(await recordDeployment(db, c.var.projectId, c.req.valid("json")), 201),
+  );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/v1/deployments",
+      summary: "List deployments",
+      description: "Newest first, optionally filtered. Follow `next` to get older deployments.",
+      security: [{ token: [] }],
+      middleware: [requireScope(db, "read")] as const,
+      request: { query: DeploymentQuery },
+      responses: { 200: json(DeploymentList, "A page of deployments"), ...errors },
+    }),
+    async (c) => c.json(await listDeployments(db, c.var.projectId, c.req.valid("query")), 200),
   );
 
   app.openapi(

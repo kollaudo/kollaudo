@@ -2,7 +2,7 @@ import { z } from "zod";
 import { CtrfReport, CtrfStatus } from "./ctrf.ts";
 
 /** Names of components and environments: they end up in URLs and CLI output. */
-const Name = z
+export const Name = z
   .string()
   .regex(
     /^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$/,
@@ -10,9 +10,9 @@ const Name = z
   );
 
 /** Versions are opaque identifiers chosen by the user (ADR 0004). */
-const VersionName = z.string().min(1).max(255).regex(/^\S+$/, "Must not contain spaces.");
+export const VersionName = z.string().min(1).max(255).regex(/^\S+$/, "Must not contain spaces.");
 
-const Metadata = z.string().min(1).max(255);
+export const Metadata = z.string().min(1).max(255);
 
 /** Kinds of test run, such as `e2e`. */
 export const KIND_PATTERN = "[a-z][a-z0-9-]{0,31}";
@@ -68,7 +68,7 @@ export const TestRunCreated = z
   .meta({ id: "TestRunCreated" });
 export type TestRunCreated = z.infer<typeof TestRunCreated>;
 
-const Timestamp = z.iso.datetime({ offset: true });
+export const Timestamp = z.iso.datetime({ offset: true });
 
 export const TestRun = TestRunCreated.extend({
   commit: z.string().nullable(),

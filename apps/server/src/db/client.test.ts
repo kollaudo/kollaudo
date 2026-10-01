@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { afterAll, expect, it } from "vitest";
 import { createTestDb } from "../testing.ts";
 import { createDb, migrateDb } from "./client.ts";
@@ -17,5 +18,8 @@ it("migrates once when several instances start together", async () => {
   const applied = await testDb.db.execute<{ count: number }>(
     "select count(*)::int as count from drizzle.__drizzle_migrations",
   );
-  expect(applied[0]?.count).toBe(2);
+  const journal = JSON.parse(
+    readFileSync(new URL("../../drizzle/meta/_journal.json", import.meta.url), "utf8"),
+  );
+  expect(applied[0]?.count).toBe(journal.entries.length);
 });

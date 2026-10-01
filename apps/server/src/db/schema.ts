@@ -117,6 +117,25 @@ export const testRuns = pgTable(
   (t) => [index().on(t.versionId, t.environmentId, t.createdAt), index().on(t.environmentId)],
 );
 
+/** A version of a component that started running in an environment, at a point in time. */
+export const deployments = pgTable(
+  "deployments",
+  {
+    id: id(),
+    versionId: uuid()
+      .notNull()
+      .references(() => versions.id, { onDelete: "cascade" }),
+    environmentId: uuid()
+      .notNull()
+      .references(() => environments.id, { onDelete: "cascade" }),
+    /** Name of the tool that deployed it, such as `argocd`. */
+    tool: text(),
+    deployedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    createdAt: createdAt(),
+  },
+  (t) => [index().on(t.environmentId, t.deployedAt), index().on(t.versionId)],
+);
+
 export const testStatus = pgEnum("test_status", [
   "passed",
   "failed",
