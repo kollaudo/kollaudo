@@ -1,0 +1,8 @@
+# Annotations of an Argo CD Application that sends its deployments to Kollaudo. Only the first one is
+# required: the others default to the name and the namespace of the application, and to its first image.
+metadata:
+  annotations:
+    notifications.argoproj.io/subscribe.on-kollaudo-deployed.kollaudo: ""
+    kollaudo.io/component: api
+    kollaudo.io/environment: staging
+    kollaudo.io/image: ghcr.io/example/api

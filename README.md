@@ -194,7 +194,7 @@ Ready-made **recipes** are complete examples for popular tools.
 |---|---|
 | [Playwright with GitHub Actions](docs/recipes/playwright.md) | available |
 | Kargo verification gate | planned for v0.2 |
-| Argo CD notifications | planned for v0.2 |
+| [Argo CD notifications](docs/recipes/argocd.md) | available, with 0.2.0 |
 | Azure DevOps | planned for v0.2 |
 | GitHub Action | planned |
 | Backstage plugin | planned |

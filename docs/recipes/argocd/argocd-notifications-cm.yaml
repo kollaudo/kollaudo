@@ -1,0 +1,52 @@
+# Argo CD notifications that tell Kollaudo what runs where: each time an application finishes a sync
+# and is healthy, Kollaudo records a deployment. See docs/recipes/argocd.md.
+#
+# Merge it into the argocd-notifications-cm ConfigMap of Argo CD, in the namespace of Argo CD:
+#   kubectl -n argocd patch configmap argocd-notifications-cm --type merge \
+#     --patch-file argocd-notifications-cm.yaml
+data:
+  # The URL of Kollaudo, as Argo CD reaches it. The token is the "kollaudo-token" key of the
+  # argocd-notifications-secret Secret: an ingest token of your project.
+  service.webhook.kollaudo: |
+    url: http://kollaudo.kollaudo.svc:8080
+    headers:
+      - name: Authorization
+        value: Bearer $kollaudo-token
+      - name: Content-Type
+        value: application/json
+
+  # Once per synced revision, when the sync succeeded and the application is healthy.
+  trigger.on-kollaudo-deployed: |
+    - when: app.status?.operationState?.phase in ['Succeeded'] and app.status.health.status == 'Healthy'
+      oncePer: app.status?.operationState?.syncResult?.revision
+      send: [kollaudo-deployed]
+
+  # The version is the tag of the application's image: the first one, or the one named by the
+  # kollaudo.io/image annotation. The component and the environment come from the kollaudo.io/component
+  # and kollaudo.io/environment annotations, or default to the name and the namespace of the application.
+  template.kollaudo-deployed: |
+    webhook:
+      kollaudo:
+        method: POST
+        path: /v1/deployments
+        body: |
+          {{- $annotations := .app.metadata.annotations | default dict -}}
+          {{- $wanted := get $annotations "kollaudo.io/image" -}}
+          {{- $image := "" -}}
+          {{- range .app.status.summary.images -}}
+            {{- if or (not $image) (and $wanted (hasPrefix (printf "%s:" $wanted) .)) -}}
+              {{- $image = . -}}
+            {{- end -}}
+          {{- end -}}
+          {{- $name := regexReplaceAll "@.*$" $image "" -}}
+          {{- $version := regexFind "[^:/]+$" (regexFind ":[^:/]+$" $name) -}}
+          {
+            "component": {{ get $annotations "kollaudo.io/component" | default .app.metadata.name | toJson }},
+            "environment": {{ get $annotations "kollaudo.io/environment" | default .app.spec.destination.namespace | toJson }},
+            "version": {{ $version | default .app.status.operationState.syncResult.revision | toJson }},
+            {{- if contains "@" $image }}
+            "digest": {{ regexFind "[^@]+$" $image | toJson }},
+            {{- end }}
+            "deployedAt": {{ .app.status.operationState.finishedAt | toJson }},
+            "tool": "argocd"
+          }

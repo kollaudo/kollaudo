@@ -85,7 +85,9 @@ a deployed version has no tests yet:
 kollaudo deployed --component frontend --env staging --version "$VERSION" --tool helm
 ```
 
-Kollaudo never deploys anything: `deployed` records what your tools did. Use the same ingest token
+With Argo CD, a notification does it for you after each sync: see the
+[Argo CD recipe](recipes/argocd.md). Kollaudo never deploys anything: `deployed` records what your
+tools did. Use the same ingest token
 as `push`. `--at` gives the time it happened, when you report it later.
 
 > `kollaudo deployed` comes with the next release, 0.2.0.
@@ -129,5 +131,6 @@ Complete examples for one framework and one CI. They are tested in Kollaudo's ow
 | Recipe | |
 |---|---|
 | [Playwright with GitHub Actions](recipes/playwright.md) | tested by [`e2e/`](../e2e/) |
+| [Argo CD notifications](recipes/argocd.md): deployments after each sync | tested in kind by [`e2e/kind/recipe-argocd.sh`](../e2e/kind/recipe-argocd.sh) |
 
 Using another framework or CI? A recipe is one Markdown file: contributions are welcome.

@@ -1,0 +1,38 @@
+name: Recipes
+
+# Runs the recipes for delivery tools against Kollaudo in a kind cluster. Each takes a few minutes and
+# downloads its tool, so they run when a recipe changes, weekly, and on demand.
+on:
+  pull_request:
+    paths:
+      - docs/recipes/argocd/**
+      - e2e/kind/**
+      - .github/workflows/recipes.yml
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  argocd:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: azure/setup-helm@v5
+      - uses: helm/kind-action@v1
+        with:
+          cluster_name: kollaudo
+      - name: Build the image and load it into kind
+        run: |
+          docker build -t kollaudo:ci .
+          kind load docker-image kollaudo:ci --name kollaudo
+      - run: e2e/kind/install-kollaudo.sh kollaudo:ci
+      - run: e2e/kind/recipe-argocd.sh
+      - name: Show what went wrong
+        if: failure()
+        run: |
+          kubectl -n argocd get applications -o wide
+          kubectl -n argocd logs deploy/argocd-notifications-controller --tail=100
+          kubectl -n kollaudo logs deploy/kollaudo --tail=100

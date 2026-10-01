@@ -9,6 +9,7 @@ on:
       - charts/**
       - Dockerfile
       - apps/server/src/db/**
+      - e2e/kind/install-kollaudo.sh
       - .github/workflows/helm.yml
   schedule:
     - cron: "0 6 * * 1"
@@ -16,9 +17,6 @@ on:
 
 permissions:
   contents: read
-
-env:
-  CNPG_VERSION: 1.30.1
 
 jobs:
   kind:
@@ -49,36 +47,10 @@ jobs:
           docker build -t kollaudo:ci .
           kind load docker-image kollaudo:ci --name kollaudo
 
-      - name: Install CloudNativePG and a PostgreSQL cluster
-        run: |
-          minor=${CNPG_VERSION%.*}
-          kubectl apply --server-side -f \
-            "https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-$minor/releases/cnpg-$CNPG_VERSION.yaml"
-          kubectl -n cnpg-system rollout status deploy/cnpg-controller-manager --timeout=180s
-          kubectl create namespace kollaudo
-          kubectl apply -n kollaudo -f - <<'EOF'
-          apiVersion: postgresql.cnpg.io/v1
-          kind: Cluster
-          metadata:
-            name: kollaudo-db
-          spec:
-            instances: 1
-            storage:
-              size: 1Gi
-            bootstrap:
-              initdb:
-                database: kollaudo
-                owner: kollaudo
-          EOF
-          kubectl -n kollaudo wait cluster/kollaudo-db --for=condition=Ready --timeout=300s
-
       # Three replicas start together: they must take turns on the migrations.
-      - name: Install Kollaudo with the chart
+      - name: Install Kollaudo with the chart, and PostgreSQL from CloudNativePG
         run: |
-          helm install kollaudo charts/kollaudo -n kollaudo --wait --timeout 5m \
-            --set database.existingSecret=kollaudo-db-app \
-            --set image.repository=kollaudo --set image.tag=ci --set image.pullPolicy=Never \
-            --set replicaCount=3
+          e2e/kind/install-kollaudo.sh kollaudo:ci 3
           kubectl -n kollaudo exec kollaudo-db-1 -c postgres -- \
             psql -U postgres -d kollaudo -tAc "select count(*) from drizzle.__drizzle_migrations"
 

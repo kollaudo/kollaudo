@@ -25,6 +25,11 @@ the API.
 - The health matrix shows the version that runs in each environment, marks test runs of another
   version, and shows deployed versions with no tests yet.
 
+### Recipes
+
+- [Argo CD](docs/recipes/argocd.md): a notification records a deployment in Kollaudo after each sync.
+  Tested with Argo CD in a kind cluster.
+
 ### CLI
 
 - `kollaudo deployed` records a deployment, after your deployment tool did it.
