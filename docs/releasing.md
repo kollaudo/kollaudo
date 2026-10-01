@@ -27,6 +27,10 @@ marked as a pre-release.
    ```
 
 3. Follow the workflow in the Actions tab.
+4. Approve the CLI: the workflow *stages* `@kollaudo/cli`, and it goes live on npm only when a
+   maintainer approves it, with two-factor authentication. On npmjs.com, open *Staged Packages* and
+   approve the version, or run `npm stage list @kollaudo/cli` and `npm stage approve <stage-id>`.
+   Check the version before approving: a staged version can also be rejected.
 
 ## One-time setup
 
@@ -46,8 +50,9 @@ published by hand, before its tag. The workflow then sees it on npm and skips it
    The published manifest has no `devDependencies`, which point to private workspace packages such
    as `@kollaudo/schema`, and no `scripts`. Run `git restore package.json` afterwards.
 3. In the settings of `@kollaudo/cli` on npmjs.com, add a trusted publisher: GitHub Actions,
-   organization `kollaudo`, repository `kollaudo`, workflow `release.yml`, and allow `npm publish`.
-   Then, under *Publishing access*, require two-factor authentication and disallow tokens: only the
-   workflow and people with 2FA can publish.
+   organization `kollaudo`, repository `kollaudo`, workflow `release.yml`. Leave its allowed action
+   to `npm stage publish`, as npm recommends: the workflow can stage a version, and only a person with
+   2FA can make it public. Then, under *Publishing access*, require two-factor authentication and
+   disallow tokens.
 4. After the first release, open the `kollaudo` package in the organization's *Packages* on GitHub,
    and in *Package settings* change its visibility to public. Images on ghcr.io are private until then.

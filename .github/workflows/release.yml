@@ -80,7 +80,7 @@ jobs:
           node-version-file: .nvmrc
           registry-url: https://registry.npmjs.org
           package-manager-cache: false # never use caches in release builds
-      - run: npm install -g npm@11 # trusted publishing needs npm 11.5.1 or later
+      - run: npm install -g npm@11 # staged publishing needs npm 11.15.0 or later
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @kollaudo/cli build
       - name: Publish @kollaudo/cli
@@ -93,11 +93,13 @@ jobs:
             exit 0
           fi
           # Only what users need: devDependencies point to private workspace packages, such as
-          # @kollaudo/schema, and the scripts build from sources that aren't published.
+          # @kollaudo/schema, and the scripts build from sources that aren't published. Without
+          # them, no workspace: version is left for npm to publish.
           npm pkg delete devDependencies scripts
-          pnpm pack
           tag=$([[ $VERSION == *-* ]] && echo next || echo latest)
-          npm publish "kollaudo-cli-$VERSION.tgz" --access public --tag "$tag"
+          # Staged: the version goes live only when a maintainer approves it on npmjs.com, with 2FA.
+          npm stage publish --access public --tag "$tag"
+          echo "::notice::@kollaudo/cli $VERSION is staged. Approve it on npmjs.com to publish it."
 
   github-release:
     needs: [check, image, cli]
