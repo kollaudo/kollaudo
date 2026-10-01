@@ -95,6 +95,24 @@ expect_output "e2e failed."
 KOLLAUDO_TOKEN=$E2E_READ_TOKEN expect_exit 0 \
   kollaudo verdict --component kollaudo --env ci --version "$VERSION"
 
+echo "## 3b. Deployments: what runs where"
+# Kollaudo itself runs the tested version in ci. Checkout runs an older version than the tested one,
+# and a worker runs a version that was never tested.
+expect_exit 0 kollaudo deployed --component kollaudo --env ci --version "$VERSION" --tool compose
+expect_output "Recorded kollaudo ${VERSION} running in ci since"
+expect_exit 0 kollaudo deployed --component checkout --env ci --version 1.9.0 --tool argocd \
+  --at 2026-09-01T10:00:00Z
+expect_exit 0 kollaudo deployed --component worker --env ci --version 1.4.0
+expect_exit 1 kollaudo verdict --component checkout --env ci --version 2.0.0
+expect_output "Note: ci runs checkout 1.9.0 since 2026-09-01T10:00:00.000Z, not 2.0.0."
+expect_exit 0 kollaudo verdict --component kollaudo --env ci --version "$VERSION"
+if grep -qF "Note:" "$OUT/out"; then
+  echo "✗ the verdict of the deployed version shouldn't have a note" >&2
+  exit 1
+fi
+expect_exit 1 kollaudo deployed --component worker --version 1.4.0
+expect_output "Missing --env."
+
 echo "## 4. Wrong reports and tokens are refused"
 expect_exit 1 kollaudo push fixtures/invalid.json --component kollaudo --env ci --version "$VERSION"
 expect_output "fixtures/invalid.json: results.tests.0.status"

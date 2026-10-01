@@ -43,6 +43,17 @@ test("shows the health matrix and the tests of a run", async ({ page }) => {
   await expect(card).toContainText("4 passed");
   await expect(page.getByRole("row", { name: /^checkout/ })).toContainText("1 failed");
 
+  // What runs where, sent with kollaudo deployed.
+  await expect(row).toContainText(`runs ${version().slice(0, 7)}`);
+  await expect(card).not.toContainText("Not the version running here");
+  const checkout = page.getByRole("row", { name: /^checkout/ });
+  await expect(checkout).toContainText("runs 1.9.0");
+  await expect(checkout).toContainText("Not the version running here");
+  await expect(checkout).toContainText("No tests of 1.9.0 here yet");
+  await expect(page.getByRole("row", { name: /^worker/ })).toContainText(
+    "No tests of 1.4.0 here yet",
+  );
+
   await card.click();
   await expect(page.getByRole("heading", { name: /kollaudo .* on ci/ })).toBeVisible();
   await expect(page.getByText("answers the health check")).toBeVisible();

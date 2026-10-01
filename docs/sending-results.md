@@ -75,6 +75,21 @@ so run `push` in a step that runs anyway (`if: ${{ !cancelled() }}` in GitHub Ac
 in GitLab CI, `post { always { … } }` in Jenkins). `push` exits with `0` when Kollaudo stored the
 report, whatever the results.
 
+### Tell Kollaudo what runs where
+
+After your deployment tool deployed a version, tell Kollaudo. It then shows which version runs in
+each environment next to what was tested, and warns when the tests judged another version, or when
+a deployed version has no tests yet:
+
+```bash
+kollaudo deployed --component frontend --env staging --version "$VERSION" --tool helm
+```
+
+Kollaudo never deploys anything: `deployed` records what your tools did. Use the same ingest token
+as `push`. `--at` gives the time it happened, when you report it later.
+
+> `kollaudo deployed` comes with the next release, 0.2.0.
+
 ## 3. Gate on the verdict
 
 Before promoting a version to the next environment, ask for its verdict in the environment it

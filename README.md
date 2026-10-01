@@ -10,7 +10,7 @@
 **Quality gates for every promotion, whatever builds, tests and deploys your software.**
 
 Your CI sends test results to Kollaudo. Before a version moves on, from `dev` to `staging` or from
-`staging` to production, your pipeline, Kargo or Argo Rollouts asks one question: *is this version
+`staging` to `production`, your pipeline, Kargo or Argo Rollouts asks one question: *is this version
 healthy here?* Kollaudo answers **pass**, **fail**, or **unknown** when the tests never reported,
 which blocks a promotion too.
 
@@ -65,6 +65,9 @@ helm install kollaudo oci://ghcr.io/kollaudo/charts/kollaudo -n kollaudo \
   --set database.existingSecret=<secret with the database URI>
 ```
 
+> The chart is published from the next release, 0.2.0. Until then, install it from a clone of this
+> repository: `helm install kollaudo charts/kollaudo …`.
+
 ## How it fits in your delivery
 
 ```
@@ -99,10 +102,10 @@ If one CI system does all of this for you and its gates are enough, you probably
 
 ## What it does
 
-**Today (v0.1)**
+**Today** (released in [0.1.1](CHANGELOG.md))
 
-- **Receives test results** from any framework, as [CTRF](https://ctrf.io) reports, for a version of
-  a component in an environment, or at build level for unit tests.
+- **Receives test results** from any framework, as JUnit XML or [CTRF](https://ctrf.io) reports, for
+  a version of a component in an environment, or at build level for unit tests.
 - **Judges a version in an environment**: `pass`, `fail` or `unknown`, with the reasons, over the
   HTTP API and with `kollaudo verdict`. Required kinds of test, such as `e2e` and `smoke`, can be
   set per gate.
@@ -117,8 +120,9 @@ If one CI system does all of this for you and its gates are enough, you probably
 
 **Next** ([roadmap](#roadmap))
 
-- JUnit XML, deployments from Argo CD and other tools, policies as code, a Helm chart, and recipes
-  for Kargo and Azure DevOps.
+- In 0.2.0: deployments, which version runs in each environment next to what was tested, a Helm
+  chart, and recipes for Kargo, Argo CD and Azure DevOps.
+- Policies as code, and the verdict in the UI.
 - Bugs linked to failed tests, and UAT sign-offs and manual checks from the tools where testers work.
 - Build signals as context: coverage, static analysis.
 
