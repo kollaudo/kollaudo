@@ -2,18 +2,39 @@
 
 Kollaudo works with any test framework and any CI. Whatever you use, there are three steps:
 
-1. your tests write a [CTRF](https://ctrf.io) report;
+1. your tests write a report: [CTRF](https://ctrf.io) or JUnit XML;
 2. `kollaudo push` sends it, saying which version of which component was tested, and where;
 3. `kollaudo verdict` tells your pipeline whether that version can go on.
 
 Kollaudo never runs your tests: it receives their results ([ADR 0002](adr/0002-judge-never-orchestrate.md)).
 For a complete, working example, see the [recipes](#recipes).
 
-## 1. Write a CTRF report
+## 1. Write a report
 
-Most frameworks have a CTRF reporter. Add it next to the reporters you already use.
+Kollaudo reads two formats. Use the one your tools already write.
 
-| Framework | Reporter | |
+**JUnit XML** is written by almost every test tool: Maven and Gradle with no setup, pytest with
+`--junitxml`, Jest and Vitest with a reporter option, Go with `go-junit-report`, .NET with a JUnit
+logger. If your CI already shows test results, as GitLab and Azure DevOps do, you probably have
+these files. Point `kollaudo push` at them, and it converts them
+([ADR 0015](adr/0015-junit-converted-by-the-cli.md)):
+
+```bash
+kollaudo push "target/surefire-reports/*.xml" --tool maven …   # Maven
+kollaudo push "build/test-results/test/*.xml" --tool gradle …   # Gradle
+kollaudo push junit.xml --tool pytest …                         # pytest --junitxml=junit.xml
+```
+
+Retries are understood too: Maven Surefire's reruns and Gradle's test-retry plugin show up as flaky
+tests. `--tool` names the tool in Kollaudo, since JUnit files don't say which tool wrote them.
+
+> Reading JUnit XML comes with the next release of `@kollaudo/cli`, after 0.1.0. Until then,
+> convert the files first: `npx junit-to-ctrf "results/*.xml" -o ctrf-report.json -t <tool>`.
+
+**[CTRF](https://ctrf.io)** is a JSON format with more detail, such as attachments and tags. Most
+frameworks have a CTRF reporter: add it next to the reporters you already use.
+
+| Framework | CTRF reporter | |
 |---|---|---|
 | Playwright | [`playwright-ctrf-json-reporter`](https://www.npmjs.com/package/playwright-ctrf-json-reporter) | [recipe](recipes/playwright.md) |
 | Cypress | [`cypress-ctrf-json-reporter`](https://www.npmjs.com/package/cypress-ctrf-json-reporter) | |
@@ -24,11 +45,9 @@ Most frameworks have a CTRF reporter. Add it next to the reporters you already u
 | Go | [`go-ctrf-json-reporter`](https://github.com/ctrf-io/go-ctrf-json-reporter): `go test -json ./... \| go-ctrf-json-reporter -output ctrf-report.json` | |
 | Anything else | see the [list of CTRF reporters](https://ctrf.io) | |
 
-**Only JUnit XML?** Most tools can write it. Until Kollaudo reads JUnit natively (v0.2), convert it:
-
-```bash
-npx junit-to-ctrf "test-results/**/*.xml" -o ctrf-report.json -t <tool name>
-```
+Whatever the format, several files make one test run: give them all to `kollaudo push`, or a glob
+pattern in quotes. That's how the shards of a Playwright run, or the per-class files of Maven, are
+sent together.
 
 ## 2. Send it with `kollaudo push`
 

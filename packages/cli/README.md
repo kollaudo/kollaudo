@@ -10,6 +10,9 @@ export KOLLAUDO_TOKEN=<an ingest token of your project>
 # send a CTRF report of tests run against staging
 npx @kollaudo/cli push ctrf-report.json --component frontend --env staging --version 1.2.0
 
+# or JUnit XML, from any tool: several files make one run
+npx @kollaudo/cli push "target/surefire-reports/*.xml" --component api --version 1.2.0 --kind unit --tool maven
+
 # can 1.2.0 leave staging? exit code 0 = pass, 1 = fail, 2 = unknown, 3 = no verdict
 npx @kollaudo/cli verdict --component frontend --env staging --version 1.2.0 --require e2e
 ```

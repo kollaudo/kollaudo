@@ -8,6 +8,11 @@ the API.
 
 ### CLI
 
+- `kollaudo push` reads JUnit XML as well as CTRF, recognized by its content, and converts it to
+  CTRF ([ADR 0015](docs/adr/0015-junit-converted-by-the-cli.md)). Retries of Maven Surefire and of
+  Gradle's test-retry plugin become flaky tests.
+- `kollaudo push` takes several files and glob patterns, and sends them as one test run.
+- `--tool` names the tool that ran the tests.
 - The npm package no longer lists `devDependencies` and build scripts, which pointed to the private
   `@kollaudo/schema` package.
 
