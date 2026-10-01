@@ -2,7 +2,7 @@
 #   docker build -t kollaudo .
 
 # The build runs on the machine's own platform: its output is JavaScript, the same on every platform.
-FROM --platform=$BUILDPLATFORM node:24-alpine AS build
+FROM --platform=$BUILDPLATFORM node:26-alpine AS build
 WORKDIR /src
 RUN corepack enable
 COPY . .
@@ -12,7 +12,7 @@ RUN pnpm --filter @kollaudo/server... --filter @kollaudo/web build
 RUN pnpm --filter @kollaudo/server deploy --prod /app/server
 RUN chmod +x /app/server/dist/main.js
 
-FROM node:24-alpine
+FROM node:26-alpine
 ENV NODE_ENV=production \
     PORT=8080 \
     KOLLAUDO_WEB_DIR=/app/web
