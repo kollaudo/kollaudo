@@ -16,11 +16,14 @@ the API.
 - Deployments: `POST /v1/deployments` records that a version runs in an environment, and
   `GET /v1/deployments` lists them. Components, environments and versions are created on first use,
   with the same rules as test runs.
+- `/v1/health` lists what runs now in each environment, and the verdict reports it, without changing
+  its outcome.
 - Several instances can start together on the same database: they take turns to run the migrations.
 
 ### CLI
 
 - `kollaudo deployed` records a deployment, after your deployment tool did it.
+- `kollaudo verdict` notes when the environment runs another version than the one it judged.
 
 ## [0.1.1] - 2026-10-01
 

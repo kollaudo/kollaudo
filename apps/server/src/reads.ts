@@ -9,6 +9,7 @@ import { and, asc, desc, eq, type SQL, sql } from "drizzle-orm";
 import type { z } from "zod";
 import type { Db } from "./db/client.ts";
 import { components, environments, testResults, testRuns, versions } from "./db/schema.ts";
+import { currentDeployments } from "./deployments.ts";
 
 type Query = z.output<typeof TestRunQuery>;
 
@@ -109,9 +110,9 @@ export async function getTestRun(
   };
 }
 
-/** The latest run for each component, environment and kind of a project. */
+/** The latest run for each component, environment and kind of a project, and what runs where. */
 export async function getHealth(db: Db, projectId: string): Promise<HealthMatrix> {
-  const [componentRows, environmentRows, latest] = await Promise.all([
+  const [componentRows, environmentRows, latest, deployed] = await Promise.all([
     db
       .select({ name: components.name })
       .from(components)
@@ -136,6 +137,7 @@ export async function getHealth(db: Db, projectId: string): Promise<HealthMatrix
         desc(testRuns.createdAt),
         desc(testRuns.id),
       ),
+    currentDeployments(db, projectId),
   ]);
 
   return {
@@ -149,5 +151,6 @@ export async function getHealth(db: Db, projectId: string): Promise<HealthMatrix
           (a.environment ?? "").localeCompare(b.environment ?? "") ||
           a.kind.localeCompare(b.kind),
       ),
+    deployed,
   };
 }

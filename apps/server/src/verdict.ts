@@ -3,6 +3,7 @@ import { and, desc, eq } from "drizzle-orm";
 import type { z } from "zod";
 import type { Db } from "./db/client.ts";
 import { components, environments, testRuns, versions } from "./db/schema.ts";
+import { currentDeployments } from "./deployments.ts";
 import { runColumns, toTestRun } from "./reads.ts";
 
 type Query = z.output<typeof VerdictQuery>;
@@ -12,7 +13,7 @@ export async function getVerdict(db: Db, projectId: string, query: Query): Promi
   const require = query.require ? [...new Set(query.require.split(","))].sort() : [];
 
   // The latest run of each kind. Unknown names simply find no runs: missing evidence, not an error.
-  const latest = await db
+  const latestRuns = db
     .selectDistinctOn([testRuns.kind], runColumns)
     .from(testRuns)
     .innerJoin(versions, eq(testRuns.versionId, versions.id))
@@ -27,6 +28,13 @@ export async function getVerdict(db: Db, projectId: string, query: Query): Promi
       ),
     )
     .orderBy(testRuns.kind, desc(testRuns.createdAt), desc(testRuns.id));
+  const deployed = currentDeployments(
+    db,
+    projectId,
+    eq(components.name, query.component),
+    eq(environments.name, query.environment),
+  );
+  const [latest, [current]] = await Promise.all([latestRuns, deployed]);
 
   return {
     component: query.component,
@@ -34,6 +42,7 @@ export async function getVerdict(db: Db, projectId: string, query: Query): Promi
     version: query.version,
     ...judge(latest.map(toTestRun), require),
     policy: { name: "default", require },
+    deployed: current ?? null,
   };
 }
 

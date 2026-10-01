@@ -104,6 +104,15 @@ function report(result: Verdict, url: string) {
       `  ${reason.outcome.padEnd(7)}  ${reason.kind.padEnd(width)}  ${reason.message}${link}`,
     );
   }
+  // The outcome doesn't change, but a gate should know if it judged a version that isn't running.
+  const { deployed } = result;
+  if (deployed && deployed.version !== version) {
+    lines.push(
+      "",
+      `Note: ${environment} runs ${component} ${deployed.version} since ${deployed.deployedAt}, ` +
+        `not ${version}.`,
+    );
+  }
   return `${lines.join("\n")}\n`;
 }
 

@@ -1,4 +1,4 @@
-import { ApiError, Deployment, DeploymentList } from "@kollaudo/schema";
+import { ApiError, Deployment, DeploymentList, HealthMatrix, Verdict } from "@kollaudo/schema";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createApp } from "./app.ts";
 import { createProject } from "./projects.ts";
@@ -140,5 +140,43 @@ describe("GET /v1/deployments", () => {
   it("only shows the project's deployments", async () => {
     const { items } = DeploymentList.parse(await (await get("/v1/deployments", otherRead)).json());
     expect(items).toEqual([]);
+  });
+});
+
+describe("what runs now", () => {
+  beforeAll(async () => {
+    // Reported late: it happened before the others, so it doesn't replace them.
+    await deploy({
+      component: "api",
+      environment: "staging",
+      version: "3f2a9c0",
+      deployedAt: "2026-09-01T10:00:00Z",
+    });
+  });
+
+  it("shows the latest deployment of each component in each environment in the health matrix", async () => {
+    const health = HealthMatrix.parse(await (await get("/v1/health")).json());
+
+    expect(health.deployed.map((d) => `${d.component} ${d.environment} ${d.version}`)).toEqual([
+      "api production 3f2a9c2",
+      "api staging 3f2a9c3",
+      "web dev 1.0.0",
+    ]);
+    // Deployed versions without tests are components and environments of the matrix too.
+    expect(health.components).toEqual(["api", "web"]);
+    expect(health.latest).toEqual([]);
+  });
+
+  it("reports what runs in the environment with the verdict, without changing it", async () => {
+    const query = "component=api&environment=staging";
+    const running = Verdict.parse(await (await get(`/v1/verdict?${query}&version=3f2a9c3`)).json());
+    const other = Verdict.parse(await (await get(`/v1/verdict?${query}&version=3f2a9c1`)).json());
+    const nowhere = Verdict.parse(
+      await (await get("/v1/verdict?component=api&environment=qa&version=3f2a9c3")).json(),
+    );
+
+    expect(running).toMatchObject({ outcome: "unknown", deployed: { version: "3f2a9c3" } });
+    expect(other).toMatchObject({ outcome: "unknown", deployed: { version: "3f2a9c3" } });
+    expect(nowhere.deployed).toBeNull();
   });
 });

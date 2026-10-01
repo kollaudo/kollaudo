@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { Deployment } from "./deployments.ts";
 import { KIND_PATTERN, TestRun } from "./test-runs.ts";
 
 export const VerdictOutcome = z.enum(["pass", "fail", "unknown"]).meta({
@@ -50,6 +51,11 @@ export const Verdict = z
       })
       .meta({ description: "The rules this verdict applied (ADR 0014)." }),
     reasons: z.array(VerdictReason).meta({ description: "One for each kind, by name." }),
+    deployed: Deployment.nullable().meta({
+      description:
+        "What runs in the environment now, if Kollaudo knows. It doesn't change the outcome: when " +
+        "it's another version, the tests judged a version that no longer runs there, or not yet.",
+    }),
   })
   .meta({ id: "Verdict" });
 export type Verdict = z.infer<typeof Verdict>;

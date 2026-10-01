@@ -34,6 +34,7 @@ function verdict(fields: Partial<Verdict>): Verdict {
     message: "e2e passed.",
     policy: { name: "default", require: [] },
     reasons: [{ kind: "e2e", outcome: "pass", message: "1 passed", run: e2e }],
+    deployed: null,
     ...fields,
   };
 }
@@ -92,6 +93,34 @@ describe("kollaudo verdict", () => {
       code: 2,
       out: "UNKNOWN  api 1.1.0 in staging: No test run of this version in this environment.\n",
     });
+  });
+
+  it("notes when another version runs in the environment", async () => {
+    const deployment = {
+      id: "7a7a7a7a-8a1b-4c3d-9e0f-123456789abc",
+      component: "api",
+      environment: "staging",
+      commit: null,
+      branch: null,
+      tag: null,
+      pullRequest: null,
+      digest: null,
+      tool: "argocd",
+      createdAt: "2026-10-01T07:00:00.000Z",
+      deployedAt: "2026-10-01T07:00:00.000Z",
+    };
+    const other = verdict({ deployed: { ...deployment, version: "1.2.0" } });
+    const same = verdict({ deployed: { ...deployment, version: "1.1.0" } });
+
+    const withNote = await runWith(run, args, { env, fetch: server(200, other).fetch });
+    const without = await runWith(run, args, { env, fetch: server(200, same).fetch });
+
+    // The outcome is the same: only the output says it.
+    expect(withNote.code).toBe(0);
+    expect(withNote.out).toMatch(
+      /\n\nNote: staging runs api 1\.2\.0 since 2026-10-01T07:00:00\.000Z, not 1\.1\.0\.\n$/,
+    );
+    expect(without.out).not.toContain("Note:");
   });
 
   it("exits with 3 when there is no verdict", async () => {

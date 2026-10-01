@@ -104,3 +104,33 @@ export async function listDeployments(
   const next = rows.length > query.limit ? (items.at(-1)?.id ?? null) : null;
   return { items, next };
 }
+
+/**
+ * What runs now: the latest deployment of each component in each environment, by when it happened.
+ * Conditions narrow it, such as to one component and one environment.
+ */
+export async function currentDeployments(
+  db: Db,
+  projectId: string,
+  ...conditions: (SQL | undefined)[]
+): Promise<Deployment[]> {
+  const rows = await db
+    .selectDistinctOn([versions.componentId, deployments.environmentId], deploymentColumns)
+    .from(deployments)
+    .innerJoin(versions, eq(deployments.versionId, versions.id))
+    .innerJoin(components, eq(versions.componentId, components.id))
+    .innerJoin(environments, eq(deployments.environmentId, environments.id))
+    .where(and(eq(components.projectId, projectId), ...conditions))
+    .orderBy(
+      versions.componentId,
+      deployments.environmentId,
+      desc(deployments.deployedAt),
+      desc(deployments.id),
+    );
+  return rows
+    .map(toDeployment)
+    .sort(
+      (a, b) =>
+        a.component.localeCompare(b.component) || a.environment.localeCompare(b.environment),
+    );
+}
