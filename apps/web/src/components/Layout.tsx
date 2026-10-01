@@ -11,7 +11,7 @@ export function Layout({ children }: { children: ReactNode }) {
       <header className="border-b border-neutral-200 dark:border-neutral-800">
         <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3">
           <Link href="/" className="flex items-center gap-2 font-semibold text-brand">
-            <img src="/logo.svg" alt="" className="size-8 rounded-md" />
+            <img src="/logo.svg" alt="" className="size-9" />
             Kollaudo
           </Link>
 

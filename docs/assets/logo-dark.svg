@@ -1,10 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <title>Kollaudo</title>
-  <!-- No background: the ink follows the light or dark theme, like the web UI. -->
-  <style>
-    .ink { stroke: #5B3E96; }
-    @media (prefers-color-scheme: dark) { .ink { stroke: #B49AE6; } }
-  </style>
   <defs>
     <!-- Worn ink: a slightly wobbly edge and a few specks where the stamp didn't take. -->
     <filter id="ink" x="-5%" y="-5%" width="110%" height="110%">
@@ -20,7 +15,7 @@
     </clipPath>
   </defs>
 
-  <g class="ink" transform="rotate(-12 256 256)" fill="none" filter="url(#ink)">
+  <g transform="rotate(-12 256 256)" fill="none" stroke="#B49AE6" filter="url(#ink)">
     <circle cx="256" cy="256" r="206" stroke-width="22"/>
     <circle cx="256" cy="256" r="172" stroke-width="9"/>
     <circle cx="256" cy="256" r="189" stroke-width="10" stroke-dasharray="0 39.6" stroke-linecap="round"/>

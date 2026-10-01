@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 934 192" width="934" height="192" role="img" aria-label="Kollaudo">
+  <title>Kollaudo</title>
+  <style>
+    .letter { transform-box: fill-box; transform-origin: center; animation: press 0.22s cubic-bezier(.3,1.6,.6,1) both; }
+    .stamp { transform-box: fill-box; transform-origin: center; animation: slam 0.5s cubic-bezier(.55,0,.75,.4) 0.75s both; }
+    .word { animation: jolt 0.24s ease-out 1.11s both; }
+    @keyframes press { from { opacity: 0; transform: scale(1.35) } to { opacity: 1; transform: none } }
+    @keyframes slam {
+      0% { opacity: 0; transform: scale(2.4) rotate(14deg) }
+      70% { opacity: 1; transform: scale(0.94) rotate(0) }
+      85% { transform: scale(1.03) }
+      100% { opacity: 1; transform: none }
+    }
+    @keyframes jolt { 0%, 100% { transform: none } 30% { transform: translate(2px, 3px) } 60% { transform: translate(-2px, -1px) } }
+    @media (prefers-reduced-motion: reduce) { .letter, .stamp, .word { animation: none } }
+  </style>
+  <defs>
+    <filter id="ink" filterUnits="userSpaceOnUse" x="-100" y="-100" width="3000" height="800">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="wobble"/>
+      <feDisplacementMap in="SourceGraphic" in2="wobble" scale="4" result="shaped"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="2" seed="3" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 14 -9.6" result="specks"/>
+      <feComposite in="shaped" in2="specks" operator="out"/>
+    </filter>
+    <filter id="inkl" x="-40%" y="-40%" width="180%" height="180%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="wobble"/>
+      <feDisplacementMap in="SourceGraphic" in2="wobble" scale="4" result="shaped"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="2" seed="3" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 14 -9.6" result="specks"/>
+      <feComposite in="shaped" in2="specks" operator="out"/>
+    </filter>
+    <clipPath id="k"><rect x="140" y="150" width="232" height="212"/></clipPath>
+    <clipPath id="band"><rect x="-20" y="0" width="878" height="120"/></clipPath>
+  </defs>
+  <g class="word">
+    <g fill="none" stroke="#5B3E96" stroke-width="24" transform="translate(0 36)">
+      <g clip-path="url(#band2)">
+        <g class="letter" filter="url(#inkl)" style="animation-delay:0.10s"><ellipse cx="240" cy="60" rx="36" ry="48"/></g><g class="letter" filter="url(#inkl)" style="animation-delay:0.18s"><line x1="318" y1="-10" x2="318" y2="108"/><line x1="306" y1="108" x2="378" y2="108"/></g><g class="letter" filter="url(#inkl)" style="animation-delay:0.26s"><line x1="408" y1="-10" x2="408" y2="108"/><line x1="396" y1="108" x2="468" y2="108"/></g><g class="letter" filter="url(#inkl)" style="animation-delay:0.34s"><polyline points="488,132 532,-12 576,132" stroke-linejoin="miter"/><line x1="508" y1="84" x2="556" y2="84"/></g><g class="letter" filter="url(#inkl)" style="animation-delay:0.42s"><path d="M608,-10 V72 A36,36 0 0 0 680,72 V-10"/></g><g class="letter" filter="url(#inkl)" style="animation-delay:0.50s"><path d="M722,-10 V120 M710,12 H754 A40,48 0 0 1 754,108 H710"/></g><g class="letter" filter="url(#inkl)" style="animation-delay:0.58s"><ellipse cx="872" cy="60" rx="36" ry="48"/></g>
+      </g>
+    </g>
+  </g>
+  <defs><clipPath id="band2"><rect x="0" y="0" width="934" height="120"/></clipPath></defs>
+  <g class="stamp">
+    <g transform="translate(96.0 96.0) scale(0.3203125) rotate(-12) translate(-256 -256)" fill="none" stroke="#5B3E96" filter="url(#ink)">
+      <circle cx="256" cy="256" r="206" stroke-width="22"/>
+      <circle cx="256" cy="256" r="172" stroke-width="9"/>
+      <circle cx="256" cy="256" r="189" stroke-width="10" stroke-dasharray="0 39.6" stroke-linecap="round"/>
+      <g clip-path="url(#k)" stroke-width="44">
+        <line x1="194" y1="140" x2="194" y2="372"/><line x1="200" y1="286" x2="346" y2="138"/><line x1="262" y1="226" x2="358" y2="374"/>
+      </g>
+    </g>
+  </g>
+</svg>

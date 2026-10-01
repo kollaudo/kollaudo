@@ -15,8 +15,6 @@
     </clipPath>
   </defs>
 
-  <rect width="512" height="512" fill="#F3EEE3"/>
-
   <g transform="rotate(-12 256 256)" fill="none" stroke="#5B3E96" filter="url(#ink)">
     <circle cx="256" cy="256" r="206" stroke-width="22"/>
     <circle cx="256" cy="256" r="172" stroke-width="9"/>

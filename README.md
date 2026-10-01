@@ -1,28 +1,80 @@
-# Kollaudo
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/title-dark.svg">
+    <img src="docs/assets/title.svg" alt="Kollaudo" width="520">
+  </picture>
+</h1>
 
 > *Collaudo* (Italian): the final acceptance test before something is put into service.
 
-**The health passport of every version, from first commit to production.**
+**Quality gates for every promotion, whatever builds, tests and deploys your software.**
 
-*Is this version, in this environment, healthy?* Whether it's a commit on a feature branch running in
-a preview environment, the latest `main` on `dev`, or `1.4.2` about to reach production, today the
-answer is scattered across your CI, your test reports, your code-quality tools, your UAT spreadsheets
-and your deployment tools. Kollaudo brings those signals together around what you test and ship:
-a **version** running in an **environment**.
+Your CI sends test results to Kollaudo. Before a version moves on, from `dev` to `staging` or from
+`staging` to production, your pipeline, Kargo or Argo Rollouts asks one question: *is this version
+healthy here?* Kollaudo answers **pass**, **fail**, or **unknown** when the tests never reported,
+which blocks a promotion too.
+
+```console
+$ kollaudo verdict --component checkout --env staging --version 9d07e6b --require e2e
+FAIL  checkout 9d07e6b in staging: e2e failed.
+
+  fail     e2e  1 failed, 14 passed, 2 flaky  https://kollaudo.example.com/test-runs/645d271b-…
+$ echo $?
+1
+```
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/matrix-dark.png">
+  <img src="docs/assets/screenshots/matrix-light.png" alt="Kollaudo's health matrix: the latest tested version of each component in each environment, with the counts of passed, failed and flaky tests. The checkout component fails on staging.">
+</picture>
+
+Kollaudo doesn't build, test or deploy anything: there are plenty of great tools for that. It
+**collects their results and judges**, and the tool that promotes does what the verdict says.
+
+> **v0.1 is out.** It's young: the API can still change before 1.0, and feedback is very welcome in
+> [Issues](https://github.com/kollaudo/kollaudo/issues).
+
+## Quick start
+
+```bash
+curl -O https://raw.githubusercontent.com/kollaudo/kollaudo/main/deploy/docker-compose.yml
+docker compose up -d
+docker compose exec kollaudo kollaudo-server project create demo   # prints an ingest and a read token
+
+export KOLLAUDO_URL=http://localhost:8080
+export KOLLAUDO_TOKEN=<ingest token>
+
+# an example report of e2e tests run against staging, as Playwright's CTRF reporter writes it
+curl -O https://raw.githubusercontent.com/kollaudo/kollaudo/main/docs/examples/ctrf-report.json
+npx --yes @kollaudo/cli push ctrf-report.json \
+  --component frontend --env staging --version 1.2.0
+
+# can 1.2.0 leave staging? No: a test failed, so the verdict is FAIL and the exit code 1
+npx --yes @kollaudo/cli verdict --component frontend --env staging --version 1.2.0
+```
+
+Then open http://localhost:8080, add the project with its **read** token, and see the health of
+each component in each environment. To send your own results, see
+[sending test results](docs/sending-results.md).
+
+## How it fits in your delivery
 
 ```
-api 1.4.2  (commit a1b2c3, tag v1.4.2)
-├── Build       unit ✅ 412/412 · coverage 81% · static analysis ✅
-├── Dev         deployed Mon 09:10 · e2e ✅ 98/98
-├── Staging     deployed Tue 10:42 · e2e ✅ 96/98 (2 flaky) · UAT ⚠️ 1 open bug
-├── Production  waiting
-└── Verdict     ❌ not promotable: UAT bug #17 is open
+ CI (GitHub Actions, Azure DevOps, GitLab, Jenkins…)
+   build ─► deploy to dev ─► run tests ─► kollaudo push ───────────┐
+                                                                    ▼
+ Promotion (a pipeline step, Kargo, Argo Rollouts…)            Kollaudo
+   "can 9d07e6b go from dev to staging?" ─── kollaudo verdict ─►  pass / fail / unknown
 ```
 
-Kollaudo doesn't build, test or deploy anything. There are plenty of great tools for that.
-It **collects their results and judges**.
+- **In a pipeline**, `kollaudo verdict` is one step: a non-zero exit code stops the deployment.
+- **With Kargo or Argo Rollouts**, an analysis calls `GET /v1/verdict` and Freight only reaches
+  the next stage when the verdict is `pass`.
+- **Kollaudo is never in the way.** It doesn't deploy, so if it's down, delivery keeps working:
+  each gate decides whether to wait or go ahead ([ADR 0002](docs/adr/0002-judge-never-orchestrate.md)).
 
-> ⚠️ Early development. Not ready for production use yet.
+See [sending test results](docs/sending-results.md) for any framework and CI, and the
+[Playwright recipe](docs/recipes/playwright.md) for a complete example.
 
 ## Who it's for
 
@@ -31,7 +83,7 @@ want one answer before promoting a version: *can it go?*
 
 - Your delivery is split across tools: one CI builds, another runs e2e tests, Argo CD or Flux
   deploys, Kargo or a pipeline promotes, and testers sign off somewhere else.
-- You want promotion gates that don't depend on any one of them, and that you can move when you
+- You want promotion gates that don't depend on any one of them, and that you can keep when you
   change tools.
 - You want a missing test run to block a release, not to go unnoticed.
 
@@ -39,19 +91,28 @@ If one CI system does all of this for you and its gates are enough, you probably
 
 ## What it does
 
-- **Tracks tests on deployed versions**: e2e, smoke, UAT and manual acceptance checks, per
-  version and per environment. This is the heart of Kollaudo.
-- **Adds build signals as context**: unit tests, coverage and static analysis, shown on the version
-  they belong to.
-- **Records deployments** from any delivery tool: which version runs in which environment,
-  including ephemeral preview environments.
-- **Links bugs** to the version and the test that found them.
-- **Follows a version over time**: from a commit on a branch, through `dev` and `staging`, to a
-  tagged release in production.
-- **Answers one question** over a plain HTTP API: *is this version, in this environment, healthy?*
-- **Gates promotions** in any tool that can call a URL or run a command.
+**Today (v0.1)**
 
-Test results come from any framework and any CI, via open formats ([CTRF](https://ctrf.io), JUnit XML).
+- **Receives test results** from any framework, as [CTRF](https://ctrf.io) reports, for a version of
+  a component in an environment, or at build level for unit tests.
+- **Judges a version in an environment**: `pass`, `fail` or `unknown`, with the reasons, over the
+  HTTP API and with `kollaudo verdict`. Required kinds of test, such as `e2e` and `smoke`, can be
+  set per gate.
+- **Shows the health of each project**: the latest tested version of every component in every
+  environment, and the tests of each run.
+- **Runs anywhere** as one container next to PostgreSQL, with several projects and scoped tokens.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/run-dark.png">
+  <img src="docs/assets/screenshots/run-light.png" alt="A test run in Kollaudo: 15 tests of checkout 9d07e6b on staging. The failed test comes first with its error message, and flaky tests are marked.">
+</picture>
+
+**Next** ([roadmap](#roadmap))
+
+- JUnit XML, deployments from Argo CD and other tools, policies as code, a Helm chart, and recipes
+  for Kargo and Azure DevOps.
+- Bugs linked to failed tests, and UAT sign-offs and manual checks from the tools where testers work.
+- Build signals as context: coverage, static analysis.
 
 ## What it is not
 
@@ -124,29 +185,6 @@ Ready-made **recipes** are complete examples for popular tools.
 | Argo CD notifications | planned |
 | Kargo verification gate | planned |
 | Flux, GitLab, Argo Rollouts, Flagger, Spinnaker… | contributions welcome |
-
-## Quick start
-
-```bash
-curl -O https://raw.githubusercontent.com/kollaudo/kollaudo/main/deploy/docker-compose.yml
-docker compose up -d
-docker compose exec kollaudo kollaudo-server project create demo   # prints an ingest and a read token
-
-export KOLLAUDO_URL=http://localhost:8080
-export KOLLAUDO_TOKEN=<ingest token>
-
-# an example report of e2e tests run against staging, as Playwright's CTRF reporter writes it
-curl -O https://raw.githubusercontent.com/kollaudo/kollaudo/main/docs/examples/ctrf-report.json
-npx --yes @kollaudo/cli push ctrf-report.json \
-  --component frontend --env staging --version 1.2.0
-
-# can 1.2.0 leave staging? No: a test failed, so the verdict is FAIL and the exit code 1
-npx --yes @kollaudo/cli verdict --component frontend --env staging --version 1.2.0
-```
-
-Then open http://localhost:8080, add the project with its **read** token, and see the health of
-each component in each environment. To send your own results, see
-[sending test results](docs/sending-results.md).
 
 ## Roadmap
 
