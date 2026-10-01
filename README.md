@@ -249,3 +249,10 @@ report a vulnerability.
 ## License
 
 [Apache-2.0](LICENSE)
+
+---
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/99cf0d17-3cd4-4d03-afb9-e5eba996528b" alt="Sonic shrugging: I don't know" width="280"><br>
+  <sub>Kollaudo when your e2e tests are all green: <code>approved</code>.</sub>
+</p>
