@@ -28,9 +28,6 @@ kollaudo push junit.xml --tool pytest …                         # pytest --jun
 Retries are understood too: Maven Surefire's reruns and Gradle's test-retry plugin show up as flaky
 tests. `--tool` names the tool in Kollaudo, since JUnit files don't say which tool wrote them.
 
-> Reading JUnit XML comes with the next release of `@kollaudo/cli`, after 0.1.0. Until then,
-> convert the files first: `npx junit-to-ctrf "results/*.xml" -o ctrf-report.json -t <tool>`.
-
 **[CTRF](https://ctrf.io)** is a JSON format with more detail, such as attachments and tags. Most
 frameworks have a CTRF reporter: add it next to the reporters you already use.
 

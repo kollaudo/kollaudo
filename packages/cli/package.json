@@ -1,6 +1,6 @@
 {
   "name": "@kollaudo/cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Send test results to Kollaudo and gate promotions on its verdict, from any CI",
   "license": "Apache-2.0",
   "type": "module",

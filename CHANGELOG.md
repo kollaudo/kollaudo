@@ -4,7 +4,9 @@ Notable changes of each release. The format follows [Keep a Changelog](https://k
 and versions follow [Semantic Versioning](https://semver.org). Until 1.0, a minor version can break
 the API.
 
-## [Unreleased]
+## [0.1.1] - 2026-10-01
+
+Send JUnit XML from any test tool, as well as CTRF.
 
 ### CLI
 
@@ -48,4 +50,5 @@ every component in every environment.
 - [Sending test results](docs/sending-results.md) from any framework and CI, and a
   [Playwright recipe](docs/recipes/playwright.md).
 
+[0.1.1]: https://github.com/kollaudo/kollaudo/releases/tag/v0.1.1
 [0.1.0]: https://github.com/kollaudo/kollaudo/releases/tag/v0.1.0
