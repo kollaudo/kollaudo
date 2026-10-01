@@ -181,9 +181,10 @@ Ready-made **recipes** are complete examples for popular tools.
 | Recipe | Status |
 |---|---|
 | [Playwright with GitHub Actions](docs/recipes/playwright.md) | available |
-| GitHub Actions | planned |
-| Argo CD notifications | planned |
-| Kargo verification gate | planned |
+| Kargo verification gate | planned for v0.2 |
+| Argo CD notifications | planned for v0.2 |
+| Azure DevOps | planned for v0.2 |
+| GitHub Action | planned |
 | Backstage plugin | planned |
 | Flux, GitLab, Argo Rollouts, Flagger, Spinnaker… | contributions welcome |
 
@@ -192,10 +193,13 @@ Ready-made **recipes** are complete examples for popular tools.
 1. **Tests on deployed versions** (the core)
    - **v0.1**: CTRF ingest, CLI, verdict API and `kollaudo verdict` with the default policy,
      component × environment health view
-   - **v0.2**: policies as code, JUnit, deployments, first recipes (GitHub Actions, Argo CD)
-   - **v0.3**: bugs linked to failed tests, UAT sign-offs and manual check results from the tools
+   - **v0.2** ([scope](docs/milestones/v0.2.md)): JUnit XML, Helm chart, deployments, recipes for
+     Kargo, Argo CD and Azure DevOps
+   - **v0.3**: policies as code, and the verdict in the UI
+   - **v0.4**: bugs linked to failed tests, UAT sign-offs and manual check results from the tools
      where testers work
-   - **v0.4**: gate recipes (Kargo, CI step, GitHub deployment protection), CDEvents in/out
+   - **v0.5**: gate recipes for more tools (GitHub Action, GitHub deployment protection), CDEvents
+     in/out
 2. **Build signals**: unit tests, coverage, static analysis and SARIF as version context
 3. **After production**: post-deploy checks, rollbacks and incidents linked to versions
 4. **Where teams already look**: a [Backstage](https://backstage.io) plugin that shows, on the page
