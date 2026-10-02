@@ -85,6 +85,7 @@ FAIL  frontend 3f2a9c1e8b7d4f60a1c2e3d4b5a69788f0e1d2c3 in staging: e2e failed.
   fail     e2e  1 failed, 41 passed, 2 flaky  https://kollaudo.example.com/test-runs/…
 ```
 
-If the tests never reported, for example because the report step was removed, the verdict is
-`unknown` and the gate stops with exit code `2`. See [exit codes](../sending-results.md#3-gate-on-the-verdict)
+Because the gate requires `e2e`, tests that never reported, for example because the report step was
+removed, make the verdict `unknown`, and the gate stops with exit code `2`. Without `--require e2e`,
+a version with no e2e run but another kind of run could pass: keep the requirement in the gate. See [exit codes](../sending-results.md#3-gate-on-the-verdict)
 to handle it differently.

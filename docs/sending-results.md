@@ -111,6 +111,24 @@ kollaudo verdict --component frontend --env staging --version "$VERSION" --requi
 `--require` lists the kinds that must have run. Without it, a version whose smoke tests never
 reported can still pass on its e2e tests alone ([ADR 0014](adr/0014-policy.md)).
 
+### What the verdict checks today
+
+These are the default rules, the same for every component and environment
+([ADR 0013](adr/0013-verdict-pass-fail-unknown.md), [ADR 0014](adr/0014-policy.md)):
+
+- Only test runs of **that version** in **that environment** count. Build-level runs, such as unit
+  tests sent without `--env`, are shown but don't count.
+- Each kind of test is judged by its **latest run**: a run after a fix replaces the one that failed.
+- A run **fails** when one of its tests failed. Skipped tests don't fail it, and neither do flaky
+  tests that passed after a retry.
+- A run with **no tests** counts as missing.
+- Every kind in `--require` must have a run. Without `--require`, only the kinds that ran are judged:
+  the verdict is `unknown` when nothing ran at all, or when the latest run of a kind is empty.
+- A run counts **however old** it is, and the deployed version doesn't change the outcome.
+
+Rules for each component and environment, kept by Kollaudo so that a pipeline can't relax them, come
+with 0.2.0: required kinds, whether the tested version must be the one that runs, and more.
+
 The token can be the same ingest token you push with. Any step that fails on a non-zero exit code
 is a gate. To let `unknown` through with a warning, or to go ahead when Kollaudo is down, say so:
 

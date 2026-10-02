@@ -9,6 +9,8 @@ the tag unless:
 - every `package.json` in `apps/`, `packages/` and `e2e/` has that version (tests check that the
   `VERSION` constants of the server and the CLI match them);
 - `charts/kollaudo/Chart.yaml` has that `version` and `appVersion`;
+- the quick start of `README.md` uses that version (`export KOLLAUDO_VERSION=<version>`), so that it
+  points to the files and packages of the release, not to `main`;
 - `CHANGELOG.md` has a section `## [<version>] - <date>`.
 
 A version with a suffix, such as `0.2.0-rc.1`, is a pre-release: the image doesn't get the
@@ -19,7 +21,8 @@ marked as a pre-release.
 
 1. On a branch, set the version in every `package.json`, in the `VERSION` constants of
    `apps/server/src/app.ts` and `packages/cli/src/run.ts`, and as `version` and `appVersion` of
-   `charts/kollaudo/Chart.yaml`. Date the section of `CHANGELOG.md`.
+   `charts/kollaudo/Chart.yaml`, and in the quick start of `README.md`. Date the section of
+   `CHANGELOG.md`, and move what it adds from "Next" to "Today" in the README.
    Merge the pull request.
 2. Tag the merge commit and push the tag:
 

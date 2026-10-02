@@ -18,7 +18,7 @@ Kollaudo has its own data model, independent of any input format:
 - **Environment**: where a version runs, such as `dev`, `staging`, `production`, or an ephemeral
   preview environment for a pull request.
 - **Version**: an identifier chosen by the user for what is tested (git SHA, pull request build,
-  image tag, release candidate, semver tag, Kargo Freight…), treated as an opaque string and unique
+  image tag, release candidate, semver tag…), treated as an opaque string and unique
   per component. It can carry optional metadata: `commit`, `branch`, `tag`, `pullRequest`, and the `digest` of the
   artifact that was built, such as a container image digest.
 - **Deployment**: a version of a component running in an environment, at a point in time.
@@ -45,3 +45,10 @@ a version that was tagged and shipped: it is a view over versions (for example, 
 - A change in an external standard only affects its adapter.
 - The public API `/v1` is defined on this model, and can stay stable.
 - Converting inputs costs some work, and fields a standard adds are not visible until an adapter maps them.
+
+## Corrections
+
+- 2026-10-02: the list of version examples included "Kargo Freight". A Freight can hold several
+  artifacts, such as images, charts and commits, so it doesn't match the version of one component.
+  With Kargo, the version of a component is the tag of its own image in the Freight. The decision is
+  unchanged.

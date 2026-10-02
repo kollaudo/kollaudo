@@ -11,8 +11,9 @@ counts. These rules differ between environments and components, and they change 
 were hidden in the code, or scattered across the flags of every gate, nobody could tell why a
 version passed.
 
-[Keptn](https://keptn.sh) asked for SLIs and SLOs to be defined before it could judge anything, and
-that made it heavy to adopt ([0002](0002-judge-never-orchestrate.md)).
+The first version of [Keptn](https://keptn.sh) asked for SLIs and SLOs to be defined before it could
+judge anything ([0002](0002-judge-never-orchestrate.md)), which is a lot to set up before the first
+verdict.
 
 ## Decision
 
