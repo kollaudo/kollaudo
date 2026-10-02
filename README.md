@@ -5,6 +5,14 @@
   </picture>
 </h1>
 
+<p align="center">
+  <a href="https://github.com/kollaudo/kollaudo/actions/workflows/ci.yml"><img src="https://github.com/kollaudo/kollaudo/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/kollaudo/kollaudo/releases/latest"><img src="https://img.shields.io/github/v/release/kollaudo/kollaudo" alt="Latest release"></a>
+  <a href="https://www.npmjs.com/package/@kollaudo/cli"><img src="https://img.shields.io/npm/v/@kollaudo/cli?label=cli" alt="CLI on npm"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/kollaudo/kollaudo" alt="License: Apache-2.0"></a>
+  <a href="https://ctrf.io"><img src="https://img.shields.io/badge/reports-CTRF%20%7C%20JUnit-5B3E96" alt="Reports: CTRF and JUnit XML"></a>
+</p>
+
 > *Collaudo* (Italian): the final acceptance test before something is put into service.
 
 **Quality gates for every promotion, whatever builds, tests and deploys your software.**
@@ -14,22 +22,12 @@ Your CI sends test results to Kollaudo. Before a version moves on, from `dev` to
 healthy here?* Kollaudo answers **pass**, **fail**, or **unknown** when tests it needs never
 reported, which blocks a promotion too.
 
-Today, the gate tells Kollaudo which kinds of test it needs, as in `--require e2e` below. A pipeline
-that drops a kind from its gate drops it from the verdict too: rules kept by Kollaudo, which a
-pipeline can't relax, are [what comes next](#roadmap).
-
-```console
-$ kollaudo verdict --component checkout --env staging --version 9d07e6b --require e2e
-FAIL  checkout 9d07e6b in staging: e2e failed.
-
-  fail     e2e  1 failed, 14 passed, 2 flaky  https://kollaudo.example.com/test-runs/645d271b-…
-$ echo $?
-1
-```
+And the rules live with Kollaudo, not with the pipeline being judged: a pipeline can make a gate
+stricter, never looser, and every override is recorded with who, why and until when.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/matrix-dark.png">
-  <img src="docs/assets/screenshots/matrix-light.png" alt="Kollaudo's health matrix: the latest tested version of each component in each environment, with the counts of passed, failed and flaky tests. The checkout component fails on staging.">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/verdict-dark.svg">
+  <img src="docs/assets/verdict.svg" alt="$ kollaudo verdict --component checkout --env staging --version 9d07e6b. FAIL: checkout 9d07e6b in staging: e2e failed. Evidence is missing for smoke. Policy revision 1. fail e2e: 1 failed, 3 passed, 1 skipped, 1 flaky, by ci-staging. unknown smoke: required, but no run. The exit code is 1." width="760">
 </picture>
 
 Kollaudo doesn't build, test or deploy anything: there are plenty of great tools for that. It
@@ -128,6 +126,14 @@ If one CI system does all of this for you and its gates are enough, you probably
 - **Runs anywhere** as one container next to PostgreSQL, with Docker Compose or the
   [Helm chart](charts/kollaudo/README.md), with several projects and scoped tokens.
 
+The web UI shows the same answers to people: the version deployed and the latest tested version of
+each component in each environment, and the tests of each run.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/matrix-dark.png">
+  <img src="docs/assets/screenshots/matrix-light.png" alt="Kollaudo's health matrix: the latest tested version of each component in each environment, with the counts of passed, failed and flaky tests. The checkout component fails on staging.">
+</picture>
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/run-dark.png">
   <img src="docs/assets/screenshots/run-light.png" alt="A test run in Kollaudo: 15 tests of checkout 9d07e6b on staging. The failed test comes first with its error message, and flaky tests are marked.">
@@ -151,6 +157,42 @@ If one CI system does all of this for you and its gates are enough, you probably
 - **Not a DORA or observability dashboard.** It decides whether a version is healthy,
   not how fast your team delivers.
 
+For a side-by-side with tools you may already use, see [how it compares](#how-it-compares).
+
+## How it compares
+
+Kollaudo works with these tools rather than instead of them: Kargo promotes, Testkube runs tests,
+Backstage shows them to people. Each of them does much more than this table, and most do things
+Kollaudo never will. The rows are about one question: who decides, before a promotion, whether the
+tests of a version are enough?
+
+✅ yes, a main purpose · ⚠️ partly, or with extra setup · ❌ no
+
+| | Kollaudo | Kargo | Keptn | Harness CV | Testkube | SonarQube | GitHub | Backstage |
+|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| Gives a pass/fail verdict before a promotion | ✅ | ⚠️ | ✅ | ✅ | ⚠️ | ⚠️ | ⚠️ | ❌ |
+| Treats missing evidence as its own outcome | ✅ | ❌ | ⚠️ | ⚠️ | ❌ | ❌ | ⚠️ | ❌ |
+| Keeps the gate's rules outside the pipeline it judges | ✅ | ⚠️ | ⚠️ | ⚠️ | ❌ | ✅ | ✅ | ❌ |
+| Records overrides, with a reason and an expiry | ✅ | ⚠️ | ❌ | ⚠️ | ❌ | ❌ | ⚠️ | ❌ |
+| Takes results from any CI and test framework | ✅ | ❌ | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ❌ | ⚠️ |
+| Runs tests | ❌ | ⚠️ | ⚠️ | ⚠️ | ✅ | ⚠️ | ✅ | ❌ |
+| Promotes or deploys | ❌ | ✅ | ⚠️ | ⚠️ | ❌ | ❌ | ✅ | ❌ |
+| Judges metrics and SLOs | ❌ | ⚠️ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Open source | ✅ | ✅ | ✅ | ❌ | ⚠️ | ⚠️ | ❌ | ✅ |
+| Mature, with a large community | ❌ | ✅ | ⚠️ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+When something else fits better:
+
+- **Your gates are about metrics**, such as error rates after a canary: Keptn, Harness CV, or Kargo
+  with Argo Rollouts analysis.
+- **One CI system builds, tests and deploys everything**, and its required checks and environment
+  rules are enough: GitHub, GitLab or Azure DevOps on their own.
+- **You need tests run for you** in the cluster: Testkube. Kollaudo can judge what it runs.
+- **Your gate is about code quality**, such as coverage on new code: SonarQube's quality gate.
+
+This is our reading of each tool's documentation in October 2026, for this one question. If a cell is
+wrong, please [open an issue](https://github.com/kollaudo/kollaudo/issues).
+
 ## Core concepts
 
 Kollaudo's model is tool-agnostic. Every delivery process has these, whatever it calls them:
@@ -171,9 +213,9 @@ versions, not as a separate concept.
 ## How it works
 
 ```
-Any CI / script    ── kollaudo CLI ──►┐
-Anything with HTTP ── API /v1     ──►├──►  Kollaudo  ──►  verdict
-CDEvents tools     ── CDEvents    ──►┘                    (UI, API, CLI)
+Any CI / script    ── kollaudo CLI  ──►┐
+Anything with HTTP ── API /v1       ──►├──►  Kollaudo  ──►  verdict
+CDEvents tools     ── CDEvents      ──►┘                    (UI, API, CLI)
 ```
 
 - **Push-based.** Tools send data to Kollaudo. It never needs credentials to your systems.
@@ -279,7 +321,7 @@ After changing `apps/server/src/db/schema.ts`, generate a migration with
 
 The project is at a very early stage. Ideas, use cases and feedback are welcome in
 [Issues](https://github.com/kollaudo/kollaudo/issues). See the
-[contributing guide](https://github.com/kollaudo/.github/blob/main/CONTRIBUTING.md) before opening a
+[contributing guide](CONTRIBUTING.md) before opening a
 pull request, and the [security policy](https://github.com/kollaudo/.github/blob/main/SECURITY.md) to
 report a vulnerability.
 

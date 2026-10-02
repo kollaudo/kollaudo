@@ -22,6 +22,13 @@ in front of it as the K. The letters are drawn with strokes like the K of the st
 font, so the title looks the same everywhere. It plays once, and people who reduce motion in their
 system see it complete right away.
 
+## The gate
+
+[`assets/verdict.svg`](assets/verdict.svg) (and [`assets/verdict-dark.svg`](assets/verdict-dark.svg))
+opens the README: `kollaudo verdict` in a terminal, failing a version before production. The text is
+the real output of the CLI, without the links to test runs, so update it when the output changes. The
+answer appears line by line after the command, once, and right away for people who reduce motion.
+
 ## Colors
 
 Ink violet is Kollaudo. The other colors are verdicts, and are used only for results.

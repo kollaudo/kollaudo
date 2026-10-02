@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 238" width="760" height="238" role="img" aria-label="kollaudo verdict prints FAIL for checkout 9d07e6b in staging: e2e failed, and evidence is missing for smoke, which the policy requires. The exit code is 1.">
+  <title>kollaudo verdict: FAIL, exit code 1</title>
+  <style>
+    text { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 14px; white-space: pre; }
+    .text { fill: #E6EDF3; }
+    .dim { fill: #8B949E; }
+    .prompt { fill: #B49AE6; font-weight: 700; }
+    .fail { fill: #F85149; }
+    .failb { fill: #F85149; font-weight: 700; }
+    .unknown { fill: #D29922; }
+    .line { animation: appear 0.2s ease-out both; }
+    @keyframes appear { from { opacity: 0 } to { opacity: 1 } }
+    @media (prefers-reduced-motion: reduce) { .line { animation: none } }
+  </style>
+  <rect x="0.5" y="0.5" width="759" height="237" rx="10" fill="#0D1117" stroke="#30363D"/>
+  <path d="M0.5 32 V10.5 a10 10 0 0 1 10 -10 H749.5 a10 10 0 0 1 10 10 V32 Z" fill="#161B22" stroke="#30363D"/>
+  <circle cx="20" cy="16.5" r="5" fill="#30363D"/>
+  <circle cx="38" cy="16.5" r="5" fill="#30363D"/>
+  <circle cx="56" cy="16.5" r="5" fill="#30363D"/>
+  <text x="380.0" y="21" text-anchor="middle" class="dim" style="font-size:12px">the gate before production</text>
+  <g xml:space="preserve">
+    <text x="24" y="62" class="line" style="animation-delay:0.00s"><tspan class="prompt">$ </tspan><tspan class="text">kollaudo verdict --component checkout --env staging --version 9d07e6b</tspan></text>
+    <text x="24" y="84" class="line" style="animation-delay:0.70s"><tspan class="failb">FAIL</tspan><tspan class="text">  checkout 9d07e6b in staging: e2e failed. Evidence is missing for smoke.</tspan></text>
+    <text x="24" y="106" class="line" style="animation-delay:0.82s"><tspan class="dim">Policy revision 1.</tspan></text>
+    <text x="24" y="128" class="line" style="animation-delay:0.94s"></text>
+    <text x="24" y="150" class="line" style="animation-delay:1.06s"><tspan class="text">  </tspan><tspan class="fail">fail</tspan><tspan class="text">     e2e    1 failed, 3 passed, 1 skipped, 1 flaky  </tspan><tspan class="dim">by ci-staging</tspan></text>
+    <text x="24" y="172" class="line" style="animation-delay:1.18s"><tspan class="text">  </tspan><tspan class="unknown">unknown</tspan><tspan class="text">  smoke  Required, but no run.</tspan></text>
+    <text x="24" y="194" class="line" style="animation-delay:1.70s"><tspan class="prompt">$ </tspan><tspan class="text">echo $?</tspan></text>
+    <text x="24" y="216" class="line" style="animation-delay:1.95s"><tspan class="failb">1</tspan></text>
+  </g>
+</svg>
