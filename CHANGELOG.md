@@ -19,6 +19,10 @@ the API.
   deployed when they ran), `flaky` and `maxAge`. A request can add required kinds, never remove them.
   `POST /v1/policy`, `POST /v1/policy/check` and `GET /v1/policy`.
 - The verdict says which policy revision and rules it applied.
+- Overrides ([ADR 0018](docs/adr/0018-overrides.md), [docs](docs/overrides.md)): an `override`
+  token lets one version through the gate of one environment, with a required reason, for up to 24
+  hours. The verdict passes and says so, with the outcome of the evidence alone. Overrides are kept
+  and listed with `GET /v1/overrides`, and can be revoked.
 - Tokens can have a name, and `ingest` tokens can be limited to components and environments, by
   name or with `*` patterns ([ADR 0017](docs/adr/0017-trust-in-evidence.md)). Every test run and
   deployment records the token that sent it, shown in the API, the UI and the verdict.
@@ -43,6 +47,8 @@ the API.
 ### CLI
 
 - `kollaudo policy push`, `check` and `show`.
+- `kollaudo override`, `override list` and `override revoke`. `kollaudo verdict` prints
+  `PASS (override)` with the reason, and the outcome of the evidence alone.
 - `kollaudo deployed` records a deployment, after your deployment tool did it.
 - `kollaudo verdict` notes when the environment runs another version than the one it judged, and
   says which token sent each run.

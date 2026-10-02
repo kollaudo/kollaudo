@@ -94,3 +94,6 @@ Policy revision 4.
 
 Verdicts are computed when they are asked: a new revision changes the verdict of versions tested
 before it too.
+
+When a version has to go through without its evidence, use an [override](overrides.md), not a
+looser policy.

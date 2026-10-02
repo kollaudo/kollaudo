@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { Deployment } from "./deployments.ts";
+import { Override } from "./overrides.ts";
 import { AppliedPolicy } from "./policy.ts";
 import { KIND_PATTERN, TestRun } from "./test-runs.ts";
 
@@ -51,6 +52,14 @@ export const Verdict = z
       description:
         "What runs in the environment now, if Kollaudo knows. It doesn't change the outcome: when " +
         "it's another version, the tests judged a version that no longer runs there, or not yet.",
+    }),
+    override: Override.nullable().meta({
+      description:
+        "An active override for this version in this environment (ADR 0018). It makes the outcome " +
+        "pass; evidenceOutcome says what the evidence alone gives.",
+    }),
+    evidenceOutcome: VerdictOutcome.meta({
+      description: "The outcome of the evidence alone, without an override.",
     }),
   })
   .meta({ id: "Verdict" });

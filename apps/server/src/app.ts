@@ -8,6 +8,10 @@ import {
   DeploymentQuery,
   HealthMatrix,
   Healthz,
+  Override,
+  OverrideInput,
+  OverrideList,
+  OverrideQuery,
   Policy,
   PolicyDocument,
   PolicyInput,
@@ -30,6 +34,7 @@ import { projects } from "./db/schema.ts";
 import { listDeployments, recordDeployment } from "./deployments.ts";
 import { errorResponse, HttpError, validationResponse } from "./errors.ts";
 import { ingestTestRun } from "./ingest.ts";
+import { createOverride, listOverrides, revokeOverride } from "./overrides.ts";
 import { currentPolicy, parsePolicy, pushPolicy } from "./policies.ts";
 import { getHealth, getTestRun, listTestRuns } from "./reads.ts";
 import { getVerdict } from "./verdict.ts";
@@ -268,6 +273,58 @@ export function createApp({ db, webDir }: AppOptions) {
       }
       return c.json(policy, 200);
     },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/v1/overrides",
+      summary: "Let a version through a gate",
+      description:
+        "Makes the verdict of a version in an environment pass until the override expires, at most " +
+        "24h (ADR 0018). The verdict says it was overridden, by whom and why. It needs a token of " +
+        "the override scope, so pipelines can't override their own gates.",
+      security: [{ token: [] }],
+      middleware: [requireScope(db, "override")] as const,
+      request: { body: { ...json(OverrideInput, "The override"), required: true } },
+      responses: {
+        201: json(Override, "The override holds"),
+        ...errors,
+        409: json(ApiError, "The version already exists with different metadata"),
+      },
+    }),
+    async (c) => c.json(await createOverride(db, c.var.token, c.req.valid("json")), 201),
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/v1/overrides/{id}/revoke",
+      summary: "End an override before it expires",
+      security: [{ token: [] }],
+      middleware: [requireScope(db, "override")] as const,
+      request: { params: z.object({ id: z.uuid() }) },
+      responses: {
+        200: json(Override, "The override no longer holds"),
+        ...errors,
+        404: json(ApiError, "The project has no override with this id"),
+      },
+    }),
+    async (c) => c.json(await revokeOverride(db, c.var.projectId, c.req.valid("param").id), 200),
+  );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/v1/overrides",
+      summary: "List overrides",
+      description: "Every override of the project, newest first, expired and revoked ones too.",
+      security: [{ token: [] }],
+      middleware: [requireScope(db, "read", "override")] as const,
+      request: { query: OverrideQuery },
+      responses: { 200: json(OverrideList, "The overrides"), ...errors },
+    }),
+    async (c) => c.json(await listOverrides(db, c.var.projectId, c.req.valid("query")), 200),
   );
 
   app.openapi(

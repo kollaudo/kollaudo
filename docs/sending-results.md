@@ -160,6 +160,9 @@ case $code in
 esac
 ```
 
+For an urgent fix that can't wait for its evidence, don't edit the gate: let that one version through
+with an [override](overrides.md), which keeps a record of who and why.
+
 ## Recipes
 
 Complete examples for one framework and one CI. They are tested in Kollaudo's own CI.

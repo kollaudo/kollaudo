@@ -11,6 +11,7 @@ import {
   versions,
 } from "./db/schema.ts";
 import { currentDeployments } from "./deployments.ts";
+import { activeOverride } from "./overrides.ts";
 import { currentPolicy, duration, type ResolvedRule, resolveRule } from "./policies.ts";
 import { runColumns, toTestRun } from "./reads.ts";
 
@@ -29,7 +30,7 @@ export async function getVerdict(db: Db, projectId: string, query: Query): Promi
     eq(components.name, query.component),
     eq(environments.name, query.environment),
   ];
-  const [policy, rows, [deployed], history] = await Promise.all([
+  const [policy, rows, [deployed], history, override] = await Promise.all([
     currentPolicy(db, projectId),
     db
       .select(runColumns)
@@ -56,17 +57,30 @@ export async function getVerdict(db: Db, projectId: string, query: Query): Promi
       .innerJoin(environments, eq(deployments.environmentId, environments.id))
       .where(and(...forComponentAndEnvironment))
       .orderBy(asc(deployments.deployedAt), asc(deployments.id)),
+    activeOverride(db, projectId, query.component, query.environment, query.version),
   ]);
 
   const rule = resolveRule(policy?.document, query.component, query.environment);
   const requested = query.require ? query.require.split(",") : [];
   const require = [...new Set([...rule.require, ...requested])].sort();
 
+  const evidence = judge(
+    candidates(rows.map(toTestRun), rule, query.version, history),
+    require,
+    rule,
+  );
   return {
     component: query.component,
     environment: query.environment,
     version: query.version,
-    ...judge(candidates(rows.map(toTestRun), rule, query.version, history), require, rule),
+    ...evidence,
+    // An override lets the version through, and says so (ADR 0018).
+    ...(override && {
+      outcome: "pass" as const,
+      message: `Overridden by ${override.by ?? "a deleted token"} until ${override.expiresAt}: ${override.reason}`,
+    }),
+    override: override ?? null,
+    evidenceOutcome: evidence.outcome,
     policy: {
       name: rule.fromPolicy ? "project" : "default",
       revision: policy?.revision ?? null,

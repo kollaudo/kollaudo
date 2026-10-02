@@ -94,7 +94,12 @@ export async function verdict(args: string[], io: Io): Promise<number> {
  */
 function report(result: Verdict, url: string) {
   const { component, version, environment, outcome, message, reasons } = result;
-  const lines = [`${outcome.toUpperCase()}  ${component} ${version} in ${environment}: ${message}`];
+  // An override lets the version through: the gate's log must show it (ADR 0018).
+  const label = result.override ? `${outcome.toUpperCase()} (override)` : outcome.toUpperCase();
+  const lines = [`${label}  ${component} ${version} in ${environment}: ${message}`];
+  if (result.override) {
+    lines.push(`The evidence alone is ${result.evidenceOutcome}.`);
+  }
   const { policy } = result;
   if (policy.name === "project") lines.push(`Policy revision ${policy.revision}.`);
 

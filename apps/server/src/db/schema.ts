@@ -169,6 +169,26 @@ export const policies = pgTable(
   (t) => [unique().on(t.projectId, t.revision)],
 );
 
+/** A version let through a gate in an environment, for a while (ADR 0018). */
+export const overrides = pgTable(
+  "overrides",
+  {
+    id: id(),
+    versionId: uuid()
+      .notNull()
+      .references(() => versions.id, { onDelete: "cascade" }),
+    environmentId: uuid()
+      .notNull()
+      .references(() => environments.id, { onDelete: "cascade" }),
+    reason: text().notNull(),
+    tokenId: uuid().references(() => apiTokens.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+    expiresAt: timestamp({ withTimezone: true }).notNull(),
+    revokedAt: timestamp({ withTimezone: true }),
+  },
+  (t) => [index().on(t.versionId, t.environmentId)],
+);
+
 export const testStatus = pgEnum("test_status", [
   "passed",
   "failed",

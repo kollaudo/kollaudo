@@ -132,7 +132,8 @@ If one CI system does all of this for you and its gates are enough, you probably
 - In 0.2.0: deployments, which version runs in each environment next to what was tested, and a Helm
   chart. [Policies](docs/policies.md) kept by Kollaudo for each component and environment, which a
   pipeline can't relax, such as "tests count only if they ran on the deployed version", and overrides
-  for urgent fixes with a record of who and why. Recipes for Argo CD and Kargo.
+  for urgent fixes with a record of who and why ([overrides](docs/overrides.md)). Recipes for
+  Argo CD and Kargo.
 - The verdict in the UI.
 - Bugs linked to failed tests, and UAT sign-offs and manual checks from the tools where testers work.
 - Build signals as context: coverage, static analysis.

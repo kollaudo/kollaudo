@@ -43,6 +43,8 @@ function verdict(fields: Partial<Verdict>): Verdict {
     },
     reasons: [{ kind: "e2e", outcome: "pass", message: "1 passed", run: e2e }],
     deployed: null,
+    override: null,
+    evidenceOutcome: fields.outcome ?? "pass",
     ...fields,
   };
 }
@@ -101,6 +103,33 @@ describe("kollaudo verdict", () => {
       code: 2,
       out: "UNKNOWN  api 1.1.0 in staging: No test run of this version in this environment.\n",
     });
+  });
+
+  it("says when an override lets the version through", async () => {
+    const overridden = verdict({
+      outcome: "pass",
+      message: "Overridden by on-call until 2026-10-02T14:00:00.000Z: Hotfix for incident 1234",
+      evidenceOutcome: "unknown",
+      reasons: [{ kind: "e2e", outcome: "unknown", message: "Required, but no run.", run: null }],
+      override: {
+        id: "0b0b0b0b-8a1b-4c3d-9e0f-123456789abc",
+        component: "api",
+        environment: "staging",
+        version: "1.1.0",
+        reason: "Hotfix for incident 1234",
+        by: "on-call",
+        createdAt: "2026-10-02T10:00:00.000Z",
+        expiresAt: "2026-10-02T14:00:00.000Z",
+        revokedAt: null,
+        active: true,
+      },
+    });
+    const { code, out } = await runWith(run, args, { env, fetch: server(200, overridden).fetch });
+
+    expect(code).toBe(0);
+    expect(out).toMatch(
+      /^PASS \(override\) {2}api 1\.1\.0 in staging: Overridden by on-call until .+: Hotfix for incident 1234\nThe evidence alone is unknown\.\n/,
+    );
   });
 
   it("says who sent each run", async () => {
