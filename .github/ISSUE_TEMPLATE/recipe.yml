@@ -1,0 +1,33 @@
+name: Recipe
+description: A tested example of Kollaudo with a tool you use, such as a CI system or a deployment tool.
+labels: [recipe]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A recipe is one Markdown file in [`docs/recipes`](https://github.com/kollaudo/kollaudo/tree/main/docs/recipes),
+        like the [Playwright](https://github.com/kollaudo/kollaudo/blob/main/docs/recipes/playwright.md)
+        or the [Kargo](https://github.com/kollaudo/kollaudo/blob/main/docs/recipes/kargo.md) recipe.
+  - type: input
+    id: tool
+    attributes:
+      label: Tool
+      placeholder: GitLab CI, Flux, Jenkins, Azure DevOps, Argo Rollouts…
+    validations:
+      required: true
+  - type: textarea
+    id: pipeline
+    attributes:
+      label: How you use it
+      description: Where tests run, how versions are named, and where the gate before a promotion would go.
+    validations:
+      required: true
+  - type: dropdown
+    id: help
+    attributes:
+      label: Would you write it?
+      description: A recipe is best written by someone who runs the tool. Help from the maintainers is guaranteed.
+      options:
+        - Not now
+        - Yes, with some guidance
+        - Yes

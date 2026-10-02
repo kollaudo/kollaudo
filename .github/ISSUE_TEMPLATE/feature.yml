@@ -1,0 +1,40 @@
+name: Feature
+description: Something Kollaudo should do for your delivery.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Start from the problem: what you need to decide or see, and why it's hard today. Kollaudo
+        judges and never deploys or runs tests ([ADR 0002](https://github.com/kollaudo/kollaudo/blob/main/docs/adr/0002-judge-never-orchestrate.md)),
+        and support for one tool goes in a recipe rather than in the core.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      placeholder: Before promoting to production, we can't tell whether…
+    validations:
+      required: true
+  - type: textarea
+    id: delivery
+    attributes:
+      label: Your delivery
+      description: The tools you build, test, deploy and promote with, and your environments. It helps more than you'd think.
+      placeholder: |
+        CI: GitHub Actions. Tests: Playwright, pytest. Deploys: Argo CD. Promotion: Kargo.
+        Environments: dev, staging, production, a preview for each pull request.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you'd like
+      description: How you picture it, if you do. A command, a rule in the policy, an API…
+  - type: dropdown
+    id: help
+    attributes:
+      label: Would you work on it?
+      options:
+        - Not now
+        - Yes, with some guidance
+        - Yes

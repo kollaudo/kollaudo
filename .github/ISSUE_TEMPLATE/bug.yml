@@ -1,0 +1,55 @@
+name: Bug
+description: Kollaudo does something wrong, or something it shouldn't.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time! Leave tokens and private URLs out of what you paste.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Of the server (`curl <your Kollaudo URL>/healthz`) and of the CLI (`kollaudo --version`).
+      placeholder: server 0.2.0, CLI 0.2.0
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How Kollaudo runs
+      options:
+        - Docker Compose
+        - Helm chart
+        - Container image, another way
+        - From the sources
+        - Not relevant (CLI only)
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: What you did
+      description: The commands or requests, and the report you sent if it matters. A small example is best.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened
+      description: The output, the verdict, or what the UI showed.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Server logs
+      description: If any, from `docker compose logs kollaudo` or `kubectl logs deploy/kollaudo`.
+      render: text
