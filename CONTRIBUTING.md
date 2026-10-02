@@ -64,6 +64,19 @@ pnpm test         # tests that need a database create a temporary one on the loc
 New dependencies need a reason: Kollaudo tries to stay small. Prefer a version that has been out for
 at least a week over one released yesterday.
 
+## Using AI tools
+
+AI assistants are welcome, for code, tests and docs. Two things:
+
+- **You're the author.** You understand every line you send, you've run the checks yourself, and you
+  can answer questions about it in the review. A pull request is judged the same way, whoever or
+  whatever helped write it.
+- **Say so in the pull request**, in a line such as "Written with help from <tool>". It helps the
+  review, and it's never a reason to turn a contribution down.
+
+What [Licensing](#licensing) says applies to generated code too: don't send code you couldn't
+contribute yourself.
+
 ## Licensing
 
 Kollaudo is licensed under [Apache-2.0](LICENSE). By contributing, you agree that your contribution
