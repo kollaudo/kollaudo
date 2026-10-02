@@ -77,6 +77,10 @@ export const TestRun = TestRunCreated.extend({
   pullRequest: z.string().nullable(),
   digest: z.string().nullable(),
   tool: z.string().nullable().meta({ example: "playwright" }),
+  sentBy: z
+    .string()
+    .nullable()
+    .meta({ description: "The name of the token that sent the run, or the start of the token." }),
   startedAt: Timestamp.nullable(),
   finishedAt: Timestamp.nullable(),
   createdAt: Timestamp.meta({ description: "When Kollaudo received the run." }),

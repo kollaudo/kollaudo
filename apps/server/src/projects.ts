@@ -1,7 +1,7 @@
 import { and, asc, eq, isNull } from "drizzle-orm";
 import type { Db } from "./db/client.ts";
 import { apiTokens, projects } from "./db/schema.ts";
-import { createToken, type TokenScope } from "./tokens.ts";
+import { createToken, type TokenOptions, type TokenScope } from "./tokens.ts";
 
 /** An error caused by the user's input, reported without a stack trace. */
 export class UserError extends Error {}
@@ -36,9 +36,38 @@ async function getProject(db: Db, name: string) {
   return project;
 }
 
-export async function createProjectToken(db: Db, projectName: string, scope: TokenScope) {
+/** Names and patterns of components and environments, as in the API, with `*` for any characters. */
+const LIMIT = /^[A-Za-z0-9*][A-Za-z0-9._/*-]{0,99}$/;
+const TOKEN_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
+
+export async function createProjectToken(
+  db: Db,
+  projectName: string,
+  scope: TokenScope,
+  options: TokenOptions = {},
+) {
+  if (options.name !== undefined && !TOKEN_NAME.test(options.name)) {
+    throw new UserError(
+      `Invalid token name "${options.name}": use up to 64 letters, digits, ".", "_" or "-".`,
+    );
+  }
+  for (const limit of [...(options.components ?? []), ...(options.environments ?? [])]) {
+    if (!LIMIT.test(limit)) {
+      throw new UserError(
+        `Invalid limit "${limit}": use a component or environment name, with * for any characters.`,
+      );
+    }
+  }
+  const limited =
+    options.components?.length || options.environments?.length || options.build !== undefined;
+  if (limited && scope !== "ingest") {
+    throw new UserError("Only ingest tokens can be limited to components and environments.");
+  }
+  if (options.build && !options.environments?.length) {
+    throw new UserError("--build only matters with --environment: other tokens send build runs.");
+  }
   const project = await getProject(db, projectName);
-  return createToken(db, project.id, scope);
+  return createToken(db, project.id, scope, options);
 }
 
 export async function listProjectTokens(db: Db, projectName: string) {
@@ -48,6 +77,10 @@ export async function listProjectTokens(db: Db, projectName: string) {
       id: apiTokens.id,
       scope: apiTokens.scope,
       hint: apiTokens.hint,
+      name: apiTokens.name,
+      components: apiTokens.components,
+      environments: apiTokens.environments,
+      build: apiTokens.build,
       createdAt: apiTokens.createdAt,
       lastUsedAt: apiTokens.lastUsedAt,
       revokedAt: apiTokens.revokedAt,

@@ -126,7 +126,7 @@ export function createApp({ db, webDir }: AppOptions) {
       },
     }),
     async (c) => {
-      const run = await ingestTestRun(db, c.var.projectId, c.req.valid("json"));
+      const run = await ingestTestRun(db, c.var.token, c.req.valid("json"));
       return c.json(run, 201);
     },
   );
@@ -183,7 +183,7 @@ export function createApp({ db, webDir }: AppOptions) {
         409: json(ApiError, "The version already exists with different metadata"),
       },
     }),
-    async (c) => c.json(await recordDeployment(db, c.var.projectId, c.req.valid("json")), 201),
+    async (c) => c.json(await recordDeployment(db, c.var.token, c.req.valid("json")), 201),
   );
 
   app.openapi(

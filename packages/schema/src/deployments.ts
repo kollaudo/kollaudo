@@ -37,6 +37,9 @@ export const Deployment = z
     pullRequest: z.string().nullable(),
     digest: z.string().nullable(),
     tool: z.string().nullable(),
+    sentBy: z.string().nullable().meta({
+      description: "The name of the token that sent the deployment, or the start of the token.",
+    }),
     deployedAt: Timestamp,
     createdAt: Timestamp.meta({ description: "When Kollaudo received the deployment." }),
   })

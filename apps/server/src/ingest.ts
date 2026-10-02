@@ -2,7 +2,9 @@ import type { CtrfTest, TestRunCreated, TestRunInput, TestRunSummary } from "@ko
 import type { z } from "zod";
 import type { Db } from "./db/client.ts";
 import { testResults, testRuns } from "./db/schema.ts";
+import { HttpError } from "./errors.ts";
 import { componentIdFor, environmentIdFor, versionIdFor } from "./first-use.ts";
+import { type FoundToken, outsideLimits } from "./tokens.ts";
 
 type Input = z.output<typeof TestRunInput>;
 
@@ -15,9 +17,13 @@ const BATCH_SIZE = 1000;
  */
 export async function ingestTestRun(
   db: Db,
-  projectId: string,
+  token: FoundToken,
   input: Input,
 ): Promise<TestRunCreated> {
+  const projectId = token.projectId;
+  const refused = outsideLimits(token, input.component, input.environment ?? null);
+  if (refused) throw new HttpError(403, "outside_token_limits", refused);
+
   const { tool, summary, tests, environment, extra } = input.report.results;
   const counts = summarize(tests);
 
@@ -35,6 +41,7 @@ export async function ingestTestRun(
         environmentId,
         kind: input.kind,
         tool: tool.name,
+        tokenId: token.id,
         startedAt: timestamp(summary.start),
         finishedAt: timestamp(summary.stop),
         ...counts,

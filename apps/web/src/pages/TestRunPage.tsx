@@ -53,6 +53,7 @@ export function TestRunPage({ id }: { id: string }) {
       <dl className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted">
         <Meta label="Kind" value={run.kind} />
         <Meta label="Tool" value={run.tool} />
+        <Meta label="Sent by" value={run.sentBy} />
         <Meta label="Received" value={timeAgo(run.createdAt)} />
         <Meta label="Took" value={took === undefined ? null : duration(took)} />
         <Meta

@@ -58,12 +58,62 @@ describe("kollaudo-server", () => {
     expect((await admin("token", "list", "tokens")).out).toContain("revoked");
   });
 
+  it("creates named tokens limited to components and environments, and new scopes", async () => {
+    await admin("project", "create", "limits");
+    const created = await admin(
+      "token",
+      "create",
+      "limits",
+      "--scope",
+      "ingest",
+      "--name",
+      "ci-staging",
+      "--component",
+      "api",
+      "--component",
+      "web",
+      "--environment",
+      "staging",
+      "--environment",
+      "pr-*",
+    );
+    const found = await findToken(testDb.db, tokenIn(created.out, "ingest"));
+    expect(found).toMatchObject({
+      name: "ci-staging",
+      components: ["api", "web"],
+      environments: ["staging", "pr-*"],
+      build: false,
+    });
+
+    const policy = await admin("token", "create", "limits", "--scope", "policy", "--name", "rules");
+    expect((await findToken(testDb.db, tokenIn(policy.out, "policy")))?.scope).toBe("policy");
+
+    const listed = (await admin("token", "list", "limits")).out;
+    expect(listed).toContain("ci-staging");
+    expect(listed).toContain("components api,web; environments staging,pr-*");
+  });
+
+  it("refuses limits that make no sense", async () => {
+    await admin("project", "create", "bad-limits");
+    const results = [
+      await admin("token", "create", "bad-limits", "--scope", "read", "--component", "api"),
+      await admin("token", "create", "bad-limits", "--scope", "ingest", "--build"),
+      await admin("token", "create", "bad-limits", "--scope", "ingest", "--environment", "a b"),
+      await admin("token", "create", "bad-limits", "--scope", "ingest", "--name", "ci staging"),
+    ];
+    expect(results.map((r) => r.code)).toEqual([1, 1, 1, 1]);
+    expect(results[0]?.err).toContain("Only ingest tokens can be limited");
+    expect(results[1]?.err).toContain("--build only matters with --environment");
+    expect(results[2]?.err).toContain('Invalid limit "a b"');
+    expect(results[3]?.err).toContain('Invalid token name "ci staging"');
+  });
+
   it("requires a valid scope", async () => {
     await admin("project", "create", "scopes");
     const { code, err } = await admin("token", "create", "scopes", "--scope", "admin");
 
     expect(code).toBe(1);
-    expect(err).toContain("--scope must be ingest or read.");
+    expect(err).toContain("--scope must be ingest, read, policy, override.");
   });
 
   it("reports unknown projects, tokens and commands", async () => {

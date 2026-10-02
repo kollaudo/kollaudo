@@ -2,7 +2,7 @@ import type { TestRun, Verdict, VerdictQuery, VerdictReason } from "@kollaudo/sc
 import { and, desc, eq } from "drizzle-orm";
 import type { z } from "zod";
 import type { Db } from "./db/client.ts";
-import { components, environments, testRuns, versions } from "./db/schema.ts";
+import { apiTokens, components, environments, testRuns, versions } from "./db/schema.ts";
 import { currentDeployments } from "./deployments.ts";
 import { runColumns, toTestRun } from "./reads.ts";
 
@@ -19,6 +19,7 @@ export async function getVerdict(db: Db, projectId: string, query: Query): Promi
     .innerJoin(versions, eq(testRuns.versionId, versions.id))
     .innerJoin(components, eq(versions.componentId, components.id))
     .innerJoin(environments, eq(testRuns.environmentId, environments.id))
+    .leftJoin(apiTokens, eq(testRuns.tokenId, apiTokens.id))
     .where(
       and(
         eq(components.projectId, projectId),

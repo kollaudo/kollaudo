@@ -24,7 +24,17 @@ describe("findToken", () => {
 
     const found = await findToken(testDb.db, ingest?.token ?? "");
 
-    expect(found).toEqual({ id: ingest?.id, projectId: project.id, scope: "ingest" });
+    expect(found).toEqual({
+      id: ingest?.id,
+      projectId: project.id,
+      scope: "ingest",
+      name: null,
+      hint: ingest?.token.slice(0, 8),
+      // Tokens created with a project have no limits.
+      components: null,
+      environments: null,
+      build: true,
+    });
   });
 
   it("ignores unknown and malformed tokens", async () => {

@@ -13,6 +13,10 @@ the API.
 
 ### Server
 
+- Tokens can have a name, and `ingest` tokens can be limited to components and environments, by
+  name or with `*` patterns ([ADR 0017](docs/adr/0017-trust-in-evidence.md)). Every test run and
+  deployment records the token that sent it, shown in the API, the UI and the verdict.
+- New token scopes `policy` and `override`, for the rules of the verdict and for overrides.
 - Deployments: `POST /v1/deployments` records that a version runs in an environment, and
   `GET /v1/deployments` lists them. Components, environments and versions are created on first use,
   with the same rules as test runs.
@@ -33,7 +37,8 @@ the API.
 ### CLI
 
 - `kollaudo deployed` records a deployment, after your deployment tool did it.
-- `kollaudo verdict` notes when the environment runs another version than the one it judged.
+- `kollaudo verdict` notes when the environment runs another version than the one it judged, and
+  says which token sent each run.
 
 ## [0.1.1] - 2026-10-01
 

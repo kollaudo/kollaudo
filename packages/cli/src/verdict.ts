@@ -100,8 +100,10 @@ function report(result: Verdict, url: string) {
   if (reasons.length > 0) lines.push("");
   for (const reason of reasons) {
     const link = reason.run ? `  ${url}/test-runs/${reason.run.id}` : "";
+    // Who sent the evidence (ADR 0017): when a verdict surprises, that's the first question.
+    const by = reason.run?.sentBy ? `  by ${reason.run.sentBy}` : "";
     lines.push(
-      `  ${reason.outcome.padEnd(7)}  ${reason.kind.padEnd(width)}  ${reason.message}${link}`,
+      `  ${reason.outcome.padEnd(7)}  ${reason.kind.padEnd(width)}  ${reason.message}${by}${link}`,
     );
   }
   // The outcome doesn't change, but a gate should know if it judged a version that isn't running.

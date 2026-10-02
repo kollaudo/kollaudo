@@ -22,6 +22,13 @@
       "when": 1790865171548,
       "tag": "0002_deployments",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790928894653,
+      "tag": "0003_token_limits",
+      "breakpoints": true
     }
   ]
 }

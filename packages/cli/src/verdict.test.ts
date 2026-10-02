@@ -20,6 +20,7 @@ const e2e = {
   pullRequest: null,
   digest: null,
   tool: "playwright",
+  sentBy: null,
   startedAt: null,
   finishedAt: null,
   createdAt: "2026-09-30T07:00:00.000Z",
@@ -95,6 +96,24 @@ describe("kollaudo verdict", () => {
     });
   });
 
+  it("says who sent each run", async () => {
+    const sent = verdict({
+      reasons: [
+        {
+          kind: "e2e",
+          outcome: "pass",
+          message: "1 passed",
+          run: { ...e2e, sentBy: "ci-staging" },
+        },
+      ],
+    });
+    const { out } = await runWith(run, args, { env, fetch: server(200, sent).fetch });
+
+    expect(out).toContain(
+      `  pass     e2e  1 passed  by ci-staging  https://kollaudo.example.com/test-runs/${e2e.id}\n`,
+    );
+  });
+
   it("notes when another version runs in the environment", async () => {
     const deployment = {
       id: "7a7a7a7a-8a1b-4c3d-9e0f-123456789abc",
@@ -106,6 +125,7 @@ describe("kollaudo verdict", () => {
       pullRequest: null,
       digest: null,
       tool: "argocd",
+      sentBy: null,
       createdAt: "2026-10-01T07:00:00.000Z",
       deployedAt: "2026-10-01T07:00:00.000Z",
     };

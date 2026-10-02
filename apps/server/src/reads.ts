@@ -8,8 +8,16 @@ import type {
 import { and, asc, desc, eq, type SQL, sql } from "drizzle-orm";
 import type { z } from "zod";
 import type { Db } from "./db/client.ts";
-import { components, environments, testResults, testRuns, versions } from "./db/schema.ts";
+import {
+  apiTokens,
+  components,
+  environments,
+  testResults,
+  testRuns,
+  versions,
+} from "./db/schema.ts";
 import { currentDeployments } from "./deployments.ts";
+import { tokenLabel } from "./tokens.ts";
 
 type Query = z.output<typeof TestRunQuery>;
 
@@ -25,6 +33,8 @@ export const runColumns = {
   pullRequest: versions.pullRequest,
   digest: versions.digest,
   tool: testRuns.tool,
+  sentByName: apiTokens.name,
+  sentByHint: apiTokens.hint,
   startedAt: testRuns.startedAt,
   finishedAt: testRuns.finishedAt,
   createdAt: testRuns.createdAt,
@@ -45,15 +55,18 @@ function selectRuns(db: Db, projectId: string, ...conditions: (SQL | undefined)[
     .innerJoin(versions, eq(testRuns.versionId, versions.id))
     .innerJoin(components, eq(versions.componentId, components.id))
     .leftJoin(environments, eq(testRuns.environmentId, environments.id))
+    .leftJoin(apiTokens, eq(testRuns.tokenId, apiTokens.id))
     .where(and(eq(components.projectId, projectId), ...conditions));
 }
 
 type RunRow = Awaited<ReturnType<typeof selectRuns>>[number];
 
 export function toTestRun(row: RunRow): TestRun {
-  const { tests, passed, failed, skipped, pending, other, flaky, ...run } = row;
+  const { tests, passed, failed, skipped, pending, other, flaky, sentByName, sentByHint, ...run } =
+    row;
   return {
     ...run,
+    sentBy: sentByHint === null ? null : tokenLabel({ name: sentByName, hint: sentByHint }),
     startedAt: run.startedAt?.toISOString() ?? null,
     finishedAt: run.finishedAt?.toISOString() ?? null,
     createdAt: run.createdAt.toISOString(),
@@ -129,6 +142,7 @@ export async function getHealth(db: Db, projectId: string): Promise<HealthMatrix
       .innerJoin(versions, eq(testRuns.versionId, versions.id))
       .innerJoin(components, eq(versions.componentId, components.id))
       .leftJoin(environments, eq(testRuns.environmentId, environments.id))
+      .leftJoin(apiTokens, eq(testRuns.tokenId, apiTokens.id))
       .where(eq(components.projectId, projectId))
       .orderBy(
         versions.componentId,

@@ -1,10 +1,10 @@
 import { createMiddleware } from "hono/factory";
 import type { Db } from "./db/client.ts";
 import { errorResponse } from "./errors.ts";
-import { findToken, type TokenScope } from "./tokens.ts";
+import { type FoundToken, findToken, type TokenScope } from "./tokens.ts";
 
 export interface AuthEnv {
-  Variables: { projectId: string };
+  Variables: { projectId: string; token: FoundToken };
 }
 
 /** Requires a valid API token with one of the given scopes (ADR 0007): `401` without one, `403` if the scope is wrong. */
@@ -25,6 +25,7 @@ export function requireScope(db: Db, ...scopes: TokenScope[]) {
       );
     }
     c.set("projectId", found.projectId);
+    c.set("token", found);
     await next();
   });
 }

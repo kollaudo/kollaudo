@@ -16,15 +16,45 @@ export function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
+/** What a token is called, and what an `ingest` token may send (ADR 0017). */
+export interface TokenOptions {
+  name?: string;
+  /** Names or `*` patterns. Undefined or empty means no limit. */
+  components?: string[];
+  environments?: string[];
+  /** Whether a token limited to environments may also send build-level runs. */
+  build?: boolean;
+}
+
 /** Creates a token and returns it. The token itself is never stored, so it can't be shown again. */
-export async function createToken(db: Executor, projectId: string, scope: TokenScope) {
+export async function createToken(
+  db: Executor,
+  projectId: string,
+  scope: TokenScope,
+  options: TokenOptions = {},
+) {
   const token = generateToken();
+  const environments = nonEmpty(options.environments);
   const [row] = await db
     .insert(apiTokens)
-    .values({ projectId, scope, hash: hashToken(token), hint: token.slice(0, PREFIX.length + 4) })
+    .values({
+      projectId,
+      scope,
+      hash: hashToken(token),
+      hint: token.slice(0, PREFIX.length + 4),
+      name: options.name,
+      components: nonEmpty(options.components),
+      environments,
+      // Limited to environments, a token sends build-level runs only when it says so.
+      build: options.build ?? environments === null,
+    })
     .returning({ id: apiTokens.id });
   if (!row) throw new Error("Token was not created");
-  return { id: row.id, scope, token };
+  return { id: row.id, scope, token, name: options.name ?? null };
+}
+
+function nonEmpty(list: string[] | undefined) {
+  return list && list.length > 0 ? list : null;
 }
 
 /** How often `lastUsedAt` is refreshed, to avoid a database write on every request. */
@@ -38,6 +68,11 @@ export async function findToken(db: Db, token: string) {
       id: apiTokens.id,
       projectId: apiTokens.projectId,
       scope: apiTokens.scope,
+      name: apiTokens.name,
+      hint: apiTokens.hint,
+      components: apiTokens.components,
+      environments: apiTokens.environments,
+      build: apiTokens.build,
       lastUsedAt: apiTokens.lastUsedAt,
     })
     .from(apiTokens)
@@ -49,4 +84,40 @@ export async function findToken(db: Db, token: string) {
     await db.update(apiTokens).set({ lastUsedAt: new Date() }).where(eq(apiTokens.id, row.id));
   }
   return found;
+}
+
+export type FoundToken = NonNullable<Awaited<ReturnType<typeof findToken>>>;
+
+/**
+ * Why a token may not send data for a component in an environment, or undefined if it may. A null
+ * environment is a build-level run.
+ */
+export function outsideLimits(
+  token: Pick<FoundToken, "components" | "environments" | "build">,
+  component: string,
+  environment: string | null,
+): string | undefined {
+  if (token.components && !token.components.some((p) => matches(p, component))) {
+    return `This token can't send data for the component "${component}": it is limited to ${token.components.join(", ")}.`;
+  }
+  if (environment === null) {
+    return token.build
+      ? undefined
+      : "This token can't send build-level runs: it is limited to environments.";
+  }
+  if (token.environments && !token.environments.some((p) => matches(p, environment))) {
+    return `This token can't send data for the environment "${environment}": it is limited to ${token.environments.join(", ")}.`;
+  }
+  return undefined;
+}
+
+/** A name or a pattern where `*` stands for any characters, such as `pr-*`. */
+export function matches(pattern: string, name: string): boolean {
+  const regex = pattern.split("*").map((part) => part.replace(/[.+?^${}()|[\]\\/]/g, "\\$&"));
+  return new RegExp(`^${regex.join(".*")}$`).test(name);
+}
+
+/** How a token is shown next to the data it sent: its name, or the start of the token. */
+export function tokenLabel(token: { name: string | null; hint: string }) {
+  return token.name ?? `${token.hint}…`;
 }

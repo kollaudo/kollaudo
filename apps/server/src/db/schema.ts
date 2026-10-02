@@ -23,7 +23,7 @@ export const projects = pgTable("projects", {
   createdAt: createdAt(),
 });
 
-export const tokenScope = pgEnum("token_scope", ["ingest", "read"]);
+export const tokenScope = pgEnum("token_scope", ["ingest", "read", "policy", "override"]);
 
 /** API tokens (ADR 0007). Only the SHA-256 hash of a token is stored. */
 export const apiTokens = pgTable("api_tokens", {
@@ -35,6 +35,16 @@ export const apiTokens = pgTable("api_tokens", {
   hash: text().notNull().unique(),
   /** First characters of the token, to recognize it in listings. */
   hint: text().notNull(),
+  /** A name for people, such as `ci-staging`, shown wherever the token appears. */
+  name: text(),
+  /**
+   * Limits of an `ingest` token (ADR 0017): names or `*` patterns of the components and environments
+   * it may send data for. Null means no limit.
+   */
+  components: text().array(),
+  environments: text().array(),
+  /** Whether a token limited to environments may also send build-level runs. */
+  build: boolean().notNull().default(true),
   createdAt: createdAt(),
   lastUsedAt: timestamp({ withTimezone: true }),
   revokedAt: timestamp({ withTimezone: true }),
@@ -101,6 +111,8 @@ export const testRuns = pgTable(
     kind: text().notNull(),
     /** Name of the tool that produced the report, such as `playwright`. */
     tool: text(),
+    /** The token that sent the run (ADR 0017). */
+    tokenId: uuid().references(() => apiTokens.id, { onDelete: "set null" }),
     startedAt: timestamp({ withTimezone: true }),
     finishedAt: timestamp({ withTimezone: true }),
     tests: integer().notNull(),
@@ -130,6 +142,8 @@ export const deployments = pgTable(
       .references(() => environments.id, { onDelete: "cascade" }),
     /** Name of the tool that deployed it, such as `argocd`. */
     tool: text(),
+    /** The token that sent the deployment (ADR 0017). */
+    tokenId: uuid().references(() => apiTokens.id, { onDelete: "set null" }),
     deployedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     createdAt: createdAt(),
   },

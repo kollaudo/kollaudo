@@ -75,6 +75,24 @@ so run `push` in a step that runs anyway (`if: ${{ !cancelled() }}` in GitHub Ac
 in GitLab CI, `post { always { … } }` in Jenkins). `push` exits with `0` when Kollaudo stored the
 report, whatever the results.
 
+### Give each pipeline its own token
+
+A project's first ingest token can send results for any component and environment. Give each
+pipeline a token of its own, with a name and limits, so it can only send what it's responsible for
+([ADR 0017](adr/0017-trust-in-evidence.md)):
+
+```bash
+kollaudo-server token create shop --scope ingest --name ci-staging \
+  --component api --environment staging --environment "pr-*"
+```
+
+Results outside its limits are refused with `403`. A token limited to environments sends build-level
+runs, such as unit tests, only with `--build`. The name shows up next to everything the token sends,
+in the API, the UI and the reasons of the verdict, so a surprising verdict says where its evidence
+came from.
+
+> Token names and limits come with the next release, 0.2.0.
+
 ### Tell Kollaudo what runs where
 
 After your deployment tool deployed a version, tell Kollaudo. It then shows which version runs in

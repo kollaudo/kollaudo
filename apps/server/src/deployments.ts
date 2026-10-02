@@ -7,8 +7,10 @@ import type {
 import { and, desc, eq, type SQL, sql } from "drizzle-orm";
 import type { z } from "zod";
 import type { Db } from "./db/client.ts";
-import { components, deployments, environments, versions } from "./db/schema.ts";
+import { apiTokens, components, deployments, environments, versions } from "./db/schema.ts";
+import { HttpError } from "./errors.ts";
 import { componentIdFor, environmentIdFor, versionIdFor } from "./first-use.ts";
+import { type FoundToken, outsideLimits, tokenLabel } from "./tokens.ts";
 
 type Input = z.output<typeof DeploymentInput>;
 type Query = z.output<typeof DeploymentQuery>;
@@ -24,6 +26,8 @@ const deploymentColumns = {
   pullRequest: versions.pullRequest,
   digest: versions.digest,
   tool: deployments.tool,
+  sentByName: apiTokens.name,
+  sentByHint: apiTokens.hint,
   deployedAt: deployments.deployedAt,
   createdAt: deployments.createdAt,
 };
@@ -36,14 +40,16 @@ function selectDeployments(db: Db, projectId: string, ...conditions: (SQL | unde
     .innerJoin(versions, eq(deployments.versionId, versions.id))
     .innerJoin(components, eq(versions.componentId, components.id))
     .innerJoin(environments, eq(deployments.environmentId, environments.id))
+    .leftJoin(apiTokens, eq(deployments.tokenId, apiTokens.id))
     .where(and(eq(components.projectId, projectId), ...conditions));
 }
 
 type DeploymentRow = Awaited<ReturnType<typeof selectDeployments>>[number];
 
-function toDeployment(row: DeploymentRow): Deployment {
+function toDeployment({ sentByName, sentByHint, ...row }: DeploymentRow): Deployment {
   return {
     ...row,
+    sentBy: sentByHint === null ? null : tokenLabel({ name: sentByName, hint: sentByHint }),
     deployedAt: row.deployedAt.toISOString(),
     createdAt: row.createdAt.toISOString(),
   };
@@ -55,9 +61,13 @@ function toDeployment(row: DeploymentRow): Deployment {
  */
 export async function recordDeployment(
   db: Db,
-  projectId: string,
+  token: FoundToken,
   input: Input,
 ): Promise<Deployment> {
+  const projectId = token.projectId;
+  const refused = outsideLimits(token, input.component, input.environment);
+  if (refused) throw new HttpError(403, "outside_token_limits", refused);
+
   const id = await db.transaction(async (tx) => {
     const componentId = await componentIdFor(tx, projectId, input.component);
     const environmentId = await environmentIdFor(tx, projectId, input.environment);
@@ -68,6 +78,7 @@ export async function recordDeployment(
         versionId,
         environmentId,
         tool: input.tool,
+        tokenId: token.id,
         ...(input.deployedAt && { deployedAt: new Date(input.deployedAt) }),
       })
       .returning({ id: deployments.id });
@@ -120,6 +131,7 @@ export async function currentDeployments(
     .innerJoin(versions, eq(deployments.versionId, versions.id))
     .innerJoin(components, eq(versions.componentId, components.id))
     .innerJoin(environments, eq(deployments.environmentId, environments.id))
+    .leftJoin(apiTokens, eq(deployments.tokenId, apiTokens.id))
     .where(and(eq(components.projectId, projectId), ...conditions))
     .orderBy(
       versions.componentId,
