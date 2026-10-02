@@ -112,7 +112,9 @@ export function createApp({ db, webDir }: AppOptions) {
       summary: "Send a CTRF test report",
       description:
         "Stores a test run for a version of a component, in an environment or at build level. " +
-        "The component, environment and version are created if they don't exist yet.",
+        "The component, environment and version are created if they don't exist yet. The report " +
+        "is CTRF: to send JUnit XML, convert it first, with `kollaudo push` or a tool such as " +
+        "junit-to-ctrf (ADR 0015).",
       security: [{ token: [] }],
       middleware: [requireScope(db, "ingest")] as const,
       request: { body: { ...json(TestRunInput, "The test run"), required: true } },

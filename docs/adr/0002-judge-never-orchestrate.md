@@ -1,6 +1,6 @@
 # 2. Kollaudo judges, it never orchestrates
 
-- Status: accepted
+- Status: accepted, extended by [0019](0019-when-the-gate-is-skipped-or-kollaudo-is-down.md)
 - Date: 2026-09-29
 
 ## Context

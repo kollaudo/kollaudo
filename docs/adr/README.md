@@ -8,14 +8,14 @@ accepted: if it changes, a new ADR supersedes it (see [0001](0001-record-archite
 |---|---|---|
 | [0001](0001-record-architecture-decisions.md) | Record architecture decisions | accepted |
 | | **Principles** | |
-| [0002](0002-judge-never-orchestrate.md) | Kollaudo judges, it never orchestrates | accepted |
+| [0002](0002-judge-never-orchestrate.md) | Kollaudo judges, it never orchestrates | accepted, extended by [0019](0019-when-the-gate-is-skipped-or-kollaudo-is-down.md) |
 | [0003](0003-tool-agnostic-core.md) | Tool-agnostic core | accepted |
 | | **Model** | |
 | [0004](0004-own-internal-model.md) | Own internal data model | accepted |
 | [0005](0005-create-on-first-use.md) | Components, environments and versions are created on first use | accepted |
 | | **Ingest and formats** | |
 | [0006](0006-push-based-ingest.md) | Push-based ingest | accepted |
-| [0007](0007-scoped-api-tokens.md) | API tokens have one project and one scope | accepted |
+| [0007](0007-scoped-api-tokens.md) | API tokens have one project and one scope | accepted, extended by [0017](0017-trust-in-evidence.md) |
 | [0008](0008-ctrf-for-test-results.md) | CTRF as the native format for test results | accepted |
 | [0009](0009-cdevents-in-and-out.md) | CDEvents as an optional input and output | accepted |
 | | **Architecture and technology** | |
@@ -25,6 +25,11 @@ accepted: if it changes, a new ADR supersedes it (see [0001](0001-record-archite
 | | **Verdict** | |
 | [0013](0013-verdict-pass-fail-unknown.md) | The verdict is pass, fail or unknown | accepted |
 | [0014](0014-policy.md) | Policies decide what a verdict requires | accepted |
+| [0016](0016-rules-kept-by-kollaudo.md) | Rules are kept by Kollaudo, and a request can't relax them | accepted |
+| [0018](0018-overrides.md) | Overrides let a version through, with who, why and until when | accepted |
+| [0019](0019-when-the-gate-is-skipped-or-kollaudo-is-down.md) | Gates fail closed when Kollaudo doesn't answer, and skipped gates are visible | accepted |
+| | **Trust** | |
+| [0017](0017-trust-in-evidence.md) | Evidence says who sent it, and tokens limit what they can send | accepted |
 | | **Formats** | |
 | [0015](0015-junit-converted-by-the-cli.md) | JUnit XML is converted to CTRF by the CLI | accepted |
 

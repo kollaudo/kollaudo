@@ -1,6 +1,6 @@
 # 7. API tokens have one project and one scope
 
-- Status: accepted
+- Status: accepted, extended by [0017](0017-trust-in-evidence.md)
 - Date: 2026-09-29
 
 ## Context
