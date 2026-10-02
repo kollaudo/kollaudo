@@ -179,7 +179,6 @@ tests of a version are enough?
 | Promotes or deploys | ❌ | ✅ | ⚠️ | ⚠️ | ❌ | ❌ | ✅ | ❌ |
 | Judges metrics and SLOs | ❌ | ⚠️ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Open source | ✅ | ✅ | ✅ | ❌ | ⚠️ | ⚠️ | ❌ | ✅ |
-| Mature, with a large community | ❌ | ✅ | ⚠️ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 When something else fits better:
 
