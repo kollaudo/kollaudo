@@ -43,6 +43,13 @@
       "when": 1790930609684,
       "tag": "0005_overrides",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790945124718,
+      "tag": "0006_verdicts",
+      "breakpoints": true
     }
   ]
 }

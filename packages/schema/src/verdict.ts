@@ -2,7 +2,7 @@ import { z } from "zod";
 import { Deployment } from "./deployments.ts";
 import { Override } from "./overrides.ts";
 import { AppliedPolicy } from "./policy.ts";
-import { KIND_PATTERN, TestRun } from "./test-runs.ts";
+import { KIND_PATTERN, TestRun, Timestamp } from "./test-runs.ts";
 
 export const VerdictOutcome = z.enum(["pass", "fail", "unknown"]).meta({
   id: "VerdictOutcome",
@@ -64,3 +64,57 @@ export const Verdict = z
   })
   .meta({ id: "Verdict" });
 export type Verdict = z.infer<typeof Verdict>;
+
+/**
+ * A verdict Kollaudo gave, as it was given (ADR 0019). The log records the answers: later verdicts
+ * are still computed from the evidence, not read from it.
+ */
+export const GivenVerdict = z
+  .object({
+    id: z.uuid(),
+    component: z.string(),
+    environment: z.string(),
+    version: z.string(),
+    outcome: VerdictOutcome,
+    evidenceOutcome: VerdictOutcome.meta({
+      description: "The outcome of the evidence alone: it differs from outcome under an override.",
+    }),
+    message: z.string(),
+    policyRevision: z
+      .number()
+      .int()
+      .nullable()
+      .meta({ description: "The policy revision of the project, null without a policy." }),
+    require: z.array(z.string()).meta({ description: "The kinds the verdict required." }),
+    overrideId: z
+      .uuid()
+      .nullable()
+      .meta({ description: "The override that let the version through, if any." }),
+    askedBy: z
+      .string()
+      .nullable()
+      .meta({ description: "The name of the token that asked, or the start of the token." }),
+    createdAt: Timestamp,
+  })
+  .meta({ id: "GivenVerdict" });
+export type GivenVerdict = z.infer<typeof GivenVerdict>;
+
+export const GivenVerdictQuery = z.object({
+  component: z.string().optional(),
+  environment: z.string().optional(),
+  version: z.string().optional(),
+  outcome: VerdictOutcome.optional(),
+  limit: z.coerce.number().int().min(1).max(200).default(50),
+  before: z.uuid().optional().meta({ description: "The `next` value of the previous page." }),
+});
+
+export const GivenVerdictList = z
+  .object({
+    items: z.array(GivenVerdict).meta({ description: "Newest first." }),
+    next: z
+      .uuid()
+      .nullable()
+      .meta({ description: "Pass it as `before` to get the next page. Null on the last page." }),
+  })
+  .meta({ id: "GivenVerdictList" });
+export type GivenVerdictList = z.infer<typeof GivenVerdictList>;

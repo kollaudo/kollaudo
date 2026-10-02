@@ -6,6 +6,17 @@ the API.
 
 ## [Unreleased]
 
+### Server
+
+- A log of the verdicts given ([ADR 0019](docs/adr/0019-when-the-gate-is-skipped-or-kollaudo-is-down.md)):
+  every answer of `GET /v1/verdict` is recorded with its outcome, the outcome of the evidence alone,
+  the policy revision and required kinds, the override that let the version through, and the token
+  that asked. `GET /v1/verdicts` lists them, newest first, with filters and pages.
+
+### CLI
+
+- `kollaudo verdict list` shows the verdicts given, with who asked and the policy revision.
+
 ## [0.2.0] - 2026-10-02
 
 ### Helm chart

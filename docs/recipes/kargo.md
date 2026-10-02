@@ -43,7 +43,12 @@ kubectl -n <kargo project> label secret kollaudo kargo.akuity.io/cred-type=gener
 ```
 
 A `read` token can ask for verdicts and nothing else: the gate can't send evidence or override
-itself ([ADR 0017](../adr/0017-trust-in-evidence.md)).
+itself ([ADR 0017](../adr/0017-trust-in-evidence.md)). Give it a name, so that the
+[log of verdicts](../sending-results.md#every-verdict-is-recorded) says which gate asked:
+
+```bash
+kubectl exec -n kollaudo deploy/kollaudo -- kollaudo-server token create <project> --scope read --name kargo
+```
 
 ## 3. The gated Stage
 

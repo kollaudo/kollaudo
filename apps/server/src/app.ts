@@ -6,6 +6,8 @@ import {
   DeploymentInput,
   DeploymentList,
   DeploymentQuery,
+  GivenVerdictList,
+  GivenVerdictQuery,
   HealthMatrix,
   Healthz,
   Override,
@@ -38,6 +40,7 @@ import { createOverride, listOverrides, revokeOverride } from "./overrides.ts";
 import { currentPolicy, parsePolicy, pushPolicy } from "./policies.ts";
 import { getHealth, getTestRun, listTestRuns } from "./reads.ts";
 import { getVerdict } from "./verdict.ts";
+import { listVerdicts, recordVerdict } from "./verdict-log.ts";
 
 /** Same as in package.json: a test checks it, and the release workflow checks the tag. */
 export const VERSION = "0.2.0";
@@ -354,13 +357,34 @@ export function createApp({ db, webDir }: AppOptions) {
       description:
         "`pass`, `fail` or `unknown`, with the reasons for each kind of test. A version, component " +
         "or environment Kollaudo has never seen is `unknown`: evidence is missing. Accepts `read` " +
-        "and `ingest` tokens, so a CI gate can use the token it sends results with.",
+        "and `ingest` tokens, so a CI gate can use the token it sends results with. Every verdict " +
+        "given is recorded, with the token that asked: see `GET /v1/verdicts`.",
       security: [{ token: [] }],
       middleware: [requireScope(db, "read", "ingest")] as const,
       request: { query: VerdictQuery },
       responses: { 200: json(Verdict, "The verdict"), ...errors },
     }),
-    async (c) => c.json(await getVerdict(db, c.var.projectId, c.req.valid("query")), 200),
+    async (c) => {
+      const verdict = await getVerdict(db, c.var.projectId, c.req.valid("query"));
+      await recordVerdict(db, c.var.token, verdict);
+      return c.json(verdict, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/v1/verdicts",
+      summary: "List the verdicts given",
+      description:
+        "Every verdict Kollaudo gave in the project, newest first, with the policy revision, the " +
+        "override and the token that asked (ADR 0019). Follow `next` to get older ones.",
+      security: [{ token: [] }],
+      middleware: [requireScope(db, "read")] as const,
+      request: { query: GivenVerdictQuery },
+      responses: { 200: json(GivenVerdictList, "The verdicts given"), ...errors },
+    }),
+    async (c) => c.json(await listVerdicts(db, c.var.projectId, c.req.valid("query")), 200),
   );
 
   app.doc31("/v1/openapi.json", {

@@ -21,4 +21,12 @@ export {
   TestRunQuery,
   TestRunSummary,
 } from "./test-runs.ts";
-export { Verdict, VerdictOutcome, VerdictQuery, VerdictReason } from "./verdict.ts";
+export {
+  GivenVerdict,
+  GivenVerdictList,
+  GivenVerdictQuery,
+  Verdict,
+  VerdictOutcome,
+  VerdictQuery,
+  VerdictReason,
+} from "./verdict.ts";

@@ -94,6 +94,9 @@ expect_exit 1 kollaudo verdict --component checkout --env ci --version 2.0.0
 expect_output "e2e failed."
 KOLLAUDO_TOKEN=$E2E_READ_TOKEN expect_exit 0 \
   kollaudo verdict --component kollaudo --env ci --version "$VERSION"
+# Every verdict given is recorded, with the token that asked.
+KOLLAUDO_TOKEN=$E2E_READ_TOKEN expect_exit 0 kollaudo verdict list --component checkout
+expect_output "FAIL  checkout 2.0.0 in ci, asked by kol_"
 
 echo "## 3b. Deployments: what runs where"
 # Kollaudo itself runs the tested version in ci. Checkout runs an older version than the tested one,

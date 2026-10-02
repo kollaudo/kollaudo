@@ -2,8 +2,10 @@ import { parseArgs } from "node:util";
 import type { Verdict } from "@kollaudo/schema";
 import { call, describeError, server } from "./api.ts";
 import type { Io } from "./io.ts";
+import { verdictList } from "./verdict-list.ts";
 
 export const VERDICT_HELP = `Usage: kollaudo verdict --component <name> --env <name> --version <version> [options]
+       kollaudo verdict list [options]
 
 Ask Kollaudo whether a version is healthy in an environment, and exit with the answer. Use it as a
 gate: to promote a version to production, ask for its verdict in staging.
@@ -16,6 +18,9 @@ Exit codes:
 
 A pipeline that lets "unknown" through, or goes ahead when Kollaudo is down, has to check for 2
 or 3 explicitly.
+
+Kollaudo records every verdict it gives, with the token that asked: "kollaudo verdict list" shows
+them (see "kollaudo verdict list --help").
 
 Options:
   --component <name>     Component, such as "frontend" (required)
@@ -38,6 +43,7 @@ const NO_VERDICT = 3;
 const TIMEOUT_MS = 30_000;
 
 export async function verdict(args: string[], io: Io): Promise<number> {
+  if (args[0] === "list") return verdictList(args.slice(1), io);
   const fail = (message: string) => {
     io.err(`Error: ${message}\n`);
     return NO_VERDICT;

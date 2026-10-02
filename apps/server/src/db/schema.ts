@@ -218,3 +218,34 @@ export const testResults = pgTable(
   },
   (t) => [index().on(t.testRunId)],
 );
+
+export const verdictOutcome = pgEnum("verdict_outcome", ["pass", "fail", "unknown"]);
+
+/**
+ * The log of the verdicts given (ADR 0019). Names rather than references: a gate can ask about a
+ * version Kollaudo has never seen, and asking creates nothing.
+ */
+export const verdicts = pgTable(
+  "verdicts",
+  {
+    id: id(),
+    projectId: uuid()
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    component: text().notNull(),
+    environment: text().notNull(),
+    version: text().notNull(),
+    outcome: verdictOutcome().notNull(),
+    evidenceOutcome: verdictOutcome().notNull(),
+    message: text().notNull(),
+    policyRevision: integer(),
+    require: text().array().notNull(),
+    overrideId: uuid().references(() => overrides.id, { onDelete: "set null" }),
+    tokenId: uuid().references(() => apiTokens.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index().on(t.projectId, t.createdAt),
+    index().on(t.projectId, t.component, t.environment, t.version),
+  ],
+);

@@ -159,6 +159,27 @@ esac
 For an urgent fix that can't wait for its evidence, don't edit the gate: let that one version through
 with an [override](overrides.md), which keeps a record of who and why.
 
+### Every verdict is recorded
+
+Kollaudo keeps a log of the verdicts it gives
+([ADR 0019](adr/0019-when-the-gate-is-skipped-or-kollaudo-is-down.md)): which version, in which
+environment, the outcome, the policy revision and required kinds, the override that let it through,
+and the token that asked. Give each gate a token with a name, such as `kargo`, to tell gates apart:
+
+```bash
+kollaudo verdict list --component frontend --env staging
+```
+
+```text
+2026-10-02T09:12:00.000Z  PASS  frontend 1.4.0 in staging, asked by kargo, policy revision 3: e2e passed.
+2026-10-02T09:10:00.000Z  FAIL  frontend 1.3.9 in staging, asked by kargo, policy revision 3: e2e failed.
+```
+
+It needs a `read` token, and `GET /v1/verdicts` gives the same list. The log records the answers:
+later verdicts are still computed from the evidence.
+
+> The log of verdicts comes with the next release.
+
 ## Recipes
 
 Complete examples for one framework and one CI. They are tested in Kollaudo's own CI.
