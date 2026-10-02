@@ -111,6 +111,14 @@ function DeployedLine({ deployment }: { deployment: Deployment }) {
         {" · "}
         {timeAgo(deployment.deployedAt)}
       </span>
+      {deployment.gate && !deployment.gate.gated && (
+        <span
+          className="ml-auto font-medium text-flaky"
+          title={`Deployed without a pass in ${deployment.gate.from} before it`}
+        >
+          ungated
+        </span>
+      )}
     </div>
   );
 }

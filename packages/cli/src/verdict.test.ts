@@ -164,6 +164,7 @@ describe("kollaudo verdict", () => {
       sentBy: null,
       createdAt: "2026-10-01T07:00:00.000Z",
       deployedAt: "2026-10-01T07:00:00.000Z",
+      gate: null,
     };
     const other = verdict({ deployed: { ...deployment, version: "1.2.0" } });
     const same = verdict({ deployed: { ...deployment, version: "1.1.0" } });
@@ -175,6 +176,46 @@ describe("kollaudo verdict", () => {
     expect(withNote.code).toBe(0);
     expect(withNote.out).toMatch(
       /\n\nNote: staging runs api 1\.2\.0 since 2026-10-01T07:00:00\.000Z, not 1\.1\.0\.\n$/,
+    );
+    expect(without.out).not.toContain("Note:");
+  });
+
+  it("notes when the deployed version went around the gate", async () => {
+    const deployment = {
+      id: "7a7a7a7a-8a1b-4c3d-9e0f-123456789abc",
+      component: "api",
+      environment: "staging",
+      version: "1.1.0",
+      commit: null,
+      branch: null,
+      tag: null,
+      pullRequest: null,
+      digest: null,
+      tool: "argocd",
+      sentBy: null,
+      createdAt: "2026-10-01T07:00:00.000Z",
+      deployedAt: "2026-10-01T07:00:00.000Z",
+    };
+    const gate = { from: "dev", verdictId: null, passedAt: null };
+    const ungated = verdict({ deployed: { ...deployment, gate: { ...gate, gated: false } } });
+    const gated = verdict({
+      deployed: {
+        ...deployment,
+        gate: {
+          ...gate,
+          gated: true,
+          verdictId: "0d0d0d0d-8a1b-4c3d-9e0f-123456789abc",
+          passedAt: "2026-10-01T06:50:00.000Z",
+        },
+      },
+    });
+
+    const withNote = await runWith(run, args, { env, fetch: server(200, ungated).fetch });
+    const without = await runWith(run, args, { env, fetch: server(200, gated).fetch });
+
+    expect(withNote.code).toBe(0);
+    expect(withNote.out).toMatch(
+      /\n\nNote: api 1\.1\.0 was deployed to staging at 2026-10-01T07:00:00\.000Z without a pass in dev before it\.\n$/,
     );
     expect(without.out).not.toContain("Note:");
   });

@@ -98,6 +98,13 @@ export async function deployed(args: string[], io: Io): Promise<number> {
     `Recorded ${deployment.component} ${deployment.version} running in ` +
       `${deployment.environment} since ${deployment.deployedAt}${by}\n`,
   );
+  // Recorded all the same: Kollaudo shows what happened, and says it went around the gate (ADR 0019).
+  if (deployment.gate && !deployment.gate.gated) {
+    io.out(
+      `Ungated: Kollaudo gave no pass for ${deployment.version} in ${deployment.gate.from} ` +
+        "before it was deployed.\n",
+    );
+  }
   return 0;
 }
 

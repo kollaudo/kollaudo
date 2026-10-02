@@ -116,6 +116,22 @@ fi
 expect_exit 1 kollaudo deployed --component worker --version 1.4.0
 expect_output "Missing --env."
 
+echo "## 3c. Gated and ungated deployments: production versions come from ci"
+admin token create "$E2E_PROJECT" --scope policy --name rules >"$OUT/policy-token"
+printf 'environments:\n  production:\n    from: ci\n' >"$OUT/policy.yaml"
+KOLLAUDO_TOKEN=$(token policy "$OUT/policy-token") expect_exit 0 kollaudo policy push "$OUT/policy.yaml"
+# Kollaudo itself passed in ci (part 3): its deployment went through the gate. The worker's didn't.
+expect_exit 0 kollaudo deployed --component kollaudo --env production --version "$VERSION"
+if grep -qF "Ungated" "$OUT/out"; then
+  echo "✗ a version that passed in ci shouldn't be ungated" >&2
+  exit 1
+fi
+expect_exit 0 kollaudo deployed --component worker --env production --version 1.4.0
+expect_output "Ungated: Kollaudo gave no pass for 1.4.0 in ci before it was deployed."
+KOLLAUDO_TOKEN=$E2E_READ_TOKEN expect_exit 2 \
+  kollaudo verdict --component worker --env production --version 1.4.0
+expect_output "without a pass in ci before it."
+
 echo "## 4. Wrong reports and tokens are refused"
 expect_exit 1 kollaudo push fixtures/invalid.json --component kollaudo --env ci --version "$VERSION"
 expect_output "fixtures/invalid.json: results.tests.0.status"

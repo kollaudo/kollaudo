@@ -53,6 +53,9 @@ test("shows the health matrix and the tests of a run", async ({ page }) => {
   await expect(page.getByRole("row", { name: /^worker/ })).toContainText(
     "No tests of 1.4.0 here yet",
   );
+  // The worker went to production without a pass in ci; Kollaudo itself went through the gate.
+  await expect(page.getByRole("row", { name: /^worker/ })).toContainText("ungated");
+  await expect(row).not.toContainText("ungated");
 
   await card.click();
   await expect(page.getByRole("heading", { name: /kollaudo .* on ci/ })).toBeVisible();

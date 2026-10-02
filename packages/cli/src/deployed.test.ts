@@ -19,6 +19,7 @@ const recorded = {
   tool: "helm",
   deployedAt: "2026-10-01T07:00:00.000Z",
   createdAt: "2026-10-01T07:00:01.000Z",
+  gate: null,
 };
 
 /** A fake server that records the requests and answers with the given status and body. */
@@ -64,6 +65,30 @@ describe("kollaudo deployed", () => {
 
     expect(out).toBe("Recorded api 3f2a9c1 running in staging since 2026-10-01T07:00:00.000Z\n");
     expect(JSON.parse(requests[0]?.init.body as string)).not.toHaveProperty("deployedAt");
+  });
+
+  it("says when the deployment went around the gate", async () => {
+    const gate = { from: "staging", verdictId: null, passedAt: null };
+    const ungated = server(201, { ...recorded, gate: { ...gate, gated: false } });
+    const gated = server(201, {
+      ...recorded,
+      gate: {
+        ...gate,
+        gated: true,
+        verdictId: "0d0d0d0d-8a1b-4c3d-9e0f-123456789abc",
+        passedAt: "2026-10-01T06:50:00.000Z",
+      },
+    });
+
+    const warned = await runWith(run, args, { env, fetch: ungated.fetch });
+    expect(warned).toEqual({
+      code: 0,
+      out:
+        "Recorded api 3f2a9c1 running in staging since 2026-10-01T07:00:00.000Z (helm)\n" +
+        "Ungated: Kollaudo gave no pass for 3f2a9c1 in staging before it was deployed.\n",
+      err: "",
+    });
+    expect((await runWith(run, args, { env, fetch: gated.fetch })).out).not.toContain("Ungated");
   });
 
   it("explains errors", async () => {

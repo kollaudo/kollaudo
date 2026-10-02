@@ -3,13 +3,23 @@ import type {
   DeploymentInput,
   DeploymentList,
   DeploymentQuery,
+  PolicyDocument,
 } from "@kollaudo/schema";
-import { and, desc, eq, type SQL, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, type SQL, sql } from "drizzle-orm";
 import type { z } from "zod";
 import type { Db } from "./db/client.ts";
-import { apiTokens, components, deployments, environments, versions } from "./db/schema.ts";
+import {
+  apiTokens,
+  components,
+  deployments,
+  environments,
+  policies,
+  verdicts,
+  versions,
+} from "./db/schema.ts";
 import { HttpError } from "./errors.ts";
 import { componentIdFor, environmentIdFor, versionIdFor } from "./first-use.ts";
+import { resolveRule } from "./policies.ts";
 import { type FoundToken, outsideLimits, tokenLabel } from "./tokens.ts";
 
 type Input = z.output<typeof DeploymentInput>;
@@ -46,7 +56,9 @@ function selectDeployments(db: Db, projectId: string, ...conditions: (SQL | unde
 
 type DeploymentRow = Awaited<ReturnType<typeof selectDeployments>>[number];
 
-function toDeployment({ sentByName, sentByHint, ...row }: DeploymentRow): Deployment {
+type Ungated = Omit<Deployment, "gate">;
+
+function toDeployment({ sentByName, sentByHint, ...row }: DeploymentRow): Ungated {
   return {
     ...row,
     sentBy: sentByHint === null ? null : tokenLabel({ name: sentByName, hint: sentByHint }),
@@ -88,7 +100,8 @@ export async function recordDeployment(
 
   const [row] = await selectDeployments(db, projectId, eq(deployments.id, id));
   if (!row) throw new Error("Deployment was not found after creating it");
-  return toDeployment(row);
+  const [deployment] = await withGates(db, projectId, [toDeployment(row)]);
+  return deployment as Deployment;
 }
 
 /** Lists deployments newest first, one page at a time. */
@@ -111,7 +124,7 @@ export async function listDeployments(
     .orderBy(desc(deployments.deployedAt), desc(deployments.id))
     .limit(query.limit + 1);
 
-  const items = rows.slice(0, query.limit).map(toDeployment);
+  const items = await withGates(db, projectId, rows.slice(0, query.limit).map(toDeployment));
   const next = rows.length > query.limit ? (items.at(-1)?.id ?? null) : null;
   return { items, next };
 }
@@ -139,10 +152,81 @@ export async function currentDeployments(
       desc(deployments.deployedAt),
       desc(deployments.id),
     );
-  return rows
-    .map(toDeployment)
-    .sort(
-      (a, b) =>
-        a.component.localeCompare(b.component) || a.environment.localeCompare(b.environment),
+  return withGates(
+    db,
+    projectId,
+    rows
+      .map(toDeployment)
+      .sort(
+        (a, b) =>
+          a.component.localeCompare(b.component) || a.environment.localeCompare(b.environment),
+      ),
+  );
+}
+
+/**
+ * Says, for each deployment, whether a gate let it through (ADR 0019). When the policy in force at
+ * the time of the deployment says where versions of its environment come from (`from`), the
+ * deployment is gated if Kollaudo gave a pass for the same version there before it was deployed.
+ */
+async function withGates(db: Db, projectId: string, items: Ungated[]): Promise<Deployment[]> {
+  if (items.length === 0) return [];
+  const revisions = await db
+    .select({ document: policies.document, createdAt: policies.createdAt })
+    .from(policies)
+    .where(eq(policies.projectId, projectId))
+    .orderBy(asc(policies.revision));
+  const fromOf = (deployment: Ungated) => {
+    const deployedAt = Date.parse(deployment.deployedAt);
+    const policy = revisions.filter((r) => r.createdAt.getTime() <= deployedAt).at(-1);
+    return resolveRule(
+      policy?.document as PolicyDocument | undefined,
+      deployment.component,
+      deployment.environment,
+    ).from;
+  };
+  const withFrom = items.map((deployment) => ({ deployment, from: fromOf(deployment) }));
+
+  const checked = withFrom.filter(({ from }) => from !== null);
+  const passes =
+    checked.length === 0
+      ? []
+      : await db
+          .select({
+            id: verdicts.id,
+            component: verdicts.component,
+            environment: verdicts.environment,
+            version: verdicts.version,
+            createdAt: verdicts.createdAt,
+          })
+          .from(verdicts)
+          .where(
+            and(
+              eq(verdicts.projectId, projectId),
+              eq(verdicts.outcome, "pass"),
+              inArray(verdicts.version, [...new Set(checked.map((c) => c.deployment.version))]),
+              inArray(verdicts.environment, [...new Set(checked.map((c) => c.from as string))]),
+            ),
+          )
+          .orderBy(desc(verdicts.createdAt));
+
+  return withFrom.map(({ deployment, from }) => {
+    if (from === null) return { ...deployment, gate: null };
+    const pass = passes.find(
+      (p) =>
+        p.component === deployment.component &&
+        p.version === deployment.version &&
+        p.environment === from &&
+        p.createdAt.getTime() <= Date.parse(deployment.deployedAt),
     );
+    return {
+      ...deployment,
+      gate: {
+        from,
+        gated: pass !== undefined,
+        verdictId: pass?.id ?? null,
+        passedAt: pass?.createdAt.toISOString() ?? null,
+      },
+    };
+  });
 }

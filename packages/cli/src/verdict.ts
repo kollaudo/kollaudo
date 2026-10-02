@@ -128,6 +128,14 @@ function report(result: Verdict, url: string) {
         `not ${version}.`,
     );
   }
+  // Deployed without a pass where it comes from (ADR 0019): someone went around the gate.
+  if (deployed?.gate && !deployed.gate.gated) {
+    lines.push(
+      "",
+      `Note: ${component} ${deployed.version} was deployed to ${environment} at ` +
+        `${deployed.deployedAt} without a pass in ${deployed.gate.from} before it.`,
+    );
+  }
   return `${lines.join("\n")}\n`;
 }
 

@@ -12,10 +12,21 @@ the API.
   every answer of `GET /v1/verdict` is recorded with its outcome, the outcome of the evidence alone,
   the policy revision and required kinds, the override that let the version through, and the token
   that asked. `GET /v1/verdicts` lists them, newest first, with filters and pages.
+- Ungated deployments ([ADR 0019](docs/adr/0019-when-the-gate-is-skipped-or-kollaudo-is-down.md),
+  [docs](docs/policies.md#deployments-that-skip-the-gate)): when the policy says where the versions
+  of an environment come from (`from`), each deployment there says whether Kollaudo gave a `pass`
+  for that version where it comes from before it was deployed. Deployments carry it in `gate`, in
+  `GET /v1/deployments`, `/v1/health` and the verdict.
+
+### Web UI
+
+- The health matrix marks deployed versions that went around the gate as `ungated`.
 
 ### CLI
 
 - `kollaudo verdict list` shows the verdicts given, with who asked and the policy revision.
+- `kollaudo deployed` says when a deployment is ungated, and `kollaudo verdict` notes it for the
+  version running in the environment.
 
 ## [0.2.0] - 2026-10-02
 

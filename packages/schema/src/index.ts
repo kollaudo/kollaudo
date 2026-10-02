@@ -1,6 +1,12 @@
 export { ApiError, Project } from "./api.ts";
 export { CtrfReport, CtrfStatus, CtrfTest } from "./ctrf.ts";
-export { Deployment, DeploymentInput, DeploymentList, DeploymentQuery } from "./deployments.ts";
+export {
+  Deployment,
+  DeploymentGate,
+  DeploymentInput,
+  DeploymentList,
+  DeploymentQuery,
+} from "./deployments.ts";
 export { HealthMatrix } from "./health.ts";
 export { Healthz } from "./healthz.ts";
 export {
