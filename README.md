@@ -324,6 +324,14 @@ The project is at a very early stage. Ideas, use cases and feedback are welcome 
 pull request, and the [security policy](https://github.com/kollaudo/.github/blob/main/SECURITY.md) to
 report a vulnerability.
 
+### Contributors
+
+Thanks to everyone who has made Kollaudo better!
+
+<a href="https://github.com/kollaudo/kollaudo/graphs/contributors">
+  <img src="https://raw.githubusercontent.com/kollaudo/kollaudo/contributors/contributors.svg" alt="The people who have contributed to Kollaudo">
+</a>
+
 ## License
 
 [Apache-2.0](LICENSE)

@@ -61,6 +61,9 @@ pnpm test         # tests that need a database create a temporary one on the loc
   request titles, for example `feat(cli): add push command` or `docs: explain versions`. Pull
   requests are squashed, so the title becomes the commit on `main`.
 
+Once your pull request is merged, you appear among the contributors in the README by yourself, within
+a few minutes: no need to add your name anywhere.
+
 New dependencies need a reason: Kollaudo tries to stay small. Prefer a version that has been out for
 at least a week over one released yesterday.
 

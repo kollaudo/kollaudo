@@ -1,0 +1,46 @@
+name: Contributors
+
+# Draws the contributors as an image for the README, without bots and the logins in
+# .github/contributors-ignore, and publishes it on the "contributors" branch. The ruleset protects only
+# main, so the image updates without a pull request.
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: contributors
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: node .github/scripts/contributors.mjs "$RUNNER_TEMP/contributors.svg"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      # The branch keeps one commit, with the current image: its history would only pile up old ones.
+      - name: Publish it on the contributors branch, if it changed
+        run: |
+          if git fetch --depth=1 origin contributors &&
+            git show FETCH_HEAD:contributors.svg | cmp -s - "$RUNNER_TEMP/contributors.svg"; then
+            echo "The contributors haven't changed."
+            exit 0
+          fi
+          git switch --orphan contributors
+          cp "$RUNNER_TEMP/contributors.svg" contributors.svg
+          git add contributors.svg
+          git -c user.name="github-actions[bot]" \
+            -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit --quiet --message "The contributors, drawn by .github/workflows/contributors.yml"
+          git push --quiet --force origin contributors
