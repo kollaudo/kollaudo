@@ -5,8 +5,6 @@ whether tests count only for the version that was deployed. Kollaudo keeps it, s
 asks for a verdict can make the rules stricter, never weaker
 ([ADR 0016](adr/0016-rules-kept-by-kollaudo.md)).
 
-> Policies come with the next release, 0.2.0.
-
 Without a policy, verdicts apply the [default rules](sending-results.md#what-the-verdict-checks-today):
 the kinds that ran are judged, and nothing is required.
 

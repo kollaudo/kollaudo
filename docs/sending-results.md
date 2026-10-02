@@ -91,8 +91,6 @@ runs, such as unit tests, only with `--build`. The name shows up next to everyth
 in the API, the UI and the reasons of the verdict, so a surprising verdict says where its evidence
 came from.
 
-> Token names and limits come with the next release, 0.2.0.
-
 ### Tell Kollaudo what runs where
 
 After your deployment tool deployed a version, tell Kollaudo. It then shows which version runs in
@@ -107,8 +105,6 @@ With Argo CD, a notification does it for you after each sync: see the
 [Argo CD recipe](recipes/argocd.md). Kollaudo never deploys anything: `deployed` records what your
 tools did. Use the same ingest token
 as `push`. `--at` gives the time it happened, when you report it later.
-
-> `kollaudo deployed` comes with the next release, 0.2.0.
 
 ## 3. Gate on the verdict
 
@@ -144,8 +140,8 @@ These are the default rules, the same for every component and environment
   the verdict is `unknown` when nothing ran at all, or when the latest run of a kind is empty.
 - A run counts **however old** it is, and the deployed version doesn't change the outcome.
 
-Rules for each component and environment, kept by Kollaudo so that a pipeline can't relax them, come
-with 0.2.0: see [policies](policies.md).
+Rules for each component and environment, kept by Kollaudo so that a pipeline can't relax them, are
+[policies](policies.md).
 
 The token can be the same ingest token you push with. Any step that fails on a non-zero exit code
 is a gate. To let `unknown` through with a warning, or to go ahead when Kollaudo is down, say so:

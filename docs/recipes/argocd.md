@@ -7,8 +7,6 @@ version ([sending test results](../sending-results.md#tell-kollaudo-what-runs-wh
 
 Nothing changes in how Argo CD deploys: the recipe only adds a notification.
 
-> Deployments come with Kollaudo 0.2.0.
-
 The recipe is tested on every change, with Argo CD in a kind cluster
 ([`e2e/kind/recipe-argocd.sh`](../../e2e/kind/recipe-argocd.sh)).
 

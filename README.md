@@ -35,15 +35,15 @@ $ echo $?
 Kollaudo doesn't build, test or deploy anything: there are plenty of great tools for that. It
 **collects their results and judges**, and the tool that promotes does what the verdict says.
 
-> **v0.1 is out.** It's young: the API can still change before 1.0, and feedback is very welcome in
+> **v0.2 is out.** It's young: the API can still change before 1.0, and feedback is very welcome in
 > [Issues](https://github.com/kollaudo/kollaudo/issues).
 
 ## Quick start
 
-The commands use the latest release, 0.1.1, so they keep working while `main` changes.
+The commands use the latest release, 0.2.0, so they keep working while `main` changes.
 
 ```bash
-export KOLLAUDO_VERSION=0.1.1
+export KOLLAUDO_VERSION=0.2.0
 curl -O https://raw.githubusercontent.com/kollaudo/kollaudo/v$KOLLAUDO_VERSION/deploy/docker-compose.yml
 docker compose up -d
 docker compose exec kollaudo kollaudo-server project create demo   # prints an ingest and a read token
@@ -72,9 +72,6 @@ helm install kollaudo oci://ghcr.io/kollaudo/charts/kollaudo -n kollaudo \
   --set database.existingSecret=<secret with the database URI>
 ```
 
-> The chart is published from the next release, 0.2.0. Until then, install it from a clone of this
-> repository: `helm install kollaudo charts/kollaudo …`.
-
 ## How it fits in your delivery
 
 ```
@@ -87,13 +84,13 @@ helm install kollaudo oci://ghcr.io/kollaudo/charts/kollaudo -n kollaudo \
 
 - **In a pipeline**, `kollaudo verdict` is one step: a non-zero exit code stops the deployment.
 - **With Kargo**, the first step of a promotion asks for the verdict, so that Freight only reaches
-  the next stage when it is `pass` ([Kargo recipe](docs/recipes/kargo.md), with 0.2.0). With Argo
+  the next stage when it is `pass` ([Kargo recipe](docs/recipes/kargo.md)). With Argo
   Rollouts, an analysis can call `GET /v1/verdict`.
 - **Kollaudo doesn't deploy**, so if it's down, deployments still work. A gate that asks for a
   verdict gets no answer (`kollaudo verdict` exits with `3`), and decides whether to stop or go
   ahead ([ADR 0002](docs/adr/0002-judge-never-orchestrate.md)). The recipes stop
   ([ADR 0019](docs/adr/0019-when-the-gate-is-skipped-or-kollaudo-is-down.md)), and
-  [overrides](docs/overrides.md) let an urgent fix through, with 0.2.0.
+  [overrides](docs/overrides.md) let an urgent fix through.
 
 See [sending test results](docs/sending-results.md) for any framework and CI, and the
 [Playwright recipe](docs/recipes/playwright.md) for a complete example.
@@ -113,16 +110,23 @@ If one CI system does all of this for you and its gates are enough, you probably
 
 ## What it does
 
-**Today** (released in [0.1.1](CHANGELOG.md))
+**Today** (released in [0.2.0](CHANGELOG.md))
 
 - **Receives test results** from any framework, as JUnit XML or [CTRF](https://ctrf.io) reports, for
   a version of a component in an environment, or at build level for unit tests.
+- **Knows what runs where**: deployments sent by a pipeline step or by Argo CD after each sync.
 - **Judges a version in an environment**: `pass`, `fail` or `unknown`, with the reasons, over the
-  HTTP API and with `kollaudo verdict`. Required kinds of test, such as `e2e` and `smoke`, can be
-  set per gate.
-- **Shows the health of each project**: the latest tested version of every component in every
-  environment, and the tests of each run.
-- **Runs anywhere** as one container next to PostgreSQL, with several projects and scoped tokens.
+  HTTP API and with `kollaudo verdict`, under [policies](docs/policies.md) kept by Kollaudo that a
+  pipeline can't relax: required kinds of test, tests that count only on the deployed version,
+  flaky tests, maximum age.
+- **Lets urgent fixes through, on the record**: [overrides](docs/overrides.md) with who, why and
+  until when.
+- **Trusts evidence it can trace**: tokens with names, limited to components and environments, and
+  every result recording which token sent it.
+- **Shows the health of each project**: the version deployed and the latest tested version of every
+  component in every environment, and the tests of each run.
+- **Runs anywhere** as one container next to PostgreSQL, with Docker Compose or the
+  [Helm chart](charts/kollaudo/README.md), with several projects and scoped tokens.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/run-dark.png">
@@ -131,11 +135,8 @@ If one CI system does all of this for you and its gates are enough, you probably
 
 **Next** ([roadmap](#roadmap))
 
-- In 0.2.0: deployments, which version runs in each environment next to what was tested, and a Helm
-  chart. [Policies](docs/policies.md) kept by Kollaudo for each component and environment, which a
-  pipeline can't relax, such as "tests count only if they ran on the deployed version", and overrides
-  for urgent fixes with a record of who and why ([overrides](docs/overrides.md)). Recipes for
-  Argo CD and Kargo.
+- After 0.2.0: a log of the verdicts given, deployments marked when no gate asked before them, and an
+  Azure DevOps recipe.
 - The verdict in the UI.
 - Bugs linked to failed tests, and UAT sign-offs and manual checks from the tools where testers work.
 - Build signals as context: coverage, static analysis.
@@ -162,7 +163,7 @@ Kollaudo's model is tool-agnostic. Every delivery process has these, whatever it
 | **Deployment** | "version X of component Y is now running in environment Z" |
 | **Test run** | results of a test session, tied to a version: on the build (unit, static analysis) or in an environment (e2e, smoke, UAT, manual) |
 | **Verdict** | *pass*, *fail* or *unknown* for a version in an environment, with the reasons. *Unknown* means evidence is missing, and it never counts as a pass |
-| **Policy** | the rules a verdict applies. Today, the [default rules](docs/sending-results.md#what-the-verdict-checks-today) and the kinds the gate requires. Rules for each component and environment, kept by Kollaudo, come with 0.2.0 |
+| **Policy** | the rules a verdict applies, for each component and environment, kept by Kollaudo in revisions ([policies](docs/policies.md)). Without one, the [default rules](docs/sending-results.md#what-the-verdict-checks-today) |
 
 A **release** is simply a version you tagged and shipped: Kollaudo shows releases as a view over
 versions, not as a separate concept.
@@ -207,8 +208,8 @@ Ready-made **recipes** are complete examples for popular tools.
 | Recipe | Status |
 |---|---|
 | [Playwright with GitHub Actions](docs/recipes/playwright.md) | available |
-| [Argo CD notifications](docs/recipes/argocd.md) | available, with 0.2.0 |
-| [Kargo promotion gate](docs/recipes/kargo.md) | available, with 0.2.0 |
+| [Argo CD notifications](docs/recipes/argocd.md) | available |
+| [Kargo promotion gate](docs/recipes/kargo.md) | available |
 | Azure DevOps | planned, after 0.2.0 |
 | GitHub Action | planned |
 | Backstage plugin | planned |
@@ -220,7 +221,8 @@ Ready-made **recipes** are complete examples for popular tools.
    - **v0.1**: CTRF ingest, CLI, verdict API and `kollaudo verdict` with the default policy,
      component × environment health view
    - **v0.2** ([scope](docs/milestones/v0.2.md)): JUnit XML, Helm chart, deployments, rules kept by
-     Kollaudo and overrides, recipes for Argo CD and Kargo, then Azure DevOps
+     Kollaudo and overrides, recipes for Argo CD and Kargo. Then a log of verdicts, ungated
+     deployments and Azure DevOps
    - **v0.3**: the verdict in the UI
    - **v0.4**: bugs linked to failed tests, UAT sign-offs and manual check results from the tools
      where testers work

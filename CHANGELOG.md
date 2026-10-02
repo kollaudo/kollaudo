@@ -6,6 +6,8 @@ the API.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-02
+
 ### Helm chart
 
 - A Helm chart installs Kollaudo on Kubernetes, next to an existing PostgreSQL such as one from
@@ -102,5 +104,6 @@ every component in every environment.
 - [Sending test results](docs/sending-results.md) from any framework and CI, and a
   [Playwright recipe](docs/recipes/playwright.md).
 
+[0.2.0]: https://github.com/kollaudo/kollaudo/releases/tag/v0.2.0
 [0.1.1]: https://github.com/kollaudo/kollaudo/releases/tag/v0.1.1
 [0.1.0]: https://github.com/kollaudo/kollaudo/releases/tag/v0.1.0

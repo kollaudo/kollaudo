@@ -8,8 +8,6 @@ verdict passes, and says it was overridden, by whom, why and until when
 Without overrides, teams go around a gate in a hurry: they edit the pipeline, or send a report that
 says what the gate wants. An override keeps the gate in place, and leaves a record.
 
-> Overrides come with the next release, 0.2.0.
-
 ## Who can override
 
 Overrides need a token of the `override` scope, which pipelines don't hold: a pipeline can't

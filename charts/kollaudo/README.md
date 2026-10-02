@@ -35,9 +35,6 @@ clusters run databases with an operator, such as [CloudNativePG](https://cloudna
      --set database.existingSecret=kollaudo-db-app
    ```
 
-   > The chart is published from the next release, 0.2.0. Until then, use `charts/kollaudo` from a
-   > clone of this repository instead of the `oci://` address.
-
 3. A project, which prints its ingest and read tokens:
 
    ```bash

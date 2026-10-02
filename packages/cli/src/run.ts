@@ -7,7 +7,7 @@ import { push } from "./push.ts";
 import { verdict } from "./verdict.ts";
 
 /** Same as in package.json: a test checks it, and the release workflow checks the tag. */
-export const VERSION = "0.1.1";
+export const VERSION = "0.2.0";
 
 export const HELP = `Usage: kollaudo <command> [options]
 

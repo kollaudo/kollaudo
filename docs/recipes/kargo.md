@@ -14,8 +14,6 @@ goes on only when the verdict is `pass`:
 The rules are those of your [policy](../policies.md), kept by Kollaudo: the Stage only asks. An urgent
 fix goes through with an [override](../overrides.md), not by removing the step.
 
-> Policies and overrides come with Kollaudo 0.2.0.
-
 The recipe is tested on every change, with Kargo in a kind cluster
 ([`e2e/kind/recipe-kargo.sh`](../../e2e/kind/recipe-kargo.sh)): a promotion to production that waits
 without evidence, stops when the e2e tests failed, goes on when they passed, and stops while
