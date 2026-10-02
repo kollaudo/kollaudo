@@ -150,6 +150,25 @@ export const deployments = pgTable(
   (t) => [index().on(t.environmentId, t.deployedAt), index().on(t.versionId)],
 );
 
+/** Revisions of a project's policy (ADR 0016). The latest one applies. */
+export const policies = pgTable(
+  "policies",
+  {
+    id: id(),
+    projectId: uuid()
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    revision: integer().notNull(),
+    /** The file as it was sent, with its comments. */
+    source: text().notNull(),
+    /** The file as validated: what verdicts apply. */
+    document: jsonb().notNull(),
+    tokenId: uuid().references(() => apiTokens.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+  },
+  (t) => [unique().on(t.projectId, t.revision)],
+);
+
 export const testStatus = pgEnum("test_status", [
   "passed",
   "failed",

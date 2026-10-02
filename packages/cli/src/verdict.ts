@@ -95,6 +95,8 @@ export async function verdict(args: string[], io: Io): Promise<number> {
 function report(result: Verdict, url: string) {
   const { component, version, environment, outcome, message, reasons } = result;
   const lines = [`${outcome.toUpperCase()}  ${component} ${version} in ${environment}: ${message}`];
+  const { policy } = result;
+  if (policy.name === "project") lines.push(`Policy revision ${policy.revision}.`);
 
   const width = Math.max(...reasons.map((r) => r.kind.length));
   if (reasons.length > 0) lines.push("");

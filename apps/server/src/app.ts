@@ -8,6 +8,9 @@ import {
   DeploymentQuery,
   HealthMatrix,
   Healthz,
+  Policy,
+  PolicyDocument,
+  PolicyInput,
   Project,
   TestRunCreated,
   TestRunDetail,
@@ -27,6 +30,7 @@ import { projects } from "./db/schema.ts";
 import { listDeployments, recordDeployment } from "./deployments.ts";
 import { errorResponse, HttpError, validationResponse } from "./errors.ts";
 import { ingestTestRun } from "./ingest.ts";
+import { currentPolicy, parsePolicy, pushPolicy } from "./policies.ts";
 import { getHealth, getTestRun, listTestRuns } from "./reads.ts";
 import { getVerdict } from "./verdict.ts";
 
@@ -202,6 +206,72 @@ export function createApp({ db, webDir }: AppOptions) {
 
   app.openapi(
     createRoute({
+      method: "post",
+      path: "/v1/policy",
+      summary: "Send the project's policy",
+      description:
+        "Validates a policy file and makes it the project's policy, as a new revision (ADR 0016). " +
+        "It needs a token of the policy scope, so CI jobs that send results can't change the rules.",
+      security: [{ token: [] }],
+      middleware: [requireScope(db, "policy")] as const,
+      request: { body: { ...json(PolicyInput, "The policy file"), required: true } },
+      responses: {
+        201: json(Policy, "The policy is the project's policy"),
+        ...errors,
+        400: json(ApiError, "The policy isn't valid, with each problem and its path"),
+      },
+    }),
+    async (c) => c.json(await pushPolicy(db, c.var.token, c.req.valid("json").source), 201),
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/v1/policy/check",
+      summary: "Check a policy without keeping it",
+      description: "Validates a policy file as POST /v1/policy does, and keeps nothing.",
+      security: [{ token: [] }],
+      middleware: [requireScope(db, "policy", "read", "ingest")] as const,
+      request: { body: { ...json(PolicyInput, "The policy file"), required: true } },
+      responses: {
+        200: json(z.object({ document: PolicyDocument }), "The policy is valid"),
+        ...errors,
+        400: json(ApiError, "The policy isn't valid, with each problem and its path"),
+      },
+    }),
+    async (c) => c.json({ document: parsePolicy(c.req.valid("json").source) }, 200),
+  );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/v1/policy",
+      summary: "Get the project's policy",
+      description: "The latest revision of the project's policy.",
+      security: [{ token: [] }],
+      middleware: [requireScope(db, "read", "policy")] as const,
+      responses: {
+        200: json(Policy, "The project's policy"),
+        401: errors[401],
+        403: errors[403],
+        404: json(ApiError, "The project has no policy: verdicts apply the default rules"),
+      },
+    }),
+    async (c) => {
+      const policy = await currentPolicy(db, c.var.projectId);
+      if (!policy) {
+        throw new HttpError(
+          404,
+          "no_policy",
+          "The project has no policy: verdicts apply the default rules.",
+        );
+      }
+      return c.json(policy, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
       method: "get",
       path: "/v1/health",
       summary: "Health of the project",
@@ -252,7 +322,7 @@ export function createApp({ db, webDir }: AppOptions) {
 
   app.onError((error, c) => {
     if (error instanceof HttpError)
-      return errorResponse(c, error.status, error.code, error.message);
+      return errorResponse(c, error.status, error.code, error.message, error.issues);
     if (error instanceof HTTPException) {
       return errorResponse(c, error.status as 400, "invalid_request", error.message);
     }

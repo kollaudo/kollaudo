@@ -13,6 +13,12 @@ the API.
 
 ### Server
 
+- Policies ([ADR 0016](docs/adr/0016-rules-kept-by-kollaudo.md), [docs](docs/policies.md)): the
+  rules of the verdict, kept by Kollaudo in revisions and sent with a `policy` token, for each
+  environment and component. Required kinds, `deployed` (tests count only for the version that was
+  deployed when they ran), `flaky` and `maxAge`. A request can add required kinds, never remove them.
+  `POST /v1/policy`, `POST /v1/policy/check` and `GET /v1/policy`.
+- The verdict says which policy revision and rules it applied.
 - Tokens can have a name, and `ingest` tokens can be limited to components and environments, by
   name or with `*` patterns ([ADR 0017](docs/adr/0017-trust-in-evidence.md)). Every test run and
   deployment records the token that sent it, shown in the API, the UI and the verdict.
@@ -36,6 +42,7 @@ the API.
 
 ### CLI
 
+- `kollaudo policy push`, `check` and `show`.
 - `kollaudo deployed` records a deployment, after your deployment tool did it.
 - `kollaudo verdict` notes when the environment runs another version than the one it judged, and
   says which token sent each run.

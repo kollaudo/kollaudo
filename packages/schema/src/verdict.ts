@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { Deployment } from "./deployments.ts";
+import { AppliedPolicy } from "./policy.ts";
 import { KIND_PATTERN, TestRun } from "./test-runs.ts";
 
 export const VerdictOutcome = z.enum(["pass", "fail", "unknown"]).meta({
@@ -44,12 +45,7 @@ export const Verdict = z
     version: z.string(),
     outcome: VerdictOutcome,
     message: z.string().meta({ example: "e2e failed." }),
-    policy: z
-      .object({
-        name: z.literal("default"),
-        require: z.array(z.string()).meta({ description: "Kinds that must have a run." }),
-      })
-      .meta({ description: "The rules this verdict applied (ADR 0014)." }),
+    policy: AppliedPolicy.meta({ description: "The rules this verdict applied (ADR 0016)." }),
     reasons: z.array(VerdictReason).meta({ description: "One for each kind, by name." }),
     deployed: Deployment.nullable().meta({
       description:

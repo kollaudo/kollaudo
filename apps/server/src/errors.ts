@@ -7,11 +7,18 @@ import type { z } from "zod";
 export class HttpError extends Error {
   readonly status: ContentfulStatusCode;
   readonly code: string;
+  readonly issues: ApiError["error"]["issues"];
 
-  constructor(status: ContentfulStatusCode, code: string, message: string) {
+  constructor(
+    status: ContentfulStatusCode,
+    code: string,
+    message: string,
+    issues?: ApiError["error"]["issues"],
+  ) {
     super(message);
     this.status = status;
     this.code = code;
+    this.issues = issues;
   }
 }
 

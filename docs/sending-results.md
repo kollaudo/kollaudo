@@ -145,7 +145,7 @@ These are the default rules, the same for every component and environment
 - A run counts **however old** it is, and the deployed version doesn't change the outcome.
 
 Rules for each component and environment, kept by Kollaudo so that a pipeline can't relax them, come
-with 0.2.0: required kinds, whether the tested version must be the one that runs, and more.
+with 0.2.0: see [policies](policies.md).
 
 The token can be the same ingest token you push with. Any step that fails on a non-zero exit code
 is a gate. To let `unknown` through with a warning, or to go ahead when Kollaudo is down, say so:

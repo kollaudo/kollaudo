@@ -130,9 +130,9 @@ If one CI system does all of this for you and its gates are enough, you probably
 **Next** ([roadmap](#roadmap))
 
 - In 0.2.0: deployments, which version runs in each environment next to what was tested, and a Helm
-  chart. Rules kept by Kollaudo for each component and environment, which a pipeline can't relax,
-  such as "the tested version must be the one that runs here", and overrides for urgent fixes with a
-  record of who and why. Recipes for Argo CD, Kargo and Azure DevOps.
+  chart. [Policies](docs/policies.md) kept by Kollaudo for each component and environment, which a
+  pipeline can't relax, such as "tests count only if they ran on the deployed version", and overrides
+  for urgent fixes with a record of who and why. Recipes for Argo CD and Kargo.
 - The verdict in the UI.
 - Bugs linked to failed tests, and UAT sign-offs and manual checks from the tools where testers work.
 - Build signals as context: coverage, static analysis.
@@ -206,7 +206,7 @@ Ready-made **recipes** are complete examples for popular tools.
 | [Playwright with GitHub Actions](docs/recipes/playwright.md) | available |
 | Kargo verification gate | planned for v0.2 |
 | [Argo CD notifications](docs/recipes/argocd.md) | available, with 0.2.0 |
-| Azure DevOps | planned for v0.2 |
+| Azure DevOps | planned, after 0.2.0 |
 | GitHub Action | planned |
 | Backstage plugin | planned |
 | Flux, GitLab, Argo Rollouts, Flagger, Spinnaker… | contributions welcome |
@@ -217,7 +217,7 @@ Ready-made **recipes** are complete examples for popular tools.
    - **v0.1**: CTRF ingest, CLI, verdict API and `kollaudo verdict` with the default policy,
      component × environment health view
    - **v0.2** ([scope](docs/milestones/v0.2.md)): JUnit XML, Helm chart, deployments, rules kept by
-     Kollaudo and overrides, recipes for Argo CD, Kargo and Azure DevOps
+     Kollaudo and overrides, recipes for Argo CD and Kargo, then Azure DevOps
    - **v0.3**: the verdict in the UI
    - **v0.4**: bugs linked to failed tests, UAT sign-offs and manual check results from the tools
      where testers work

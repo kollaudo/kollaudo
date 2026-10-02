@@ -1,6 +1,7 @@
 import { parseArgs } from "node:util";
 import { deployed } from "./deployed.ts";
 import type { Io } from "./io.ts";
+import { policy } from "./policy.ts";
 import { push } from "./push.ts";
 import { verdict } from "./verdict.ts";
 
@@ -15,6 +16,7 @@ Commands:
   push <report>   Send test results: CTRF or JUnit reports
   deployed        Record that a version now runs in an environment
   verdict         Ask whether a version is healthy in an environment
+  policy          Send, check or show the rules your verdicts apply
 
 Options:
   -h, --help      Show this help
@@ -33,6 +35,7 @@ export async function run(args: string[], io: Io): Promise<number> {
   if (args[0] === "push") return push(args.slice(1), io);
   if (args[0] === "deployed") return deployed(args.slice(1), io);
   if (args[0] === "verdict") return verdict(args.slice(1), io);
+  if (args[0] === "policy") return policy(args.slice(1), io);
 
   let parsed: ReturnType<typeof parse>;
   try {
