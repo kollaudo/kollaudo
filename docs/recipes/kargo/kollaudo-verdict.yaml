@@ -1,0 +1,56 @@
+# A Kargo promotion task that asks Kollaudo for the verdict of a version, and stops the promotion
+# unless it is pass. Put it first in the steps of the Stage it gates, such as production, so that
+# nothing is promoted before Kollaudo says yes. See docs/recipes/kargo.md.
+#
+#   kubectl apply -f kollaudo-verdict.yaml
+#
+# - pass: the step succeeds, and the promotion goes on.
+# - fail: the step fails at once, with Kollaudo's message.
+# - unknown: evidence is missing, so the step asks again every minute, until the evidence arrives or
+#   the timeout is over.
+# - no answer: a 5xx is asked again until the timeout is over; Kollaudo out of reach fails the step
+#   after a few tries; a 4xx, such as a wrong token, fails it at once. The promotion never goes ahead
+#   without a verdict (ADR 0019).
+apiVersion: kargo.akuity.io/v1alpha1
+kind: ClusterPromotionTask
+metadata:
+  name: kollaudo-verdict
+spec:
+  vars:
+    # Component and version, as your CI sends them with "kollaudo push".
+    - name: component
+    - name: version
+    # The environment the version was tested in: the Stage it comes from, such as staging.
+    - name: environment
+    # The URL of Kollaudo, as Kargo's controller reaches it.
+    - name: kollaudoURL
+      value: http://kollaudo.kollaudo.svc:8080
+  steps:
+    - uses: http
+      as: verdict
+      retry:
+        # How long to wait for missing evidence, such as tests still running in the environment.
+        timeout: 1h
+        # Requests that fail in a row, such as while Kollaudo restarts, before the promotion fails.
+        errorThreshold: 3
+      config:
+        url: ${{ vars.kollaudoURL }}/v1/verdict
+        headers:
+          # The "token" key of the "kollaudo" Secret in the namespace of the Kargo project: a read
+          # token of your Kollaudo project.
+          - name: Authorization
+            value: Bearer ${{ secret('kollaudo').token }}
+        queryParams:
+          - name: component
+            value: ${{ vars.component }}
+          - name: environment
+            value: ${{ vars.environment }}
+          - name: version
+            value: ${{ vars.version }}
+        timeout: 30s
+        pollInterval: 1m
+        successExpression: response.status == 200 && response.body.outcome == 'pass'
+        failureExpression: >-
+          (response.status == 200 && response.body.outcome == 'fail') ||
+          (response.status >= 400 && response.status < 500)
+        errorExpression: response.body?.message ?? response.body?.error?.message

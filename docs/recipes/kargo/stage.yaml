@@ -1,0 +1,31 @@
+# A Kargo Stage gated by Kollaudo: Freight verified in staging is promoted to production only when
+# Kollaudo's verdict for its version in staging is pass. See docs/recipes/kargo.md.
+#
+# Replace the namespace, the Warehouse, the component and the image with your own, and keep the steps
+# that deploy after the gate.
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: production
+  namespace: example
+spec:
+  requestedFreight:
+    - origin: { kind: Warehouse, name: api }
+      sources: { stages: [staging] }
+  promotionTemplate:
+    spec:
+      steps:
+        # First, the gate: nothing below runs unless the verdict is pass.
+        - task: { name: kollaudo-verdict, kind: ClusterPromotionTask }
+          vars:
+            # As your CI sends them with "kollaudo push".
+            - name: component
+              value: api
+            # Where the version was tested: the Stage the Freight comes from.
+            - name: environment
+              value: staging
+            # The tag of the component's image in the Freight.
+            - name: version
+              value: ${{ imageFrom('ghcr.io/example/api').Tag }}
+        # Then the steps that deploy, such as git-clone, kustomize-set-image, git-commit, git-push and
+        # argocd-update.

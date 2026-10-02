@@ -43,6 +43,9 @@ the API.
 
 - [Argo CD](docs/recipes/argocd.md): a notification records a deployment in Kollaudo after each sync.
   Tested with Argo CD in a kind cluster.
+- [Kargo](docs/recipes/kargo.md): a promotion task asks for the verdict before a promotion goes on.
+  It waits while evidence is missing, and stops on `fail` or when Kollaudo doesn't answer. Tested
+  with Kargo in a kind cluster.
 
 ### CLI
 

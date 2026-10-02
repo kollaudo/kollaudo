@@ -86,12 +86,14 @@ helm install kollaudo oci://ghcr.io/kollaudo/charts/kollaudo -n kollaudo \
 ```
 
 - **In a pipeline**, `kollaudo verdict` is one step: a non-zero exit code stops the deployment.
-- **With Kargo or Argo Rollouts**, an analysis can call `GET /v1/verdict`, so that Freight only
-  reaches the next stage when the verdict is `pass`. A tested recipe for Kargo is planned.
+- **With Kargo**, the first step of a promotion asks for the verdict, so that Freight only reaches
+  the next stage when it is `pass` ([Kargo recipe](docs/recipes/kargo.md), with 0.2.0). With Argo
+  Rollouts, an analysis can call `GET /v1/verdict`.
 - **Kollaudo doesn't deploy**, so if it's down, deployments still work. A gate that asks for a
   verdict gets no answer (`kollaudo verdict` exits with `3`), and decides whether to stop or go
-  ahead ([ADR 0002](docs/adr/0002-judge-never-orchestrate.md)). Recommendations for each kind of
-  environment, and overrides for urgent fixes, are planned.
+  ahead ([ADR 0002](docs/adr/0002-judge-never-orchestrate.md)). The recipes stop
+  ([ADR 0019](docs/adr/0019-when-the-gate-is-skipped-or-kollaudo-is-down.md)), and
+  [overrides](docs/overrides.md) let an urgent fix through, with 0.2.0.
 
 See [sending test results](docs/sending-results.md) for any framework and CI, and the
 [Playwright recipe](docs/recipes/playwright.md) for a complete example.
@@ -205,8 +207,8 @@ Ready-made **recipes** are complete examples for popular tools.
 | Recipe | Status |
 |---|---|
 | [Playwright with GitHub Actions](docs/recipes/playwright.md) | available |
-| Kargo verification gate | planned for v0.2 |
 | [Argo CD notifications](docs/recipes/argocd.md) | available, with 0.2.0 |
+| [Kargo promotion gate](docs/recipes/kargo.md) | available, with 0.2.0 |
 | Azure DevOps | planned, after 0.2.0 |
 | GitHub Action | planned |
 | Backstage plugin | planned |

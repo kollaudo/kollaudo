@@ -6,6 +6,7 @@ on:
   pull_request:
     paths:
       - docs/recipes/argocd/**
+      - docs/recipes/kargo/**
       - e2e/kind/**
       - .github/workflows/recipes.yml
   schedule:
@@ -35,4 +36,25 @@ jobs:
         run: |
           kubectl -n argocd get applications -o wide
           kubectl -n argocd logs deploy/argocd-notifications-controller --tail=100
+          kubectl -n kollaudo logs deploy/kollaudo --tail=100
+
+  kargo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: azure/setup-helm@v5
+      - uses: helm/kind-action@v1
+        with:
+          cluster_name: kollaudo
+      - name: Build the image and load it into kind
+        run: |
+          docker build -t kollaudo:ci .
+          kind load docker-image kollaudo:ci --name kollaudo
+      - run: e2e/kind/install-kollaudo.sh kollaudo:ci
+      - run: e2e/kind/recipe-kargo.sh
+      - name: Show what went wrong
+        if: failure()
+        run: |
+          kubectl -n kollaudo-demo get freight,stages,promotions -o wide
+          kubectl -n kargo logs deploy/kargo-controller --tail=100
           kubectl -n kollaudo logs deploy/kollaudo --tail=100

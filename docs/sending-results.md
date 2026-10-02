@@ -171,5 +171,6 @@ Complete examples for one framework and one CI. They are tested in Kollaudo's ow
 |---|---|
 | [Playwright with GitHub Actions](recipes/playwright.md) | tested by [`e2e/`](../e2e/) |
 | [Argo CD notifications](recipes/argocd.md): deployments after each sync | tested in kind by [`e2e/kind/recipe-argocd.sh`](../e2e/kind/recipe-argocd.sh) |
+| [Kargo](recipes/kargo.md): a promotion goes on only on `pass` | tested in kind by [`e2e/kind/recipe-kargo.sh`](../e2e/kind/recipe-kargo.sh) |
 
 Using another framework or CI? A recipe is one Markdown file: contributions are welcome.

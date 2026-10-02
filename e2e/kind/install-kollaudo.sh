@@ -19,7 +19,9 @@ kubectl apply --server-side -f \
   >/dev/null
 kubectl -n cnpg-system rollout status deploy/cnpg-controller-manager --timeout=180s
 kubectl create namespace kollaudo --dry-run=client -o yaml | kubectl apply -f - >/dev/null
-kubectl apply -n kollaudo -f - <<'EOF'
+# The webhook of CloudNativePG can refuse connections for a few seconds after the rollout.
+database() {
+  kubectl apply -n kollaudo -f - <<'EOF'
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -33,6 +35,8 @@ spec:
       database: kollaudo
       owner: kollaudo
 EOF
+}
+for _ in $(seq 12); do database && break; sleep 5; done
 kubectl -n kollaudo wait cluster/kollaudo-db --for=condition=Ready --timeout=300s
 
 echo "## Kollaudo ($IMAGE, $REPLICAS replicas)"
