@@ -3,6 +3,3 @@ contact_links:
   - name: Questions and ideas
     url: https://github.com/kollaudo/kollaudo/discussions
     about: How to set something up, whether Kollaudo fits your delivery, or an idea to talk over first.
-  - name: Security vulnerability
-    url: https://github.com/kollaudo/.github/blob/main/SECURITY.md
-    about: Don't open a public issue. Report it privately, as the security policy explains.
