@@ -18,6 +18,14 @@ the API.
   for that version where it comes from before it was deployed. Deployments carry it in `gate`, in
   `GET /v1/deployments`, `/v1/health` and the verdict.
 
+- `GET /readyz` says whether an instance can answer requests: `200` when its database answers, `503`
+  when it doesn't. `/healthz` still only says that the process is up.
+
+### Helm chart
+
+- The readiness probe uses `/readyz`, so pods whose database doesn't answer get no traffic. Liveness
+  still uses `/healthz`, so a database outage doesn't restart them.
+
 ### Web UI
 
 - The health matrix marks deployed versions that went around the gate as `ungated`.

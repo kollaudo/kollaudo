@@ -53,12 +53,15 @@ spec:
             httpGet: { path: /healthz, port: http }
             periodSeconds: 2
             failureThreshold: 60
+          # Liveness only asks whether the process answers: a database outage mustn't restart the pods.
           livenessProbe:
             httpGet: { path: /healthz, port: http }
             periodSeconds: 20
+          # Readiness includes the database, so that traffic goes only to pods that can answer.
           readinessProbe:
-            httpGet: { path: /healthz, port: http }
+            httpGet: { path: /readyz, port: http }
             periodSeconds: 10
+            timeoutSeconds: 3
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           securityContext:

@@ -43,6 +43,11 @@ clusters run databases with an operator, such as [CloudNativePG](https://cloudna
 
 Migrations run when Kollaudo starts. Several replicas can start together: they take turns.
 
+Each pod is checked twice. `/healthz` says whether the process answers: if it stops, Kubernetes
+restarts the pod. `/readyz` also asks the database: while it doesn't answer, the pod gets no traffic,
+but isn't restarted, since restarting wouldn't bring the database back. With `replicaCount` above
+1, a gate always finds a pod that can answer while one restarts.
+
 ## Values
 
 | Value | Default | |

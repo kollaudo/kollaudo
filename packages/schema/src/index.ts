@@ -8,7 +8,7 @@ export {
   DeploymentQuery,
 } from "./deployments.ts";
 export { HealthMatrix } from "./health.ts";
-export { Healthz } from "./healthz.ts";
+export { Healthz, Readyz } from "./healthz.ts";
 export {
   DEFAULT_OVERRIDE_DURATION,
   Override,
