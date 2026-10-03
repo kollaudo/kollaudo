@@ -6,6 +6,10 @@ the API.
 
 ## [Unreleased]
 
+### Recipes
+
+- [GitLab CI](docs/recipes/gitlab-ci.md): run tests against staging, send results even on failure, and gate promotion to production on the verdict.
+
 ### Server
 
 - `GET /v1/verdict?…&record=false` asks without being a gate, as the web UI does: the verdict isn't

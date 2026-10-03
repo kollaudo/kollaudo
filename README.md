@@ -260,12 +260,13 @@ Ready-made **recipes** are complete examples for popular tools.
 | Recipe | Status |
 |---|---|
 | [Playwright with GitHub Actions](docs/recipes/playwright.md) | available |
+| [GitLab CI](docs/recipes/gitlab-ci.md) | available |
 | [Argo CD notifications](docs/recipes/argocd.md) | available |
 | [Kargo promotion gate](docs/recipes/kargo.md) | available |
 | Azure DevOps | planned, after 0.2.0 |
 | GitHub Action | planned |
 | Backstage plugin | planned |
-| Flux, GitLab, Argo Rollouts, Flagger, Spinnaker… | contributions welcome |
+| Flux, Argo Rollouts, Flagger, Spinnaker… | contributions welcome |
 
 ## Roadmap
 
