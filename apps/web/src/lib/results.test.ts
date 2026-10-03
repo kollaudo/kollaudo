@@ -59,6 +59,17 @@ describe("sortEnvironments", () => {
       ]),
     ).toEqual(["dev", "preview-pr-12", "qa", "preprod", "staging", "sandbox", "production"]);
   });
+
+  it("knows quality environments, by short and long name", () => {
+    expect(sortEnvironments(["prod", "qua", "dev"])).toEqual(["dev", "qua", "prod"]);
+    expect(sortEnvironments(["production", "quality", "developing", "canary"])).toEqual([
+      "developing",
+      "quality",
+      // Not known, so after the known ones before production; alphabetically it would come first.
+      "canary",
+      "production",
+    ]);
+  });
 });
 
 describe("versionToJudge", () => {

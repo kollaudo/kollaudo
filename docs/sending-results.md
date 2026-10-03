@@ -19,11 +19,11 @@ logger. If your CI already shows test results, as GitLab and Azure DevOps do, yo
 these files. Point `kollaudo push` at them, and it converts them
 ([ADR 0015](adr/0015-junit-converted-by-the-cli.md)):
 
-```bash
-kollaudo push "target/surefire-reports/*.xml" --tool maven …   # Maven
-kollaudo push "build/test-results/test/*.xml" --tool gradle …   # Gradle
-kollaudo push junit.xml --tool pytest …                         # pytest --junitxml=junit.xml
-```
+| Tool | Where it writes JUnit XML | Send it |
+|---|---|---|
+| Maven | `target/surefire-reports/` | `kollaudo push "target/surefire-reports/*.xml" --tool maven …` |
+| Gradle | `build/test-results/test/` | `kollaudo push "build/test-results/test/*.xml" --tool gradle …` |
+| pytest | the file given with `pytest --junitxml=junit.xml` | `kollaudo push junit.xml --tool pytest …` |
 
 Retries are understood too: Maven Surefire's reruns and Gradle's test-retry plugin show up as flaky
 tests. `--tool` names the tool in Kollaudo, since JUnit files don't say which tool wrote them.
@@ -49,11 +49,11 @@ sent together.
 ## 2. Send it with `kollaudo push`
 
 The CLI needs Node.js 24. Run it with `npx @kollaudo/cli`, or install it with
-`npm install -g @kollaudo/cli`.
+`npm install -g @kollaudo/cli`. Keep the token in a secret of your CI.
 
 ```bash
 export KOLLAUDO_URL=https://kollaudo.example.com
-export KOLLAUDO_TOKEN=<an ingest token of your project>   # a secret of your CI
+export KOLLAUDO_TOKEN=<an ingest token of your project>
 
 kollaudo push ctrf-report.json \
   --component frontend --env staging --version "$VERSION" --kind e2e \

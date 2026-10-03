@@ -61,13 +61,20 @@ says why. "Started" is the start time in the report, else the time Kollaudo rece
 Policies are sent with a token of the `policy` scope, which CI jobs that send results don't hold:
 they can't change the rules their results are judged by.
 
-```bash
-kollaudo-server token create shop --scope policy --name rules   # once, on the server
+Create the token once, on the server:
 
+```bash
+kollaudo-server token create shop --scope policy --name rules
+```
+
+Then check the file, which validates it and keeps nothing; push it, so that a new revision applies
+from now on; and show the current revision, as it was sent:
+
+```bash
 export KOLLAUDO_TOKEN=<policy token>
-kollaudo policy check kollaudo.yaml   # validate it, keep nothing
-kollaudo policy push kollaudo.yaml    # a new revision applies from now on
-kollaudo policy show                  # the current revision, as it was sent
+kollaudo policy check kollaudo.yaml
+kollaudo policy push kollaudo.yaml
+kollaudo policy show
 ```
 
 A good place for `policy push` is a CI job that runs when `kollaudo.yaml` changes on the main branch,

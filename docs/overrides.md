@@ -47,10 +47,12 @@ The evidence alone is unknown.
 
 ## Review and revoke
 
+`kollaudo override list` shows every override, newest first, expired ones too, and can be narrowed
+to a component, an environment or a version. `kollaudo override revoke` ends one now:
+
 ```bash
-kollaudo override list                 # every override, newest first, expired ones too
 kollaudo override list --env staging
-kollaudo override revoke <id>          # it stops holding now
+kollaudo override revoke <id>
 ```
 
 Overrides are never deleted: they are the record of what went through without its evidence. If they

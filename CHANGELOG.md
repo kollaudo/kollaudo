@@ -35,6 +35,12 @@ the API.
   for each kind of test, the rules of the policy, the override that let it through, and the gates
   that asked for it.
 - The health matrix marks deployed versions that went around the gate as `ungated`.
+- The health matrix places environments named `qua` or `quality` before production.
+
+### Documentation
+
+- Shell commands in the docs have no comments on them: zsh, the default shell of macOS, would pass
+  the comments to the commands as arguments. The quick start is a numbered list instead.
 
 ### CLI
 

@@ -31,13 +31,17 @@ You need Node.js 24 and Docker. The repository is a pnpm monorepo:
 | [`charts/kollaudo`](charts/kollaudo) | the Helm chart |
 
 ```bash
-corepack enable                                     # provides the pinned pnpm version
+corepack enable
 pnpm install
-docker compose up -d                                # PostgreSQL for local development
+docker compose up -d
 cp apps/server/.env.example apps/server/.env
-pnpm admin project create demo                      # prints an ingest and a read token
-pnpm dev                                            # API on :8080, UI with hot reload on :5173
+pnpm admin project create demo
+pnpm dev
 ```
+
+`corepack enable` provides the pinned pnpm version, `docker compose up -d` starts PostgreSQL for
+local development, `pnpm admin project create demo` prints an ingest and a read token, and `pnpm dev`
+serves the API on :8080 and the UI, with hot reload, on :5173.
 
 The README's [Development](README.md#development) section explains the end-to-end test.
 
@@ -46,10 +50,13 @@ The README's [Development](README.md#development) section explains the end-to-en
 Run what CI runs:
 
 ```bash
-pnpm check        # lint and format with Biome; pnpm format fixes what it can
+pnpm check
 pnpm typecheck
-pnpm test         # tests that need a database create a temporary one on the local PostgreSQL
+pnpm test
 ```
+
+`pnpm check` lints and formats with Biome, and `pnpm format` fixes what it can. Tests that need a
+database create a temporary one on the local PostgreSQL.
 
 - Keep each pull request focused on one change.
 - Add or update tests for the behavior you change. Tests sit next to the code, as `*.test.ts`.

@@ -44,7 +44,8 @@ const STAGES: [RegExp, number][] = [
   [/preview|review|pr-?\d/i, 1],
   [/stag|uat|pre/i, 3],
   [/prod/i, 5],
-  [/test|qa|int/i, 2],
+  // "qua" and "quality": a common name in Italy and elsewhere for the environment before production.
+  [/test|qa|qua|int/i, 2],
   [/dev|local/i, 0],
 ];
 
