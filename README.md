@@ -250,6 +250,7 @@ Ready-made **recipes** are complete examples for popular tools.
 | Recipe | Status |
 |---|---|
 | [Playwright with GitHub Actions](docs/recipes/playwright.md) | available |
+| [pytest with GitHub Actions](docs/recipes/pytest.md) | available |
 | [Argo CD notifications](docs/recipes/argocd.md) | available |
 | [Kargo promotion gate](docs/recipes/kargo.md) | available |
 | Azure DevOps | planned, after 0.2.0 |

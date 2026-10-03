@@ -6,6 +6,10 @@ the API.
 
 ## [Unreleased]
 
+### Recipes
+
+- A pytest recipe for JUnit XML, build-level unit results, staging promotion gates and retry-reporting limitations.
+
 ### Server
 
 - `GET /v1/verdict?…&record=false` asks without being a gate, as the web UI does: the verdict isn't
