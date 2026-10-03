@@ -1,6 +1,6 @@
-import type { TestResult } from "@kollaudo/schema";
+import type { Deployment, TestResult, TestRun } from "@kollaudo/schema";
 import { describe, expect, it } from "vitest";
-import { groupBySuite, outcome, sortEnvironments } from "./results.ts";
+import { groupBySuite, outcome, sortEnvironments, versionToJudge } from "./results.ts";
 
 const summary = { tests: 0, passed: 0, failed: 0, skipped: 0, pending: 0, other: 0, flaky: 0 };
 
@@ -58,5 +58,25 @@ describe("sortEnvironments", () => {
         "preprod",
       ]),
     ).toEqual(["dev", "preview-pr-12", "qa", "preprod", "staging", "sandbox", "production"]);
+  });
+});
+
+describe("versionToJudge", () => {
+  const run = (version: string, createdAt: string) =>
+    ({ version, createdAt }) as unknown as TestRun;
+  const runs = [
+    run("1.1.0", "2026-10-02T10:00:00.000Z"),
+    run("1.2.0", "2026-10-03T10:00:00.000Z"),
+    run("1.0.0", "2026-10-01T10:00:00.000Z"),
+  ];
+
+  it("is the deployed version, which is the one gates ask about", () => {
+    expect(versionToJudge(runs, { version: "1.0.0" } as Deployment)).toBe("1.0.0");
+    expect(versionToJudge([], { version: "0.9.0" } as Deployment)).toBe("0.9.0");
+  });
+
+  it("is the newest tested version when nothing is known to be deployed", () => {
+    expect(versionToJudge(runs)).toBe("1.2.0");
+    expect(versionToJudge([])).toBeUndefined();
   });
 });

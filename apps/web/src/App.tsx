@@ -4,6 +4,7 @@ import { Link, useLocation } from "./lib/router.tsx";
 import { HealthPage } from "./pages/HealthPage.tsx";
 import { ProjectsPage } from "./pages/ProjectsPage.tsx";
 import { TestRunPage } from "./pages/TestRunPage.tsx";
+import { VerdictPage } from "./pages/VerdictPage.tsx";
 
 export function App() {
   return (
@@ -14,10 +15,11 @@ export function App() {
 }
 
 function Page() {
-  const { path } = useLocation();
+  const { path, query } = useLocation();
 
   if (path === "/") return <HealthPage />;
   if (path === "/projects") return <ProjectsPage />;
+  if (path === "/verdict") return <VerdictPage query={query} />;
   const run = path.match(/^\/test-runs\/([^/]+)$/);
   if (run?.[1]) return <TestRunPage id={run[1]} />;
 

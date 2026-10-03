@@ -178,6 +178,10 @@ kollaudo verdict list --component frontend --env staging
 It needs a `read` token, and `GET /v1/verdicts` gives the same list. The log records the answers:
 later verdicts are still computed from the evidence.
 
+To look at a verdict without being a gate, as the web UI does, ask with `record=false`: the answer is
+the same, but it isn't recorded, so it doesn't count as the `pass` that lets a deployment through
+the gate.
+
 Deployments to an environment whose policy says where versions come from are checked against this
 log: those without a `pass` before them are [ungated](policies.md#deployments-that-skip-the-gate).
 

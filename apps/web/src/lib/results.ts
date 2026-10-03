@@ -1,4 +1,4 @@
-import type { TestResult, TestRunSummary } from "@kollaudo/schema";
+import type { Deployment, TestResult, TestRun, TestRunSummary } from "@kollaudo/schema";
 
 export type Outcome = "failed" | "passed" | "empty";
 
@@ -54,4 +54,16 @@ function stage(environment: string) {
 
 export function sortEnvironments(environments: string[]) {
   return [...environments].sort((a, b) => stage(a) - stage(b) || a.localeCompare(b));
+}
+
+/**
+ * The version whose verdict a cell of the matrix shows: the one deployed in the environment, which
+ * is the one a gate asks about, else the newest one tested there.
+ */
+export function versionToJudge(runs: TestRun[], deployed?: Deployment) {
+  if (deployed) return deployed.version;
+  return runs.reduce<TestRun | undefined>(
+    (newest, run) => (newest && newest.createdAt >= run.createdAt ? newest : run),
+    undefined,
+  )?.version;
 }

@@ -380,15 +380,17 @@ export function createApp({ db, webDir }: AppOptions) {
         "`pass`, `fail` or `unknown`, with the reasons for each kind of test. A version, component " +
         "or environment Kollaudo has never seen is `unknown`: evidence is missing. Accepts `read` " +
         "and `ingest` tokens, so a CI gate can use the token it sends results with. Every verdict " +
-        "given is recorded, with the token that asked: see `GET /v1/verdicts`.",
+        "given is recorded, with the token that asked: see `GET /v1/verdicts`. With `record=false` " +
+        "it is not, as for the web UI.",
       security: [{ token: [] }],
       middleware: [requireScope(db, "read", "ingest")] as const,
       request: { query: VerdictQuery },
       responses: { 200: json(Verdict, "The verdict"), ...errors },
     }),
     async (c) => {
-      const verdict = await getVerdict(db, c.var.projectId, c.req.valid("query"));
-      await recordVerdict(db, c.var.token, verdict);
+      const query = c.req.valid("query");
+      const verdict = await getVerdict(db, c.var.projectId, query);
+      if (query.record) await recordVerdict(db, c.var.token, verdict);
       return c.json(verdict, 200);
     },
   );

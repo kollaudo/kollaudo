@@ -8,6 +8,8 @@ the API.
 
 ### Server
 
+- `GET /v1/verdict?…&record=false` asks without being a gate, as the web UI does: the verdict isn't
+  recorded, and doesn't count for gated deployments.
 - A log of the verdicts given ([ADR 0019](docs/adr/0019-when-the-gate-is-skipped-or-kollaudo-is-down.md)):
   every answer of `GET /v1/verdict` is recorded with its outcome, the outcome of the evidence alone,
   the policy revision and required kinds, the override that let the version through, and the token
@@ -28,6 +30,10 @@ the API.
 
 ### Web UI
 
+- The verdict in the UI: each cell of the health matrix shows the verdict a gate would get for the
+  version deployed there, or for the newest one tested there. It links to a page with its reasons
+  for each kind of test, the rules of the policy, the override that let it through, and the gates
+  that asked for it.
 - The health matrix marks deployed versions that went around the gate as `ungated`.
 
 ### CLI

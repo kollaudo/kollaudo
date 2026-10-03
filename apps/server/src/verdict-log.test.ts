@@ -145,6 +145,22 @@ describe("the log of verdicts (ADR 0019)", () => {
     expect([...first.items, ...second.items].map((v) => v.id)).toEqual(all.slice(0, 4));
   });
 
+  it("doesn't record verdicts asked with record=false, as the web UI does", async () => {
+    const before = (await given()).items.length;
+    const verdict = await ask("component=api&environment=staging&version=1.0.0&record=false");
+    expect(verdict.outcome).toBe("pass");
+    expect((await given()).items).toHaveLength(before);
+    expect(
+      (
+        await request(
+          "GET",
+          "/v1/verdict?component=api&environment=staging&version=1.0.0&record=no",
+          gate,
+        )
+      ).status,
+    ).toBe(400);
+  });
+
   it("doesn't record requests that get no verdict", async () => {
     const before = (await given()).items.length;
     expect(

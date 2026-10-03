@@ -1,6 +1,6 @@
 import { type AnchorHTMLAttributes, type MouseEvent, useSyncExternalStore } from "react";
 
-// A tiny router: the UI has three pages, so the History API is enough.
+// A tiny router: the UI has a few pages, so the History API is enough.
 
 const listeners = new Set<() => void>();
 

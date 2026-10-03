@@ -27,6 +27,15 @@ export const VerdictQuery = z.object({
         "policy: they can't relax it.",
       example: "e2e,smoke",
     }),
+  record: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((value) => value === "true")
+    .meta({
+      description:
+        "false asks without being a gate, as the web UI does: the verdict isn't recorded in the " +
+        "log, so it doesn't count as the pass that makes a deployment gated (ADR 0019).",
+    }),
 });
 
 export const VerdictReason = z

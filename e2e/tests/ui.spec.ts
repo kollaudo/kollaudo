@@ -36,9 +36,10 @@ test("shows the health matrix and the tests of a run", async ({ page }) => {
   // The unit tests sent as JUnit XML, at build level.
   await expect(page.getByRole("columnheader", { name: "Build" })).toBeVisible();
   await expect(
-    row.getByRole("link", { name: new RegExp(`${version().slice(0, 7)} unit`) }),
+    row.getByRole("link", { name: new RegExp(`^${version().slice(0, 7)} unit`) }),
   ).toBeVisible();
-  const card = row.getByRole("link", { name: new RegExp(`${version().slice(0, 7)} e2e`) });
+  // A test run's card starts with its version; the verdict above it starts with the outcome.
+  const card = row.getByRole("link", { name: new RegExp(`^${version().slice(0, 7)} e2e`) });
   await expect(card).toContainText("e2e");
   await expect(card).toContainText("4 passed");
   await expect(page.getByRole("row", { name: /^checkout/ })).toContainText("1 failed");
@@ -79,6 +80,34 @@ test("keeps projects apart", async ({ page }) => {
   const list = page.getByRole("list");
   await expect(list.getByText(project(), { exact: true })).toBeVisible();
   await expect(list.getByText(otherProject(), { exact: true })).toBeVisible();
+});
+
+test("shows the verdict of each cell, and why, without being a gate", async ({ page, request }) => {
+  const logSize = async () => {
+    const res = await request.get("/v1/verdicts?limit=200", {
+      headers: { authorization: `Bearer ${read()}` },
+    });
+    return ((await res.json()) as { items: unknown[] }).items.length;
+  };
+  const before = await logSize();
+
+  await openProject(page, read());
+  const row = page.getByRole("row", { name: /^kollaudo/ });
+  // The verdict of the deployed version, which passed its tests in ci.
+  const strip = row.getByRole("link", { name: /^PASS/ });
+  await expect(strip).toBeVisible();
+  // Checkout runs 1.9.0 in ci, which was never tested there.
+  await expect(page.getByRole("row", { name: /^checkout/ })).toContainText("UNKNOWN");
+
+  await strip.click();
+  await expect(page.getByRole("heading", { name: /^PASS kollaudo .* in ci$/ })).toBeVisible();
+  await expect(page.getByText("Why")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Test run" }).first()).toBeVisible();
+  // run.sh asked for this verdict with its tokens: those are in the log.
+  await expect(page.getByText(/asked by kol_/).first()).toBeVisible();
+
+  // Looking at verdicts in the UI isn't asking as a gate: nothing new in the log (ADR 0019).
+  expect(await logSize()).toBe(before);
 });
 
 test("refuses an ingest token when adding a project", async ({ page }) => {

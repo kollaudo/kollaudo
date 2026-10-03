@@ -122,7 +122,8 @@ If one CI system does all of this for you and its gates are enough, you probably
 - **Trusts evidence it can trace**: tokens with names, limited to components and environments, and
   every result recording which token sent it.
 - **Shows the health of each project**: the version deployed and the latest tested version of every
-  component in every environment, and the tests of each run.
+  component in every environment, and the tests of each run. With the next release, the verdict of
+  each cell too, and why.
 - **Runs anywhere** as one container next to PostgreSQL, with Docker Compose or the
   [Helm chart](charts/kollaudo/README.md), with several projects and scoped tokens.
 

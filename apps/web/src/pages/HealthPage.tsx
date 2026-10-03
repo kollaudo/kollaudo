@@ -1,9 +1,10 @@
-import type { Deployment, HealthMatrix, TestRun } from "@kollaudo/schema";
+import type { Deployment, HealthMatrix, TestRun, Verdict } from "@kollaudo/schema";
 import { Counts } from "../components/Counts.tsx";
 import { Message } from "../components/Message.tsx";
+import { BAR, look, VerdictLabel } from "../components/VerdictLabel.tsx";
 import { shortVersion, timeAgo } from "../lib/format.ts";
 import { useProjects } from "../lib/projects.ts";
-import { type Outcome, outcome, sortEnvironments } from "../lib/results.ts";
+import { type Outcome, outcome, sortEnvironments, versionToJudge } from "../lib/results.ts";
 import { Link } from "../lib/router.tsx";
 import { useApi } from "../lib/useApi.ts";
 import { ProjectsPage } from "./ProjectsPage.tsx";
@@ -64,9 +65,23 @@ export function HealthPage() {
                 {columns.map((column) => {
                   const runs = cell(component, column);
                   const deployed = deployedIn(component, column);
+                  // Build-level runs have no verdict: verdicts are for an environment. A cell with no
+                  // runs would only say that evidence is missing, as "No tests here yet" already does.
+                  const judged =
+                    column === BUILD || runs.length === 0
+                      ? undefined
+                      : versionToJudge(runs, deployed);
                   return (
                     <td key={column} className="min-w-48 align-top">
                       <div className="flex flex-col gap-2">
+                        {judged && (
+                          <VerdictStrip
+                            token={current.token}
+                            component={component}
+                            environment={column}
+                            version={judged}
+                          />
+                        )}
                         {deployed && <DeployedLine deployment={deployed} />}
                         {runs.map((run) => (
                           <RunCard key={run.id} run={run} deployed={deployed} />
@@ -93,6 +108,36 @@ const CARD: Record<Outcome, string> = {
   passed: "bg-passed/5 shadow-[inset_4px_0_0_var(--color-passed)]",
   empty: "shadow-[inset_4px_0_0_var(--color-muted)]",
 };
+
+/** The verdict a gate would get for the version that matters in this cell, linked to its reasons. */
+function VerdictStrip(props: {
+  token: string;
+  component: string;
+  environment: string;
+  version: string;
+}) {
+  const { token, ...target } = props;
+  const query = new URLSearchParams(target);
+  // record=false: looking at the matrix isn't a gate, and mustn't count as one (ADR 0019).
+  const { data } = useApi<Verdict>(`/v1/verdict?${query}&record=false`, token, REFRESH_MS);
+  if (!data) return <div className="h-12 rounded-md bg-neutral-100 dark:bg-neutral-900" />;
+  return (
+    <Link
+      href={`/verdict?${query}`}
+      className={`block rounded-md border border-neutral-200 py-2 pr-3 pl-4 hover:border-neutral-400 dark:border-neutral-800 dark:hover:border-neutral-600 ${BAR[look(data.outcome, data.override !== null)]}`}
+    >
+      <div className="flex items-baseline justify-between gap-2 text-xs">
+        <VerdictLabel outcome={data.outcome} overridden={data.override !== null} />
+        <span className="truncate font-mono text-muted" title={data.version}>
+          {shortVersion(data.version)}
+        </span>
+      </div>
+      <div className="mt-1 line-clamp-2 text-xs text-neutral-700 dark:text-neutral-300">
+        {data.override ? `Overridden by ${data.override.by ?? "a deleted token"}` : data.message}
+      </div>
+    </Link>
+  );
+}
 
 /** What runs in the environment now. */
 function DeployedLine({ deployment }: { deployment: Deployment }) {
