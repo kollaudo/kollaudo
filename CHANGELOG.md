@@ -6,6 +6,12 @@ the API.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-04
+
+Upgrade the server before the CLI: `kollaudo verdict list` and the ungated deployments need a 0.3
+server. A 0.2 CLI works with a 0.3 server. The log of verdicts keeps every verdict given, for now
+with no limit: a gate that waits, as the Kargo recipe does, asks again every minute.
+
 ### Recipes
 
 - [pytest](docs/recipes/pytest.md): JUnit XML, build-level unit results, staging promotion gates and retry-reporting limitations.
@@ -151,6 +157,7 @@ every component in every environment.
 - [Sending test results](docs/sending-results.md) from any framework and CI, and a
   [Playwright recipe](docs/recipes/playwright.md).
 
+[0.3.0]: https://github.com/kollaudo/kollaudo/releases/tag/v0.3.0
 [0.2.0]: https://github.com/kollaudo/kollaudo/releases/tag/v0.2.0
 [0.1.1]: https://github.com/kollaudo/kollaudo/releases/tag/v0.1.1
 [0.1.0]: https://github.com/kollaudo/kollaudo/releases/tag/v0.1.0

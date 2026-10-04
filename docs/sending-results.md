@@ -185,8 +185,6 @@ the gate.
 Deployments to an environment whose policy says where versions come from are checked against this
 log: those without a `pass` before them are [ungated](policies.md#deployments-that-skip-the-gate).
 
-> The log of verdicts and ungated deployments come with the next release.
-
 ## Recipes
 
 Complete examples for one framework and one CI. The table shows which recipes are tested in Kollaudo's own CI.

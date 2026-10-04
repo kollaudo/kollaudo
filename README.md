@@ -33,17 +33,17 @@ stricter, never looser, and every override is recorded with who, why and until w
 Kollaudo doesn't build, test or deploy anything: there are plenty of great tools for that. It
 **collects their results and judges**, and the tool that promotes does what the verdict says.
 
-> **v0.2 is out.** It's young: the API can still change before 1.0, and feedback is very welcome in
+> **v0.3 is out.** It's young: the API can still change before 1.0, and feedback is very welcome in
 > [Issues](https://github.com/kollaudo/kollaudo/issues).
 
 ## Quick start
 
-The commands use the latest release, 0.2.0, so they keep working while `main` changes.
+The commands use the latest release, 0.3.0, so they keep working while `main` changes.
 
 1. Start Kollaudo, and create a project. It prints an ingest and a read token:
 
    ```bash
-   export KOLLAUDO_VERSION=0.2.0
+   export KOLLAUDO_VERSION=0.3.0
    curl -O https://raw.githubusercontent.com/kollaudo/kollaudo/v$KOLLAUDO_VERSION/deploy/docker-compose.yml
    docker compose up -d
    docker compose exec kollaudo kollaudo-server project create demo
@@ -116,7 +116,7 @@ If one CI system does all of this for you and its gates are enough, you probably
 
 ## What it does
 
-**Today** (released in [0.2.0](CHANGELOG.md))
+**Today** (released in [0.3.0](CHANGELOG.md))
 
 - **Receives test results** from any framework, as JUnit XML or [CTRF](https://ctrf.io) reports, for
   a version of a component in an environment, or at build level for unit tests.
@@ -125,34 +125,35 @@ If one CI system does all of this for you and its gates are enough, you probably
   HTTP API and with `kollaudo verdict`, under [policies](docs/policies.md) kept by Kollaudo that a
   pipeline can't relax: required kinds of test, tests that count only on the deployed version,
   flaky tests, maximum age.
+- **Shows what went around the gate**: every verdict given is recorded with the token that asked,
+  and a deployment without a `pass` where its versions come from is marked
+  [ungated](docs/policies.md#deployments-that-skip-the-gate).
 - **Lets urgent fixes through, on the record**: [overrides](docs/overrides.md) with who, why and
   until when.
 - **Trusts evidence it can trace**: tokens with names, limited to components and environments, and
   every result recording which token sent it.
-- **Shows the health of each project**: the version deployed and the latest tested version of every
-  component in every environment, and the tests of each run. With the next release, the verdict of
-  each cell too, and why.
+- **Shows people what the gate sees**: for every component in every environment, the verdict of the
+  version deployed there and why, next to its test runs.
 - **Runs anywhere** as one container next to PostgreSQL, with Docker Compose or the
-  [Helm chart](charts/kollaudo/README.md), with several projects and scoped tokens.
+  [Helm chart](charts/kollaudo/README.md), with a readiness check that includes the database,
+  several projects and scoped tokens.
 
-The web UI shows the same answers to people: the version deployed and the latest tested version of
-each component in each environment, and the tests of each run.
+The web UI shows the same answers to people: the verdict of each component in each environment, the
+version deployed there, and the tests of each run.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/matrix-dark.png">
-  <img src="docs/assets/screenshots/matrix-light.png" alt="Kollaudo's health matrix: the latest tested version of each component in each environment, with the counts of passed, failed and flaky tests. The checkout component fails on staging.">
+  <img src="docs/assets/screenshots/matrix-light.png" alt="Kollaudo's health matrix for the shop project: billing, checkout and search in dev, staging and production. Each cell shows a verdict: checkout fails in staging, search is unknown because smoke tests are missing, billing passes in staging through an override, and checkout runs in production as ungated, deployed without a pass in staging.">
 </picture>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/run-dark.png">
-  <img src="docs/assets/screenshots/run-light.png" alt="A test run in Kollaudo: 15 tests of checkout 9d07e6b on staging. The failed test comes first with its error message, and flaky tests are marked.">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/verdict-dark.png">
+  <img src="docs/assets/screenshots/verdict-light.png" alt="The verdict of checkout 9d07e6b in staging: FAIL, e2e failed and evidence is missing for smoke. The rules are policy revision 1, which requires e2e and smoke. Why: e2e failed, 1 failed and 13 passed, sent by ci-staging; smoke is required, but has no run. Asked by gates: FAIL, asked by kargo.">
 </picture>
 
 **Next** ([roadmap](#roadmap))
 
-- After 0.2.0: a log of the verdicts given, deployments marked when no gate asked before them, and an
-  Azure DevOps recipe.
-- The verdict in the UI.
+- An Azure DevOps recipe.
 - Bugs linked to failed tests, and UAT sign-offs and manual checks from the tools where testers work.
 - Build signals as context: coverage, static analysis.
 
@@ -264,7 +265,7 @@ Ready-made **recipes** are complete examples for popular tools.
 | [GitLab CI](docs/recipes/gitlab-ci.md) | available |
 | [Argo CD notifications](docs/recipes/argocd.md) | available |
 | [Kargo promotion gate](docs/recipes/kargo.md) | available |
-| Azure DevOps | planned, after 0.2.0 |
+| Azure DevOps | planned |
 | GitHub Action | planned |
 | Backstage plugin | planned |
 | Flux, Argo Rollouts, Flagger, Spinnaker… | contributions welcome |
@@ -275,9 +276,9 @@ Ready-made **recipes** are complete examples for popular tools.
    - **v0.1**: CTRF ingest, CLI, verdict API and `kollaudo verdict` with the default policy,
      component × environment health view
    - **v0.2** ([scope](docs/milestones/v0.2.md)): JUnit XML, Helm chart, deployments, rules kept by
-     Kollaudo and overrides, recipes for Argo CD and Kargo. Then a log of verdicts, ungated
-     deployments and Azure DevOps
-   - **v0.3**: the verdict in the UI
+     Kollaudo and overrides, recipes for Argo CD and Kargo
+   - **v0.3**: the verdict in the UI, a log of the verdicts given, deployments that went around the
+     gate, a readiness check, and recipes for GitLab CI and pytest
    - **v0.4**: bugs linked to failed tests, UAT sign-offs and manual check results from the tools
      where testers work
    - **v0.5**: gate recipes for more tools (GitHub Action, GitHub deployment protection), CDEvents
