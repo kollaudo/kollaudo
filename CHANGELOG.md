@@ -8,6 +8,7 @@ the API.
 
 ### Recipes
 
+- [pytest](docs/recipes/pytest.md): JUnit XML, build-level unit results, staging promotion gates and retry-reporting limitations.
 - [GitLab CI](docs/recipes/gitlab-ci.md): run tests against staging, send results even on failure, and gate promotion to production on the verdict.
 
 ### Server

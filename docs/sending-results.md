@@ -189,11 +189,12 @@ log: those without a `pass` before them are [ungated](policies.md#deployments-th
 
 ## Recipes
 
-Complete examples for one framework and one CI. They are tested in Kollaudo's own CI.
+Complete examples for one framework and one CI. The table shows which recipes are tested in Kollaudo's own CI.
 
 | Recipe | |
 |---|---|
 | [Playwright with GitHub Actions](recipes/playwright.md) | tested by [`e2e/`](../e2e/) |
+| [pytest with GitHub Actions](recipes/pytest.md): JUnit XML, unit results at build level, a staging gate | not tested in CI yet |
 | [GitLab CI](recipes/gitlab-ci.md): test against staging, gate a deployment to production | not tested in CI yet |
 | [Argo CD notifications](recipes/argocd.md): deployments after each sync | tested in kind by [`e2e/kind/recipe-argocd.sh`](../e2e/kind/recipe-argocd.sh) |
 | [Kargo](recipes/kargo.md): a promotion goes on only on `pass` | tested in kind by [`e2e/kind/recipe-kargo.sh`](../e2e/kind/recipe-kargo.sh) |
