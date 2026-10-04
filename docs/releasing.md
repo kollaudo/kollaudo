@@ -1,7 +1,9 @@
 # Releasing
 
 A release publishes the container image `ghcr.io/kollaudo/kollaudo`, the Helm chart
-`oci://ghcr.io/kollaudo/charts/kollaudo`, the CLI `@kollaudo/cli` on npm, and a GitHub release.
+`oci://ghcr.io/kollaudo/charts/kollaudo`, the CLI `@kollaudo/cli` on npm, and a GitHub release. The
+release notes are the section of `CHANGELOG.md`, followed by the pull requests GitHub lists for the
+release, with the people who contributed for the first time.
 Pushing a tag `v<version>` starts [`release.yml`](../.github/workflows/release.yml), which refuses
 the tag unless:
 

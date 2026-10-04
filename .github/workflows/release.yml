@@ -133,6 +133,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v7
+      # The changelog section comes first. GitHub adds the pull requests of the release after it, and
+      # thanks the people who contributed for the first time.
       - name: Create the GitHub release with the changelog section
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -143,6 +145,6 @@ jobs:
             /^\[.*\]: / { next }
             on
           ' CHANGELOG.md >notes.md
-          options=(--title "Kollaudo $VERSION" --notes-file notes.md)
+          options=(--title "Kollaudo $VERSION" --notes-file notes.md --generate-notes)
           if [[ $VERSION == *-* ]]; then options+=(--prerelease); fi
           gh release create "$GITHUB_REF_NAME" "${options[@]}"

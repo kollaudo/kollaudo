@@ -66,7 +66,7 @@ jobs:
         with:
           node-version: 24
       - run: python -m pip install -r requirements.txt pytest
-      - run: npm install --global @kollaudo/cli
+      - run: npm install --global @kollaudo/cli@0.3.0
       - run: pytest --junitxml=junit.xml
         env:
           BASE_URL: https://staging.example.com
@@ -85,7 +85,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-      - run: npm install --global @kollaudo/cli
+      - run: npm install --global @kollaudo/cli@0.3.0
       - run: kollaudo verdict --component api --env staging --version "$VERSION" --require e2e
       - run: ./deploy.sh production "$VERSION"
 ```
