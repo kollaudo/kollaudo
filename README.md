@@ -153,6 +153,7 @@ version deployed there, and the tests of each run.
 
 **Next** ([roadmap](#roadmap))
 
+- A GitHub Action, to gate a deployment in one line of a workflow ([v0.4](docs/milestones/v0.4.md)).
 - An Azure DevOps recipe.
 - Bugs linked to failed tests, and UAT sign-offs and manual checks from the tools where testers work.
 - Build signals as context: coverage, static analysis.
@@ -266,7 +267,7 @@ Ready-made **recipes** are complete examples for popular tools.
 | [Argo CD notifications](docs/recipes/argocd.md) | available |
 | [Kargo promotion gate](docs/recipes/kargo.md) | available |
 | Azure DevOps | planned |
-| GitHub Action | planned |
+| GitHub Action | planned for [v0.4](docs/milestones/v0.4.md) |
 | Backstage plugin | planned |
 | Flux, Argo Rollouts, Flagger, Spinnaker… | contributions welcome |
 
@@ -279,10 +280,11 @@ Ready-made **recipes** are complete examples for popular tools.
      Kollaudo and overrides, recipes for Argo CD and Kargo
    - **v0.3**: the verdict in the UI, a log of the verdicts given, deployments that went around the
      gate, a readiness check, and recipes for GitLab CI and pytest
-   - **v0.4**: bugs linked to failed tests, UAT sign-offs and manual check results from the tools
+   - **v0.4** ([scope](docs/milestones/v0.4.md)): a GitHub Action for the gate and for sending
+     results, and an Azure DevOps recipe
+   - **v0.5**: bugs linked to failed tests, UAT sign-offs and manual check results from the tools
      where testers work
-   - **v0.5**: gate recipes for more tools (GitHub Action, GitHub deployment protection), CDEvents
-     in/out
+   - **v0.6**: gates for more tools (GitHub deployment protection), CDEvents in/out
 2. **Build signals**: unit tests, coverage, static analysis and SARIF as version context
 3. **After production**: post-deploy checks, rollbacks and incidents linked to versions
 4. **Where teams already look**: a [Backstage](https://backstage.io) plugin that shows, on the page
