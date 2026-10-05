@@ -88,7 +88,8 @@ helm install kollaudo oci://ghcr.io/kollaudo/charts/kollaudo -n kollaudo \
    "can 9d07e6b go from dev to staging?" ─── kollaudo verdict ─►  pass / fail / unknown
 ```
 
-- **In a pipeline**, `kollaudo verdict` is one step: a non-zero exit code stops the deployment.
+- **In a pipeline**, `kollaudo verdict` is one step: a non-zero exit code stops the deployment. On
+  GitHub Actions, the [Kollaudo gate](https://github.com/marketplace/actions/kollaudo-gate) action is that step: `uses: kollaudo/action@v0`.
 - **With Kargo**, the first step of a promotion asks for the verdict, so that Freight only reaches
   the next stage when it is `pass` ([Kargo recipe](docs/recipes/kargo.md)). With Argo
   Rollouts, an analysis can call `GET /v1/verdict`.
@@ -153,7 +154,7 @@ version deployed there, and the tests of each run.
 
 **Next** ([roadmap](#roadmap))
 
-- A GitHub Action, to gate a deployment in one line of a workflow ([v0.4](docs/milestones/v0.4.md)).
+- A GitHub Action to send test results, next to the gate ([v0.4](docs/milestones/v0.4.md)).
 - An Azure DevOps recipe.
 - Bugs linked to failed tests, and UAT sign-offs and manual checks from the tools where testers work.
 - Build signals as context: coverage, static analysis.
@@ -261,13 +262,13 @@ Ready-made **recipes** are complete examples for popular tools.
 
 | Recipe | Status |
 |---|---|
+| [Kollaudo gate for GitHub Actions](https://github.com/marketplace/actions/kollaudo-gate) | available |
 | [Playwright with GitHub Actions](docs/recipes/playwright.md) | available |
 | [pytest with GitHub Actions](docs/recipes/pytest.md) | available |
 | [GitLab CI](docs/recipes/gitlab-ci.md) | available |
 | [Argo CD notifications](docs/recipes/argocd.md) | available |
 | [Kargo promotion gate](docs/recipes/kargo.md) | available |
 | Azure DevOps | planned |
-| GitHub Action | planned for [v0.4](docs/milestones/v0.4.md) |
 | Backstage plugin | planned |
 | Flux, Argo Rollouts, Flagger, Spinnaker… | contributions welcome |
 

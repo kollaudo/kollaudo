@@ -82,15 +82,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: kollaudo/action@v0
         with:
-          node-version: 24
-      - run: npm install --global @kollaudo/cli@0.3.0
-      - run: kollaudo verdict --component api --env staging --version "$VERSION" --require e2e
+          url: ${{ vars.KOLLAUDO_URL }}
+          token: ${{ secrets.KOLLAUDO_GATE_TOKEN }}
+          component: api
+          environment: staging
+          version: ${{ env.VERSION }}
+          require: e2e
       - run: ./deploy.sh production "$VERSION"
 ```
 
-The promotion job asks for the verdict even if pytest failed. `--require e2e` also prevents
-a missing report from being mistaken for a pass. Verdict exits are `0` (pass), `1` (fail),
-`2` (unknown evidence), and `3` (connection, token or option error). Policies can impose
-additional requirements; keep the same component, environment and version throughout.
+The promotion job asks for the verdict even if pytest failed, with the
+[Kollaudo gate](https://github.com/marketplace/actions/kollaudo-gate) action: it fails the job unless
+the verdict is `pass`. `require: e2e` also prevents a missing report from being mistaken for a pass.
+Give the gate its own `read` token, `KOLLAUDO_GATE_TOKEN`, so that Kollaudo's log of verdicts says
+which gate asked. Policies can impose additional requirements; keep the same component, environment
+and version throughout.
+
+Outside GitHub Actions, the same gate is
+`kollaudo verdict --component api --env staging --version "$VERSION" --require e2e`. It exits with `0`
+(pass), `1` (fail), `2` (unknown evidence) and `3` (connection, token or option error).

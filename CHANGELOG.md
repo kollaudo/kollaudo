@@ -6,6 +6,13 @@ the API.
 
 ## [Unreleased]
 
+### Recipes
+
+- The [Kollaudo gate](https://github.com/marketplace/actions/kollaudo-gate) for GitHub Actions, from its own repository,
+  [kollaudo/action](https://github.com/kollaudo/action) ([ADR 0020](docs/adr/0020-github-action.md)):
+  one step that fails a job unless the verdict is `pass`, with the verdict in the summary of the run.
+  The Playwright and pytest recipes use it.
+
 ## [0.3.0] - 2026-10-04
 
 Upgrade the server before the CLI: `kollaudo verdict list` and the ungated deployments need a 0.3

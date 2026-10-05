@@ -69,13 +69,22 @@ jobs:
     if: ${{ !cancelled() }} # the verdict decides, not the test job
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
       - name: Gate on the verdict of staging
-        run: npx @kollaudo/cli verdict --component frontend --env staging --version "$VERSION" --require e2e
+        uses: kollaudo/action@v0
+        with:
+          url: ${{ vars.KOLLAUDO_URL }}
+          token: ${{ secrets.KOLLAUDO_GATE_TOKEN }}
+          component: frontend
+          environment: staging
+          version: ${{ env.VERSION }}
+          require: e2e
       - run: ./deploy.sh production "$VERSION"
 ```
+
+The gate is the [Kollaudo gate](https://github.com/marketplace/actions/kollaudo-gate) action. It fails the job unless the verdict is `pass`, and
+writes the verdict to the summary of the run. Give it its own `read` token, `KOLLAUDO_GATE_TOKEN`, so
+that Kollaudo's log of verdicts says which gate asked. Outside GitHub Actions, the same gate is
+`npx @kollaudo/cli verdict --component frontend --env staging --version "$VERSION" --require e2e`.
 
 The gate prints the verdict and a link to each run it used:
 
@@ -86,6 +95,6 @@ FAIL  frontend 3f2a9c1e8b7d4f60a1c2e3d4b5a69788f0e1d2c3 in staging: e2e failed.
 ```
 
 Because the gate requires `e2e`, tests that never reported, for example because the report step was
-removed, make the verdict `unknown`, and the gate stops with exit code `2`. Without `--require e2e`,
+removed, make the verdict `unknown`, and the gate stops. Without `--require e2e`,
 a version with no e2e run but another kind of run could pass: keep the requirement in the gate. See [exit codes](../sending-results.md#3-gate-on-the-verdict)
 to handle it differently.

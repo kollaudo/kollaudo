@@ -125,6 +125,19 @@ kollaudo verdict --component frontend --env staging --version "$VERSION" --requi
 `--require` lists the kinds that must have run. Without it, a version whose smoke tests never
 reported can still pass on its e2e tests alone ([ADR 0014](adr/0014-policy.md)).
 
+On GitHub Actions, the [Kollaudo gate](https://github.com/marketplace/actions/kollaudo-gate) action is the same gate in one step. It fails the job
+unless the verdict is `pass`, and writes the verdict to the summary of the run:
+
+```yaml
+- uses: kollaudo/action@v0
+  with:
+    url: ${{ vars.KOLLAUDO_URL }}
+    token: ${{ secrets.KOLLAUDO_GATE_TOKEN }}
+    component: frontend
+    environment: staging
+    require: e2e,smoke
+```
+
 ### What the verdict checks today
 
 These are the default rules, the same for every component and environment
@@ -191,6 +204,7 @@ Complete examples for one framework and one CI. The table shows which recipes ar
 
 | Recipe | |
 |---|---|
+| [Kollaudo gate for GitHub Actions](https://github.com/marketplace/actions/kollaudo-gate): the gate in one step | tested against Kollaudo in [kollaudo/action](https://github.com/kollaudo/action) |
 | [Playwright with GitHub Actions](recipes/playwright.md) | tested by [`e2e/`](../e2e/) |
 | [pytest with GitHub Actions](recipes/pytest.md): JUnit XML, unit results at build level, a staging gate | not tested in CI yet |
 | [GitLab CI](recipes/gitlab-ci.md): test against staging, gate a deployment to production | not tested in CI yet |
