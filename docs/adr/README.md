@@ -9,7 +9,7 @@ accepted: if it changes, a new ADR supersedes it (see [0001](0001-record-archite
 | [0001](0001-record-architecture-decisions.md) | Record architecture decisions | accepted |
 | | **Principles** | |
 | [0002](0002-judge-never-orchestrate.md) | Kollaudo judges, it never orchestrates | accepted, extended by [0019](0019-when-the-gate-is-skipped-or-kollaudo-is-down.md) |
-| [0003](0003-tool-agnostic-core.md) | Tool-agnostic core | accepted |
+| [0003](0003-tool-agnostic-core.md) | Tool-agnostic core | accepted, extended by [0020](0020-github-action.md) |
 | | **Model** | |
 | [0004](0004-own-internal-model.md) | Own internal data model | accepted |
 | [0005](0005-create-on-first-use.md) | Components, environments and versions are created on first use | accepted |
@@ -32,6 +32,8 @@ accepted: if it changes, a new ADR supersedes it (see [0001](0001-record-archite
 | [0017](0017-trust-in-evidence.md) | Evidence says who sent it, and tokens limit what they can send | accepted |
 | | **Formats** | |
 | [0015](0015-junit-converted-by-the-cli.md) | JUnit XML is converted to CTRF by the CLI | accepted |
+| | **Integrations** | |
+| [0020](0020-github-action.md) | A GitHub Action runs the CLI, from its own repository | accepted |
 
 ## Template
 
