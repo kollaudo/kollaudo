@@ -76,7 +76,8 @@ at least a week over one released yesterday.
 
 ## Using AI tools
 
-AI assistants are welcome, for code, tests and docs. Two things:
+AI assistants are welcome, for code, tests and docs. The maintainers use them too, and follow the same
+two rules:
 
 - **You're the author.** You understand every line you send, you've run the checks yourself, and you
   can answer questions about it in the review. A pull request is judged the same way, whoever or

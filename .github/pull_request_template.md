@@ -9,3 +9,6 @@
 - [ ] `pnpm check`, `pnpm typecheck` and `pnpm test` pass
 - [ ] Tests cover the behavior I changed
 - [ ] Docs and the `[Unreleased]` section of `CHANGELOG.md` are updated, if users see the change
+
+<!-- If an AI assistant helped, say which (see "Using AI tools" in CONTRIBUTING.md). If none did, remove the line below. -->
+Written with help from <tool>.
