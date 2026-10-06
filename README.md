@@ -89,7 +89,7 @@ helm install kollaudo oci://ghcr.io/kollaudo/charts/kollaudo -n kollaudo \
 ```
  CI (GitHub Actions, Azure DevOps, GitLab, Jenkins…)
    build ─► deploy to dev ─► run tests ─► kollaudo push ───────────┐
-                                                                    ▼
+                                                                   ▼
  Promotion (a pipeline step, Kargo, Argo Rollouts…)            Kollaudo
    "can 9d07e6b go from dev to staging?" ─── kollaudo verdict ─►  pass / fail / unknown
 ```
