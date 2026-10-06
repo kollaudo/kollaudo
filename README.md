@@ -40,20 +40,21 @@ Kollaudo doesn't build, test or deploy anything: there are plenty of great tools
 
 The commands use the latest release, 0.3.0, so they keep working while `main` changes.
 
-1. Start Kollaudo, and create a project. It prints an ingest and a read token:
+1. Start Kollaudo, and create a project. It prints an ingest and a read token, kept in
+   `tokens.txt`:
 
    ```bash
    export KOLLAUDO_VERSION=0.3.0
    curl -O https://raw.githubusercontent.com/kollaudo/kollaudo/v$KOLLAUDO_VERSION/deploy/docker-compose.yml
-   docker compose up -d
-   docker compose exec kollaudo kollaudo-server project create demo
+   docker compose up -d --wait
+   docker compose exec -T kollaudo kollaudo-server project create demo | tee tokens.txt
    ```
 
 2. Send an example report of e2e tests run against staging, as Playwright's CTRF reporter writes it:
 
    ```bash
    export KOLLAUDO_URL=http://localhost:8080
-   export KOLLAUDO_TOKEN=<ingest token>
+   export KOLLAUDO_TOKEN=$(awk '$1 == "ingest" { print $2 }' tokens.txt)
    curl -O https://raw.githubusercontent.com/kollaudo/kollaudo/v$KOLLAUDO_VERSION/docs/examples/ctrf-report.json
    npx --yes @kollaudo/cli@$KOLLAUDO_VERSION push ctrf-report.json \
      --component frontend --env staging --version 1.2.0
@@ -66,9 +67,14 @@ The commands use the latest release, 0.3.0, so they keep working while `main` ch
    npx --yes @kollaudo/cli@$KOLLAUDO_VERSION verdict --component frontend --env staging --version 1.2.0
    ```
 
-Then open http://localhost:8080, add the project with its **read** token, and see the health of
-each component in each environment. To send your own results, see
+Then open http://localhost:8080, add the project with its **read** token, from `tokens.txt`, and see
+the health of each component in each environment. To send your own results, see
 [sending test results](docs/sending-results.md).
+
+If `docker compose up` doesn't get Kollaudo healthy, or `project create` prints nothing or says it
+can't reach the database, the two containers can't talk to each other.
+`docker compose logs kollaudo` says more. Some environments, such as GitHub Codespaces, block traffic
+between containers: try on another machine.
 
 **On Kubernetes**, install the [Helm chart](charts/kollaudo/README.md) next to a PostgreSQL database,
 such as one from CloudNativePG:
