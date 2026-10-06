@@ -362,6 +362,12 @@ Thanks to everyone who has made Kollaudo better!
   <img src="https://raw.githubusercontent.com/kollaudo/kollaudo/contributors/contributors.svg" alt="The people who have contributed to Kollaudo">
 </a>
 
+## How it was built
+
+Kollaudo's first versions, up to 0.3, were built quickly with a lot of help from AI coding tools,
+before the project had rules for it. From 0.4 on, every change follows the
+[rules for AI tools in CONTRIBUTING.md](CONTRIBUTING.md#using-ai-tools), the maintainers' included.
+
 ## License
 
 [Apache-2.0](LICENSE)
