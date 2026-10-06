@@ -20,6 +20,9 @@ the API.
 
 ### Recipes
 
+- [Azure DevOps](docs/recipes/azure-devops.md): unit tests at build level, a deployment to staging,
+  e2e tests there, and a gate on the verdict before production, with secret variables mapped to the
+  steps that need them. Tried on a real pipeline.
 - The [Kollaudo gate](https://github.com/marketplace/actions/kollaudo-gate) for GitHub Actions, from its own repository,
   [kollaudo/action](https://github.com/kollaudo/action) ([ADR 0020](docs/adr/0020-github-action.md)):
   one step that fails a job unless the verdict is `pass`, with the verdict in the summary of the run.
