@@ -5,6 +5,7 @@ import { serve } from "@hono/node-server";
 import { HELP, runAdmin } from "./admin/run.ts";
 import { createApp } from "./app.ts";
 import { createDb, migrateDb } from "./db/client.ts";
+import { DatabaseUnreachable, waitForDatabase } from "./db/wait.ts";
 
 const args = process.argv.slice(2);
 
@@ -25,10 +26,23 @@ if (!databaseUrl) {
   process.exit(1);
 }
 
+const serving = args.length === 0 || args[0] === "serve";
+try {
+  // The server waits longer: it may start before the database, as replicas and containers do.
+  await waitForDatabase(databaseUrl, {
+    waitMs: serving ? 60_000 : 15_000,
+    log: (text) => process.stderr.write(text),
+  });
+} catch (error) {
+  if (!(error instanceof DatabaseUnreachable)) throw error;
+  process.stderr.write(`${error.message}\n`);
+  process.exit(1);
+}
+
 const { db, close } = createDb(databaseUrl);
 await migrateDb(db);
 
-if (args.length === 0 || args[0] === "serve") {
+if (serving) {
   const port = Number(process.env.PORT ?? 8080);
   // Next to the server in the repository and in the container image.
   const webDir =

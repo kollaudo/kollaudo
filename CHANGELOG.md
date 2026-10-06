@@ -6,6 +6,18 @@ the API.
 
 ## [Unreleased]
 
+### Server
+
+- When the database doesn't answer, `kollaudo-server` says so, where it looked and what to check,
+  instead of hanging or crashing with a stack trace. The server waits up to a minute for the database
+  to come up, and admin commands such as `project create` up to 15 seconds. A wrong password or an
+  unknown database fails at once.
+
+### Documentation
+
+- The quick start keeps the tokens in `tokens.txt` and reads the ingest token from it, so that every
+  command works as pasted, and says what to do when the containers can't reach each other.
+
 ### Recipes
 
 - The [Kollaudo gate](https://github.com/marketplace/actions/kollaudo-gate) for GitHub Actions, from its own repository,

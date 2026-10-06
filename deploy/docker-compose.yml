@@ -1,5 +1,5 @@
-# Kollaudo and its PostgreSQL database. Start with `docker compose up -d`, then create a project:
-#   docker compose exec kollaudo kollaudo-server project create <name>
+# Kollaudo and its PostgreSQL database. Start with `docker compose up -d --wait`, then create a project:
+#   docker compose exec -T kollaudo kollaudo-server project create <name>
 #
 # Set POSTGRES_PASSWORD to a password of your own, and KOLLAUDO_VERSION to pin a release.
 services:
