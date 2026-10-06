@@ -161,7 +161,6 @@ version deployed there, and the tests of each run.
 **Next** ([roadmap](#roadmap))
 
 - A GitHub Action to send test results, next to the gate ([v0.4](docs/milestones/v0.4.md)).
-- An Azure DevOps recipe.
 - Bugs linked to failed tests, and UAT sign-offs and manual checks from the tools where testers work.
 - Build signals as context: coverage, static analysis.
 
@@ -274,7 +273,7 @@ Ready-made **recipes** are complete examples for popular tools.
 | [GitLab CI](docs/recipes/gitlab-ci.md) | available |
 | [Argo CD notifications](docs/recipes/argocd.md) | available |
 | [Kargo promotion gate](docs/recipes/kargo.md) | available |
-| Azure DevOps | planned |
+| [Azure DevOps](docs/recipes/azure-devops.md) | available |
 | Backstage plugin | planned |
 | Flux, Argo Rollouts, Flagger, Spinnaker… | contributions welcome |
 
