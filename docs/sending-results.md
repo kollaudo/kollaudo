@@ -209,6 +209,7 @@ Complete examples for one framework and one CI. The table shows which recipes ar
 | [pytest with GitHub Actions](recipes/pytest.md): JUnit XML, unit results at build level, a staging gate | not tested in CI yet |
 | [GitLab CI](recipes/gitlab-ci.md): test against staging, gate a deployment to production | not tested in CI yet |
 | [Azure DevOps](recipes/azure-devops.md): unit tests, a deployment to staging, e2e tests there, a gate before production | tried on a real pipeline, not tested in CI |
+| [Jenkins](recipes/jenkins.md): a declarative `Jenkinsfile`, test against staging, gate a deployment to production | tried on a local Jenkins, not tested in CI |
 | [Argo CD notifications](recipes/argocd.md): deployments after each sync | tested in kind by [`e2e/kind/recipe-argocd.sh`](../e2e/kind/recipe-argocd.sh) |
 | [Kargo](recipes/kargo.md): a promotion goes on only on `pass` | tested in kind by [`e2e/kind/recipe-kargo.sh`](../e2e/kind/recipe-kargo.sh) |
 

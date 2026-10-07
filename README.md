@@ -274,6 +274,7 @@ Ready-made **recipes** are complete examples for popular tools.
 | [Argo CD notifications](docs/recipes/argocd.md) | available |
 | [Kargo promotion gate](docs/recipes/kargo.md) | available |
 | [Azure DevOps](docs/recipes/azure-devops.md) | available |
+| [Jenkins](docs/recipes/jenkins.md) | available |
 | Backstage plugin | planned |
 | Flux, Argo Rollouts, Flagger, Spinnaker… | contributions welcome |
 
