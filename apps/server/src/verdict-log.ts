@@ -9,9 +9,19 @@ import { type FoundToken, tokenLabel } from "./tokens.ts";
 
 type Query = z.output<typeof GivenVerdictQuery>;
 
-/** Records a verdict as it was given to a token. */
+/**
+ * How long after the last time a token got an answer the same answer counts as asked again, rather
+ * than given anew. A gate that waits for evidence asks every minute: it adds to one entry.
+ */
+const REPEAT_WINDOW = "10 minutes";
+
+/**
+ * Records a verdict as it was given to a token. When the same token got the same answer for the same
+ * version within REPEAT_WINDOW, the entry counts one more time instead: the log keeps what was
+ * answered and when, without a row for each poll of a waiting gate.
+ */
 export async function recordVerdict(db: Db, token: FoundToken, verdict: Verdict): Promise<void> {
-  await db.insert(verdicts).values({
+  const entry = {
     projectId: token.projectId,
     component: verdict.component,
     environment: verdict.environment,
@@ -23,7 +33,49 @@ export async function recordVerdict(db: Db, token: FoundToken, verdict: Verdict)
     require: verdict.policy.require,
     overrideId: verdict.override?.id ?? null,
     tokenId: token.id,
-  });
+  };
+
+  // Times come from the database's clock, as createdAt does, never from this server's.
+  const [last] = await db
+    .select({
+      id: verdicts.id,
+      outcome: verdicts.outcome,
+      evidenceOutcome: verdicts.evidenceOutcome,
+      message: verdicts.message,
+      policyRevision: verdicts.policyRevision,
+      require: verdicts.require,
+      overrideId: verdicts.overrideId,
+      recent: sql<boolean>`${verdicts.lastAskedAt} > now() - ${REPEAT_WINDOW}::interval`,
+    })
+    .from(verdicts)
+    .where(
+      and(
+        eq(verdicts.projectId, entry.projectId),
+        eq(verdicts.component, entry.component),
+        eq(verdicts.environment, entry.environment),
+        eq(verdicts.version, entry.version),
+        eq(verdicts.tokenId, entry.tokenId),
+      ),
+    )
+    .orderBy(desc(verdicts.createdAt), desc(verdicts.id))
+    .limit(1);
+  const repeated =
+    last?.recent === true &&
+    last.outcome === entry.outcome &&
+    last.evidenceOutcome === entry.evidenceOutcome &&
+    last.message === entry.message &&
+    last.policyRevision === entry.policyRevision &&
+    last.overrideId === entry.overrideId &&
+    last.require.join(",") === entry.require.join(",");
+
+  if (repeated) {
+    await db
+      .update(verdicts)
+      .set({ asked: sql`${verdicts.asked} + 1`, lastAskedAt: sql`now()` })
+      .where(eq(verdicts.id, last.id));
+  } else {
+    await db.insert(verdicts).values(entry);
+  }
 }
 
 /** Lists the verdicts given in a project, newest first, one page at a time. */
@@ -47,6 +99,8 @@ export async function listVerdicts(
       askedByName: apiTokens.name,
       askedByHint: apiTokens.hint,
       createdAt: verdicts.createdAt,
+      asked: verdicts.asked,
+      lastAskedAt: verdicts.lastAskedAt,
     })
     .from(verdicts)
     .leftJoin(apiTokens, eq(verdicts.tokenId, apiTokens.id))
@@ -72,6 +126,7 @@ export async function listVerdicts(
       ...row,
       askedBy: askedByHint === null ? null : tokenLabel({ name: askedByName, hint: askedByHint }),
       createdAt: row.createdAt.toISOString(),
+      lastAskedAt: row.lastAskedAt.toISOString(),
     }),
   );
   const next = rows.length > query.limit ? (items.at(-1)?.id ?? null) : null;

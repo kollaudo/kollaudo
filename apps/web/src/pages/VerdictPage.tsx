@@ -154,6 +154,11 @@ export function VerdictPage({ query }: { query: URLSearchParams }) {
                 />
                 <span className="text-muted">
                   asked by {given.askedBy ?? "a deleted token"}
+                  {given.asked > 1 && (
+                    <span title={`Last asked ${new Date(given.lastAskedAt).toLocaleString()}`}>
+                      {` ${given.asked} times, last ${timeAgo(given.lastAskedAt)}`}
+                    </span>
+                  )}
                   {given.policyRevision !== null && `, policy revision ${given.policyRevision}`}
                 </span>
               </li>

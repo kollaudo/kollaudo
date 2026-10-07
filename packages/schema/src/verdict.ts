@@ -103,7 +103,16 @@ export const GivenVerdict = z
       .string()
       .nullable()
       .meta({ description: "The name of the token that asked, or the start of the token." }),
-    createdAt: Timestamp,
+    createdAt: Timestamp.meta({ description: "When the verdict was first given." }),
+    asked: z
+      .number()
+      .int()
+      .meta({
+        description:
+          "How many times the same token asked and got this same answer in a row, such as a gate " +
+          "that asks again every minute while it waits.",
+      }),
+    lastAskedAt: Timestamp.meta({ description: "When it was given the last time." }),
   })
   .meta({ id: "GivenVerdict" });
 export type GivenVerdict = z.infer<typeof GivenVerdict>;

@@ -17,6 +17,8 @@ const given = {
   overrideId: null,
   askedBy: "kargo",
   createdAt: "2026-10-02T09:10:00.000Z",
+  asked: 1,
+  lastAskedAt: "2026-10-02T09:10:00.000Z",
 };
 
 function server(status: number, body: unknown) {
@@ -57,6 +59,22 @@ describe("kollaudo verdict list", () => {
     expect(requests).toEqual([
       "https://kollaudo.example.com/v1/verdicts?component=api&environment=staging&outcome=fail",
     ]);
+  });
+
+  it("says how many times a waiting gate got the same answer", async () => {
+    const waited = {
+      ...given,
+      outcome: "unknown",
+      message: "Evidence is missing for e2e.",
+      asked: 37,
+      lastAskedAt: "2026-10-02T09:46:00.000Z",
+    };
+    const { fetch } = server(200, { items: [waited], next: null });
+    const { out } = await runWith(run, ["verdict", "list"], { env, fetch });
+    expect(out).toBe(
+      "2026-10-02T09:10:00.000Z  UNKNOWN  api 1.1.0 in staging, asked by kargo 37 times until " +
+        "2026-10-02T09:46:00.000Z, policy revision 3: Evidence is missing for e2e.\n",
+    );
   });
 
   it("says when there are none", async () => {

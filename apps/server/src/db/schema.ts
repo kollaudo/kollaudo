@@ -243,6 +243,9 @@ export const verdicts = pgTable(
     overrideId: uuid().references(() => overrides.id, { onDelete: "set null" }),
     tokenId: uuid().references(() => apiTokens.id, { onDelete: "set null" }),
     createdAt: createdAt(),
+    /** How many times the same token got this same answer in a row, such as a gate that waits. */
+    asked: integer().notNull().default(1),
+    lastAskedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     index().on(t.projectId, t.createdAt),

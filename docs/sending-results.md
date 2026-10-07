@@ -191,6 +191,14 @@ kollaudo verdict list --component frontend --env staging
 It needs a `read` token, and `GET /v1/verdicts` gives the same list. The log records the answers:
 later verdicts are still computed from the evidence.
 
+A gate that waits for evidence, such as the [Kargo recipe](recipes/kargo.md), asks again every
+minute. When the same token gets the same answer for the same version within ten minutes of the last
+time, the log counts it on one line instead of adding another:
+
+```text
+2026-10-02T09:12:00.000Z  UNKNOWN  frontend 1.4.0 in staging, asked by kargo 37 times until 2026-10-02T09:48:00.000Z, policy revision 3: Evidence is missing for e2e.
+```
+
 To look at a verdict without being a gate, as the web UI does, ask with `record=false`: the answer is
 the same, but it isn't recorded, so it doesn't count as the `pass` that lets a deployment through
 the gate.

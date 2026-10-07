@@ -75,13 +75,16 @@ export async function verdictList(args: string[], io: Io): Promise<number> {
 
 /**
  * 2026-10-02T09:10:00.000Z  FAIL  api 1.1.0 in staging, asked by kargo, policy revision 3: e2e failed.
+ * 2026-10-02T09:12:00.000Z  UNKNOWN  api 1.2.0 in staging, asked by kargo 37 times until 2026-10-02T09:48:00.000Z: …
  */
 function line(v: GivenVerdict) {
   const outcome = v.overrideId ? `${v.outcome.toUpperCase()} (override)` : v.outcome.toUpperCase();
   const policy = v.policyRevision === null ? "" : `, policy revision ${v.policyRevision}`;
+  // A gate that waits asks again and again: one line, with how many times and until when.
+  const times = v.asked > 1 ? ` ${v.asked} times until ${v.lastAskedAt}` : "";
   return (
     `${v.createdAt}  ${outcome}  ${v.component} ${v.version} in ${v.environment}, ` +
-    `asked by ${v.askedBy ?? "a deleted token"}${policy}: ${v.message}`
+    `asked by ${v.askedBy ?? "a deleted token"}${times}${policy}: ${v.message}`
   );
 }
 

@@ -8,6 +8,10 @@ the API.
 
 ### Server
 
+- The log of verdicts no longer grows by one entry each time a waiting gate asks again: when the same
+  token gets the same answer for the same version within ten minutes, the entry counts one more time.
+  `GET /v1/verdicts` gives `asked` and `lastAskedAt`, and `kollaudo verdict list` and the verdict
+  page show them.
 - When the database doesn't answer, `kollaudo-server` says so, where it looked and what to check,
   instead of hanging or crashing with a stack trace. The server waits up to a minute for the database
   to come up, and admin commands such as `project create` up to 15 seconds. A wrong password or an
