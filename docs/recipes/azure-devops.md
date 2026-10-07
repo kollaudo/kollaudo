@@ -55,6 +55,10 @@ stages:
           - task: NodeTool@0
             inputs:
               versionSpec: "24.x"
+          # A self-hosted agent keeps the workspace between runs: a report left by an earlier run
+          # must not be sent for this version.
+          - script: rm -f junit-unit.xml
+            displayName: Remove an earlier report
           - script: npm ci && npm test
             displayName: Unit tests
           - task: PublishTestResults@2
@@ -92,6 +96,8 @@ stages:
           - task: NodeTool@0
             inputs:
               versionSpec: "24.x"
+          - script: rm -f junit-e2e.xml
+            displayName: Remove an earlier report
           - script: npm ci && npm run e2e
             displayName: E2E tests against staging
             env:
@@ -158,6 +164,10 @@ PASS  api 3f2a9c1e… in staging: e2e passed.
   sends the same report to Kollaudo, even when tests failed (`condition: succeededOrFailed()`).
 - **Staging** deploys, tells Kollaudo with `kollaudo deployed`, then runs the e2e tests against
   staging and sends them. A failed test fails the stage, and its results still reach Kollaudo.
+- Both jobs first **remove the report of an earlier run**. A self-hosted agent keeps its workspace,
+  and the reports are ignored by Git, so checking out doesn't remove them: without it, a run whose
+  tests crashed before writing a report would send the last one, possibly a passing one, for the new
+  version. With it, `push` finds no report and fails, and the gate isn't reached.
 - **Gate** runs unless the run was canceled, even after failed tests: `kollaudo verdict` decides. It
   exits with `0` on `pass`, which lets the pipeline go on; `1` on `fail`, `2` when evidence is
   missing, such as e2e tests that never reported, and `3` when Kollaudo can't be asked. Any of them
