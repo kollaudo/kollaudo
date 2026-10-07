@@ -105,6 +105,23 @@ describe("kollaudo verdict", () => {
     });
   });
 
+  it("prints the API's answer with --json, and exits with the same code", async () => {
+    const failed = verdict({
+      outcome: "fail",
+      message: "smoke failed.",
+      reasons: [
+        { kind: "smoke", outcome: "fail", message: "1 failed", run: { ...e2e, kind: "smoke" } },
+      ],
+    });
+    const json = [...args, "--json"];
+    const passing = await runWith(run, json, { env, fetch: server(200, verdict({})).fetch });
+    const failing = await runWith(run, json, { env, fetch: server(200, failed).fetch });
+
+    expect(passing).toEqual({ code: 0, out: `${JSON.stringify(verdict({}))}\n`, err: "" });
+    expect(failing).toEqual({ code: 1, out: `${JSON.stringify(failed)}\n`, err: "" });
+    expect(JSON.parse(failing.out)).toEqual(failed);
+  });
+
   it("says when an override lets the version through", async () => {
     const overridden = verdict({
       outcome: "pass",
@@ -228,16 +245,19 @@ describe("kollaudo verdict", () => {
       await runWith(run, args, { env: {} }),
       await runWith(run, ["verdict", "--component", "api"], { env }),
       await runWith(run, [...args, "--nope"], { env }),
+      await runWith(run, [...args, "--json"], { env, fetch: server(403, forbidden).fetch }),
     ];
 
-    expect(cases.map((c) => c.code)).toEqual([3, 3, 3, 3, 3]);
-    expect(cases.map((c) => c.out)).toEqual(["", "", "", "", ""]);
+    expect(cases.map((c) => c.code)).toEqual([3, 3, 3, 3, 3, 3]);
+    // No JSON without a verdict: the error goes to standard error, as without --json.
+    expect(cases.map((c) => c.out)).toEqual(["", "", "", "", "", ""]);
     expect(cases[0]?.err).toBe("Error: Wrong scope. (403 forbidden)\n");
     expect(cases[1]?.err).toBe(
       "Error: Can't reach Kollaudo at https://kollaudo.example.com: No network in tests\n",
     );
     expect(cases[2]?.err).toBe("Error: Set KOLLAUDO_URL to the URL of your Kollaudo server.\n");
     expect(cases[3]?.err).toMatch(/^Missing --env and --version\.\n\nUsage: kollaudo verdict/);
+    expect(cases[5]?.err).toBe("Error: Wrong scope. (403 forbidden)\n");
   });
 
   it("shows its help", async () => {

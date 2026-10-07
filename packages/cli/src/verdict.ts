@@ -27,6 +27,8 @@ Options:
   --env <name>           Environment the version was tested in, such as "staging" (required)
   --version <version>    Version, as sent with "kollaudo push" (required)
   --require <kinds>      Kinds that must have a run, separated by commas, such as e2e,smoke
+  --json                 Print the API's answer as JSON instead of the report, with the same
+                         exit code
   -h, --help             Show this help
 
 Environment:
@@ -88,7 +90,7 @@ export async function verdict(args: string[], io: Io): Promise<number> {
   if (!response.ok) return fail(describeError(response, text));
 
   const result = JSON.parse(text) as Verdict;
-  io.out(report(result, target.url));
+  io.out(values.json ? `${text}\n` : report(result, target.url));
   return EXIT_CODES[result.outcome];
 }
 
@@ -152,6 +154,7 @@ function parse(args: string[]) {
       env: { type: "string" },
       version: { type: "string" },
       require: { type: "string" },
+      json: { type: "boolean" },
       help: { type: "boolean", short: "h" },
     },
   });
