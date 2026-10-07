@@ -22,7 +22,8 @@ the API.
 
 - [Azure DevOps](docs/recipes/azure-devops.md): unit tests at build level, a deployment to staging,
   e2e tests there, and a gate on the verdict before production, with secret variables mapped to the
-  steps that need them. Tried on a real pipeline.
+  steps that need them. Reports of earlier runs are removed first, so that a self-hosted agent never
+  sends them for a new version. Tried on a real pipeline.
 - [Jenkins](docs/recipes/jenkins.md): a declarative `Jenkinsfile` that sends e2e results even when
   tests failed, and deploys to production only on a passing verdict, with the tokens bound as
   Jenkins credentials. Tried on a local Jenkins.
