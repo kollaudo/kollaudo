@@ -36,6 +36,11 @@ the API.
   one step that fails a job unless the verdict is `pass`, with the verdict in the summary of the run.
   The Playwright and pytest recipes use it.
 
+### CLI
+
+- `kollaudo verdict --json` prints the API's answer as JSON, for scripts that post the reasons
+  somewhere. The exit code is the same as without it.
+
 ## [0.3.0] - 2026-10-04
 
 Upgrade the server before the CLI: `kollaudo verdict list` and the ungated deployments need a 0.3

@@ -169,6 +169,16 @@ case $code in
 esac
 ```
 
+To do more with the verdict, such as posting its reasons to a pull request, add `--json`: the CLI
+prints the API's answer instead of the report, and exits with the same code.
+
+```bash
+code=0
+kollaudo verdict --component frontend --env staging --version "$VERSION" --json > verdict.json || code=$?
+jq -r '.reasons[] | "\(.outcome) \(.kind): \(.message)"' verdict.json
+exit "$code"
+```
+
 For an urgent fix that can't wait for its evidence, don't edit the gate: let that one version through
 with an [override](overrides.md), which keeps a record of who and why.
 
