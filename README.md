@@ -163,7 +163,8 @@ version deployed there, and the tests of each run.
 
 **Next** ([roadmap](#roadmap))
 
-- Bugs linked to failed tests, and UAT sign-offs and manual checks from the tools where testers work.
+- UAT sign-offs and manual checks that a policy can require, and bugs linked to failed tests, sent
+  from the tools where testers work ([v0.5](docs/milestones/v0.5.md)).
 - Build signals as context: coverage, static analysis.
 
 ## What it is not
@@ -291,8 +292,8 @@ Ready-made **recipes** are complete examples for popular tools.
      gate, a readiness check, and recipes for GitLab CI and pytest
    - **v0.4** ([scope](docs/milestones/v0.4.md)): a GitHub Action for the gate and for sending
      results, and an Azure DevOps recipe
-   - **v0.5**: bugs linked to failed tests, UAT sign-offs and manual check results from the tools
-     where testers work
+   - **v0.5** ([scope](docs/milestones/v0.5.md)): UAT sign-offs and manual checks as evidence a
+     policy can require, and bugs linked to failed tests, from the tools where testers work
    - **v0.6**: gates for more tools (GitHub deployment protection), CDEvents in/out
 2. **Build signals**: unit tests, coverage, static analysis and SARIF as version context
 3. **After production**: post-deploy checks, rollbacks and incidents linked to versions
