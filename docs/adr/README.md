@@ -15,7 +15,7 @@ accepted: if it changes, a new ADR supersedes it (see [0001](0001-record-archite
 | [0005](0005-create-on-first-use.md) | Components, environments and versions are created on first use | accepted |
 | | **Ingest and formats** | |
 | [0006](0006-push-based-ingest.md) | Push-based ingest | accepted |
-| [0007](0007-scoped-api-tokens.md) | API tokens have one project and one scope | accepted, extended by [0017](0017-trust-in-evidence.md) |
+| [0007](0007-scoped-api-tokens.md) | API tokens have one project and one scope | accepted, extended by [0017](0017-trust-in-evidence.md) and [0021](0021-signoff-as-a-test-run-with-its-own-scope.md) |
 | [0008](0008-ctrf-for-test-results.md) | CTRF as the native format for test results | accepted |
 | [0009](0009-cdevents-in-and-out.md) | CDEvents as an optional input and output | accepted |
 | | **Architecture and technology** | |
@@ -24,13 +24,13 @@ accepted: if it changes, a new ADR supersedes it (see [0001](0001-record-archite
 | [0012](0012-server-stack.md) | Server stack: Node.js, Hono, Zod, Drizzle and PostgreSQL | accepted |
 | | **Verdict** | |
 | [0013](0013-verdict-pass-fail-unknown.md) | The verdict is pass, fail or unknown | accepted |
-| [0014](0014-policy.md) | Policies decide what a verdict requires | accepted |
+| [0014](0014-policy.md) | Policies decide what a verdict requires | accepted, extended by [0021](0021-signoff-as-a-test-run-with-its-own-scope.md) |
 | [0016](0016-rules-kept-by-kollaudo.md) | Rules are kept by Kollaudo, and a request can't relax them | accepted |
-| [0018](0018-overrides.md) | Overrides let a version through, with who, why and until when | accepted |
+| [0018](0018-overrides.md) | Overrides let a version through, with who, why and until when | accepted, extended by [0021](0021-signoff-as-a-test-run-with-its-own-scope.md) |
 | [0019](0019-when-the-gate-is-skipped-or-kollaudo-is-down.md) | Gates fail closed when Kollaudo doesn't answer, and skipped gates are visible | accepted |
-| [0021](0021-signoff-as-a-test-run-with-its-own-scope.md) | A sign-off is a test run, with a scope of its own | proposed |
+| [0021](0021-signoff-as-a-test-run-with-its-own-scope.md) | A sign-off is a test run, with a scope of its own | accepted |
 | | **Trust** | |
-| [0017](0017-trust-in-evidence.md) | Evidence says who sent it, and tokens limit what they can send | accepted |
+| [0017](0017-trust-in-evidence.md) | Evidence says who sent it, and tokens limit what they can send | accepted, extended by [0021](0021-signoff-as-a-test-run-with-its-own-scope.md) |
 | | **Formats** | |
 | [0015](0015-junit-converted-by-the-cli.md) | JUnit XML is converted to CTRF by the CLI | accepted |
 | | **Integrations** | |

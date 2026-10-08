@@ -1,8 +1,9 @@
 # 21. A sign-off is a test run, with a scope of its own
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-10-08
-- Extends: [0014](0014-policy.md), [0017](0017-trust-in-evidence.md), [0018](0018-overrides.md)
+- Extends: [0007](0007-scoped-api-tokens.md), [0014](0014-policy.md),
+  [0017](0017-trust-in-evidence.md), [0018](0018-overrides.md)
 
 ## Context
 
@@ -19,18 +20,20 @@ repositories ([0014](0014-policy.md)).
 
 ## Decision
 
-- **A sign-off is a test run.** It has a kind (`uat` or `manual`), a version, an environment, one
-  test with an outcome (`pass` or `fail`), and a note. It is stored with the other test runs and
-  judged by the same rules: `deployed` (the signed-off version must be the one deployed when it was
-  given), `maxAge`, and the rule that the latest run of a kind counts. Giving a sign-off again
-  replaces the earlier one. There is no second kind of evidence, no second table to join in the
+- **A sign-off is a test run.** It has a kind (any kind, such as `uat` or `manual`), a version, an
+  environment, one test with an outcome (`pass` or `fail`), and a note. It is stored with the other
+  test runs and judged by the same rules: `deployed` (the signed-off version must be the one
+  deployed when it was given), `maxAge`, and the rule that the latest run of a kind counts. A
+  sign-off can be given again: the earlier one is kept, and the latest one counts. There is no
+  second kind of evidence, no second table to join in the
   verdict, and no second set of reasons to explain.
 - **It needs its own token scope, `signoff`**, separate from `ingest`, `policy` and `override`
   ([0007](0007-scoped-api-tokens.md)). The scope is added to the `token_scope` enum; existing tokens
   and their rows don't change. A `signoff` token can be limited to components and environments, and
   has a name, which is recorded as the author until Kollaudo has users
-  ([0017](0017-trust-in-evidence.md), [0018](0018-overrides.md)). It can ask for verdicts, as the
-  other scopes that send data can, so that `kollaudo signoff` prints the verdict that follows.
+  ([0017](0017-trust-in-evidence.md), [0018](0018-overrides.md)). The verdict
+  endpoint accepts it, next to `read` and `ingest`, so that `kollaudo signoff` prints the verdict
+  that follows with the same token. This is new: an `override` token can't ask for verdicts.
 - **A policy lists the kinds that need a sign-off**, in the rule, next to `require`:
 
   ```yaml
@@ -42,7 +45,8 @@ repositories ([0014](0014-policy.md)).
 
   A kind in `signoff` counts only from a run sent with a `signoff` token. A `uat` run sent with an
   `ingest` token is kept, and shown, but doesn't satisfy it, and the verdict says that the kind is
-  waiting for a sign-off. A kind in `signoff` doesn't also need to be in `require`. A sign-off with
+  waiting for a sign-off. A kind in `signoff` doesn't also need to be in `require`, and if it is in both,
+  `signoff` wins: the kind counts only from a `signoff` token. A sign-off with
   outcome `fail` makes the verdict `fail`; a missing one makes it `unknown`
   ([0013](0013-verdict-pass-fail-unknown.md)).
 - **The API says what a sign-off is.** `POST /v1/signoffs` creates one, `GET /v1/signoffs` lists them,
