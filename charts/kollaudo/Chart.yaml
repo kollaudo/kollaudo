@@ -3,8 +3,8 @@ name: kollaudo
 description: Quality gates for every promotion, whatever builds, tests and deploys your software.
 type: application
 # Both are the version of the release: the release workflow checks it.
-version: 0.3.0
-appVersion: 0.3.0
+version: 0.4.0
+appVersion: 0.4.0
 home: https://github.com/kollaudo/kollaudo
 sources:
   - https://github.com/kollaudo/kollaudo

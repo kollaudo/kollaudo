@@ -6,6 +6,11 @@ the API.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-08
+
+The `kollaudo/action` gate and `push` actions run this release of the CLI. `kollaudo verdict --json`
+needs a 0.4 CLI.
+
 ### Server
 
 - The log of verdicts no longer grows by one entry each time a waiting gate asks again: when the same
@@ -197,6 +202,7 @@ every component in every environment.
 - [Sending test results](docs/sending-results.md) from any framework and CI, and a
   [Playwright recipe](docs/recipes/playwright.md).
 
+[0.4.0]: https://github.com/kollaudo/kollaudo/releases/tag/v0.4.0
 [0.3.0]: https://github.com/kollaudo/kollaudo/releases/tag/v0.3.0
 [0.2.0]: https://github.com/kollaudo/kollaudo/releases/tag/v0.2.0
 [0.1.1]: https://github.com/kollaudo/kollaudo/releases/tag/v0.1.1
