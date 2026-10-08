@@ -28,6 +28,7 @@ accepted: if it changes, a new ADR supersedes it (see [0001](0001-record-archite
 | [0016](0016-rules-kept-by-kollaudo.md) | Rules are kept by Kollaudo, and a request can't relax them | accepted |
 | [0018](0018-overrides.md) | Overrides let a version through, with who, why and until when | accepted |
 | [0019](0019-when-the-gate-is-skipped-or-kollaudo-is-down.md) | Gates fail closed when Kollaudo doesn't answer, and skipped gates are visible | accepted |
+| [0021](0021-signoff-as-a-test-run-with-its-own-scope.md) | A sign-off is a test run, with a scope of its own | proposed |
 | | **Trust** | |
 | [0017](0017-trust-in-evidence.md) | Evidence says who sent it, and tokens limit what they can send | accepted |
 | | **Formats** | |
