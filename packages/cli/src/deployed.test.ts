@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DEPLOYED_HELP } from "./deployed.ts";
 import { run } from "./run.ts";
-import { runWith } from "./testing.ts";
+import { runWith, webPage } from "./testing.ts";
 
 const env = { KOLLAUDO_URL: "https://kollaudo.example.com", KOLLAUDO_TOKEN: "kol_ingest" };
 const args = ["deployed", "--component", "api", "--env", "staging", "--version", "3f2a9c1"];
@@ -103,15 +103,19 @@ describe("kollaudo deployed", () => {
       await runWith(run, [...args, "--at", "yesterday"], { env }),
       await runWith(run, ["deployed", "--component", "api"], { env }),
       await runWith(run, args, { env: {} }),
+      await runWith(run, args, { env, fetch: webPage }),
     ];
 
-    expect(results.map((r) => r.code)).toEqual([1, 1, 1, 1]);
+    expect(results.map((r) => r.code)).toEqual([1, 1, 1, 1, 1]);
     expect(results[0]?.err).toBe(
       'Error: Version "3f2a9c1" of "api" already has digest "sha256:aaa". (409 version_conflict)\n',
     );
     expect(results[1]?.err).toBe("Error: --at isn't a date and time: yesterday\n");
     expect(results[2]?.err).toMatch(/^Missing --env and --version\.\n\nUsage: kollaudo deployed/);
     expect(results[3]?.err).toBe("Error: Set KOLLAUDO_URL to the URL of your Kollaudo server.\n");
+    expect(results[4]?.err).toBe(
+      "Error: Kollaudo at https://kollaudo.example.com answered with a page, not with JSON. Is KOLLAUDO_URL the address of the Kollaudo server?\n",
+    );
   });
 
   it("shows its help", async () => {

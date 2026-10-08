@@ -40,6 +40,11 @@ the API.
 
 - `kollaudo verdict --json` prints the API's answer as JSON, for scripts that post the reasons
   somewhere. The exit code is the same as without it.
+- When `KOLLAUDO_URL` answers with a web page instead of JSON (the UI, a wrong path, a proxy or a
+  login portal), every command says so and asks whether the URL is right, instead of crashing with
+  `SyntaxError: Unexpected token '<'`. `kollaudo verdict` exits with 3, no verdict, not with 1 as
+  if the tests had failed: the gate reports that Kollaudo didn't answer, and `allow: no-verdict`
+  lets the job through.
 
 ## [0.3.0] - 2026-10-04
 

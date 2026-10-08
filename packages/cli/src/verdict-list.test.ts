@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { run } from "./run.ts";
-import { runWith } from "./testing.ts";
+import { runWith, webPage } from "./testing.ts";
 import { VERDICT_LIST_HELP } from "./verdict-list.ts";
 
 const env = { KOLLAUDO_URL: "https://kollaudo.example.com", KOLLAUDO_TOKEN: "kol_read" };
@@ -93,6 +93,14 @@ describe("kollaudo verdict list", () => {
     const result = await runWith(run, ["verdict", "list"], { env, fetch });
     expect(result.code).toBe(1);
     expect(result.err).toContain("read scope");
+  });
+
+  it("explains a page where the list should be", async () => {
+    expect(await runWith(run, ["verdict", "list"], { env, fetch: webPage })).toEqual({
+      code: 1,
+      out: "",
+      err: "Error: Kollaudo at https://kollaudo.example.com answered with a page, not with JSON. Is KOLLAUDO_URL the address of the Kollaudo server?\n",
+    });
   });
 
   it("shows its help", async () => {
