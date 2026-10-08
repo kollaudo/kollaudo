@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { POLICY_HELP } from "./policy.ts";
 import { run } from "./run.ts";
-import { runWith } from "./testing.ts";
+import { runWith, webPage } from "./testing.ts";
 
 const env = { KOLLAUDO_URL: "https://kollaudo.example.com", KOLLAUDO_TOKEN: "kol_policy" };
 const source = "# Shop\nenvironments:\n  staging:\n    require: [e2e, smoke]\n";
@@ -87,14 +87,18 @@ describe("kollaudo policy", () => {
       await runWith(run, ["policy", "push", "nope.yaml"], { env, files }),
       await runWith(run, ["policy", "push"], { env, files }),
       await runWith(run, ["policy", "delete"], { env, files }),
+      await runWith(run, ["policy", "show"], { env, files, fetch: webPage }),
     ];
-    expect(results.map((r) => r.code)).toEqual([1, 1, 1, 1]);
+    expect(results.map((r) => r.code)).toEqual([1, 1, 1, 1, 1]);
     expect(results[0]?.err).toBe(
       "Error: This endpoint needs a token with the policy scope. (403 forbidden)\n",
     );
     expect(results[1]?.err).toContain("Can't read nope.yaml");
     expect(results[2]?.err).toContain('Use "kollaudo policy push <file>"');
     expect(results[3]?.err).toContain('Use "kollaudo policy push <file>"');
+    expect(results[4]?.err).toBe(
+      "Error: Kollaudo at https://kollaudo.example.com answered with a page, not with JSON. Is KOLLAUDO_URL the address of the Kollaudo server?\n",
+    );
   });
 
   it("shows its help", async () => {

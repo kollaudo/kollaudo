@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { OVERRIDE_HELP } from "./override.ts";
 import { run } from "./run.ts";
-import { runWith } from "./testing.ts";
+import { runWith, webPage } from "./testing.ts";
 
 const env = { KOLLAUDO_URL: "https://kollaudo.example.com", KOLLAUDO_TOKEN: "kol_override" };
 const held = {
@@ -94,6 +94,12 @@ describe("kollaudo override", () => {
     expect(refused).toMatchObject({
       code: 1,
       err: "Error: This endpoint needs a token with the override scope. (403 forbidden)\n",
+    });
+
+    const page = await runWith(run, create, { env, fetch: webPage });
+    expect(page).toMatchObject({
+      code: 1,
+      err: "Error: Kollaudo at https://kollaudo.example.com answered with a page, not with JSON. Is KOLLAUDO_URL the address of the Kollaudo server?\n",
     });
   });
 

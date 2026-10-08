@@ -16,7 +16,7 @@ export function server(io: Io, token: string): Server | string {
 
 /**
  * Calls Kollaudo and returns the status and body of its answer. Throws an error with a readable
- * message when Kollaudo can't be reached.
+ * message when Kollaudo can't be reached, or when a successful answer isn't JSON.
  */
 export async function call(
   io: Io,
@@ -40,7 +40,18 @@ export async function call(
     const cause = (error as Error & { cause?: Error }).cause?.message ?? (error as Error).message;
     throw new Error(`Can't reach Kollaudo at ${url}: ${cause}`);
   }
-  return { response, text: await response.text() };
+  const text = await response.text();
+  if (response.ok) {
+    try {
+      JSON.parse(text);
+    } catch {
+      // The UI, a wrong path, a proxy or a login page answers 200 with a page.
+      throw new Error(
+        `Kollaudo at ${url} answered with a page, not with JSON. Is KOLLAUDO_URL the address of the Kollaudo server?`,
+      );
+    }
+  }
+  return { response, text };
 }
 
 /** A readable message for an error answer. Paths under `report.` point into the report file. */

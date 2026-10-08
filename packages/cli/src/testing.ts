@@ -7,6 +7,13 @@ interface FakeIo {
   fetch?: Io["fetch"];
 }
 
+/** A server that answers every request 200 with a web page, like the UI or a login portal. */
+export const webPage: Io["fetch"] = async () =>
+  new Response("<!DOCTYPE html><html><body>Kollaudo</body></html>", {
+    status: 200,
+    headers: { "content-type": "text/html" },
+  });
+
 /** Runs a CLI function with fake files, environment and network, and collects its output. */
 export async function runWith(
   fn: (args: string[], io: Io) => Promise<number>,

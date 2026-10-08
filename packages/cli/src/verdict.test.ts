@@ -1,7 +1,7 @@
 import type { Verdict } from "@kollaudo/schema";
 import { describe, expect, it } from "vitest";
 import { run } from "./run.ts";
-import { runWith } from "./testing.ts";
+import { runWith, webPage } from "./testing.ts";
 import { VERDICT_HELP } from "./verdict.ts";
 
 const env = { KOLLAUDO_URL: "https://kollaudo.example.com", KOLLAUDO_TOKEN: "kol_ingest" };
@@ -258,6 +258,14 @@ describe("kollaudo verdict", () => {
     expect(cases[2]?.err).toBe("Error: Set KOLLAUDO_URL to the URL of your Kollaudo server.\n");
     expect(cases[3]?.err).toMatch(/^Missing --env and --version\.\n\nUsage: kollaudo verdict/);
     expect(cases[5]?.err).toBe("Error: Wrong scope. (403 forbidden)\n");
+  });
+
+  it("exits with 3 when KOLLAUDO_URL answers with a page, not with a verdict", async () => {
+    expect(await runWith(run, [...args, "--json"], { env, fetch: webPage })).toEqual({
+      code: 3,
+      out: "",
+      err: "Error: Kollaudo at https://kollaudo.example.com answered with a page, not with JSON. Is KOLLAUDO_URL the address of the Kollaudo server?\n",
+    });
   });
 
   it("shows its help", async () => {

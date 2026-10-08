@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { PUSH_HELP } from "./push.ts";
 import { run } from "./run.ts";
-import { runWith } from "./testing.ts";
+import { runWith, webPage } from "./testing.ts";
 
 const env = { KOLLAUDO_URL: "https://kollaudo.example.com/", KOLLAUDO_TOKEN: "kol_ingest" };
 const report = { results: { tool: { name: "playwright" }, summary: { tests: 1 }, tests: [] } };
@@ -127,6 +127,15 @@ describe("kollaudo push", () => {
 
     expect(code).toBe(1);
     expect(err).toContain("Kollaudo answered 502");
+  });
+
+  it("explains a page where Kollaudo should answer", async () => {
+    const { code, err } = await runWith(run, args, { env, files, fetch: webPage });
+
+    expect(code).toBe(1);
+    expect(err).toBe(
+      "Error: Kollaudo at https://kollaudo.example.com answered with a page, not with JSON. Is KOLLAUDO_URL the address of the Kollaudo server?\n",
+    );
   });
 
   it("explains an unreachable server", async () => {
