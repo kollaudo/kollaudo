@@ -43,7 +43,7 @@ pool:
 
 variables:
   KOLLAUDO_URL: https://kollaudo.example.com
-  KOLLAUDO_CLI: "@kollaudo/cli@0.3.0"
+  KOLLAUDO_CLI: "@kollaudo/cli@0.4.0"
   # The version: the commit here, the same in every stage. An image tag works too.
   VERSION: $(Build.SourceVersion)
 

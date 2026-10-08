@@ -44,7 +44,7 @@ import { getVerdict } from "./verdict.ts";
 import { listVerdicts, recordVerdict } from "./verdict-log.ts";
 
 /** Same as in package.json: a test checks it, and the release workflow checks the tag. */
-export const VERSION = "0.3.0";
+export const VERSION = "0.4.0";
 
 /** Largest accepted request body. Big e2e suites with long traces can reach tens of megabytes. */
 const MAX_BODY_BYTES = 50 * 1024 * 1024;

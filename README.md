@@ -33,18 +33,18 @@ stricter, never looser, and every override is recorded with who, why and until w
 Kollaudo doesn't build, test or deploy anything: there are plenty of great tools for that. It
 **collects their results and judges**, and the tool that promotes does what the verdict says.
 
-> **v0.3 is out.** It's young: the API can still change before 1.0, and feedback is very welcome in
+> **v0.4 is out.** It's young: the API can still change before 1.0, and feedback is very welcome in
 > [Issues](https://github.com/kollaudo/kollaudo/issues).
 
 ## Quick start
 
-The commands use the latest release, 0.3.0, so they keep working while `main` changes.
+The commands use the latest release, 0.4.0, so they keep working while `main` changes.
 
 1. Start Kollaudo, and create a project. It prints an ingest and a read token, kept in
    `tokens.txt`:
 
    ```bash
-   export KOLLAUDO_VERSION=0.3.0
+   export KOLLAUDO_VERSION=0.4.0
    curl -O https://raw.githubusercontent.com/kollaudo/kollaudo/v$KOLLAUDO_VERSION/deploy/docker-compose.yml
    docker compose up -d --wait
    docker compose exec -T kollaudo kollaudo-server project create demo | tee tokens.txt
@@ -123,7 +123,7 @@ If one CI system does all of this for you and its gates are enough, you probably
 
 ## What it does
 
-**Today** (released in [0.3.0](CHANGELOG.md))
+**Today** (released in [0.4.0](CHANGELOG.md))
 
 - **Receives test results** from any framework, as JUnit XML or [CTRF](https://ctrf.io) reports, for
   a version of a component in an environment, or at build level for unit tests.
@@ -141,6 +141,9 @@ If one CI system does all of this for you and its gates are enough, you probably
   every result recording which token sent it.
 - **Shows people what the gate sees**: for every component in every environment, the verdict of the
   version deployed there and why, next to its test runs.
+- **Gates a GitHub Actions job in one step**, and sends test results in another: the
+  [Kollaudo gate](https://github.com/marketplace/actions/kollaudo-gate) and `kollaudo/action/push`,
+  with recipes for Azure DevOps and Jenkins too.
 - **Runs anywhere** as one container next to PostgreSQL, with Docker Compose or the
   [Helm chart](charts/kollaudo/README.md), with a readiness check that includes the database,
   several projects and scoped tokens.
@@ -160,7 +163,6 @@ version deployed there, and the tests of each run.
 
 **Next** ([roadmap](#roadmap))
 
-- A GitHub Action to send test results, next to the gate ([v0.4](docs/milestones/v0.4.md)).
 - Bugs linked to failed tests, and UAT sign-offs and manual checks from the tools where testers work.
 - Build signals as context: coverage, static analysis.
 

@@ -83,7 +83,7 @@ send-results:
   dependencies:
     - test-staging
   script:
-    - npx --yes @kollaudo/cli@0.3.0 push junit.xml --tool pytest --component api --env staging --kind e2e --version "$CI_COMMIT_SHORT_SHA"
+    - npx --yes @kollaudo/cli@0.4.0 push junit.xml --tool pytest --component api --env staging --kind e2e --version "$CI_COMMIT_SHORT_SHA"
 
 promote:
   stage: promote
@@ -94,7 +94,7 @@ promote:
       when: always
   script:
     - export KOLLAUDO_TOKEN="$KOLLAUDO_READ_TOKEN"
-    - npx --yes @kollaudo/cli@0.3.0 verdict --component api --env staging --version "$CI_COMMIT_SHORT_SHA" --require e2e
+    - npx --yes @kollaudo/cli@0.4.0 verdict --component api --env staging --version "$CI_COMMIT_SHORT_SHA" --require e2e
     - ./deploy.sh production "$CI_COMMIT_SHORT_SHA"
 ```
 

@@ -66,7 +66,7 @@ jobs:
         with:
           node-version: 24
       - run: python -m pip install -r requirements.txt pytest
-      - run: npm install --global @kollaudo/cli@0.3.0
+      - run: npm install --global @kollaudo/cli@0.4.0
       - run: pytest --junitxml=junit.xml
         env:
           BASE_URL: https://staging.example.com
