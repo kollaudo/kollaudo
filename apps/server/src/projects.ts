@@ -60,8 +60,10 @@ export async function createProjectToken(
   }
   const limited =
     options.components?.length || options.environments?.length || options.build !== undefined;
-  if (limited && scope !== "ingest") {
-    throw new UserError("Only ingest tokens can be limited to components and environments.");
+  if (limited && scope !== "ingest" && scope !== "signoff") {
+    throw new UserError(
+      "Only ingest and signoff tokens can be limited to components and environments.",
+    );
   }
   if (options.build && !options.environments?.length) {
     throw new UserError("--build only matters with --environment: other tokens send build runs.");

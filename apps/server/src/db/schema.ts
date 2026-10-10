@@ -23,7 +23,13 @@ export const projects = pgTable("projects", {
   createdAt: createdAt(),
 });
 
-export const tokenScope = pgEnum("token_scope", ["ingest", "read", "policy", "override"]);
+export const tokenScope = pgEnum("token_scope", [
+  "ingest",
+  "read",
+  "policy",
+  "override",
+  "signoff",
+]);
 
 /** API tokens (ADR 0007). Only the SHA-256 hash of a token is stored. */
 export const apiTokens = pgTable("api_tokens", {
@@ -109,6 +115,10 @@ export const testRuns = pgTable(
       .references(() => versions.id, { onDelete: "cascade" }),
     environmentId: uuid().references(() => environments.id, { onDelete: "cascade" }),
     kind: text().notNull(),
+    /** A sign-off given by a person with a `signoff` token, not a report (ADR 0021). */
+    signoff: boolean().notNull().default(false),
+    /** What the person who signed off said. */
+    note: text(),
     /** Name of the tool that produced the report, such as `playwright`. */
     tool: text(),
     /** The token that sent the run (ADR 0017). */
