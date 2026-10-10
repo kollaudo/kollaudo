@@ -85,6 +85,26 @@ describe("kollaudo-server", () => {
       build: false,
     });
 
+    const signoff = await admin(
+      "token",
+      "create",
+      "limits",
+      "--scope",
+      "signoff",
+      "--name",
+      "product-owner",
+      "--component",
+      "checkout",
+      "--environment",
+      "staging",
+    );
+    expect(await findToken(testDb.db, tokenIn(signoff.out, "signoff"))).toMatchObject({
+      scope: "signoff",
+      name: "product-owner",
+      components: ["checkout"],
+      environments: ["staging"],
+    });
+
     const policy = await admin("token", "create", "limits", "--scope", "policy", "--name", "rules");
     expect((await findToken(testDb.db, tokenIn(policy.out, "policy")))?.scope).toBe("policy");
 
@@ -102,7 +122,7 @@ describe("kollaudo-server", () => {
       await admin("token", "create", "bad-limits", "--scope", "ingest", "--name", "ci staging"),
     ];
     expect(results.map((r) => r.code)).toEqual([1, 1, 1, 1]);
-    expect(results[0]?.err).toContain("Only ingest tokens can be limited");
+    expect(results[0]?.err).toContain("Only ingest and signoff tokens can be limited");
     expect(results[1]?.err).toContain("--build only matters with --environment");
     expect(results[2]?.err).toContain('Invalid limit "a b"');
     expect(results[3]?.err).toContain('Invalid token name "ci staging"');
@@ -113,7 +133,7 @@ describe("kollaudo-server", () => {
     const { code, err } = await admin("token", "create", "scopes", "--scope", "admin");
 
     expect(code).toBe(1);
-    expect(err).toContain("--scope must be ingest, read, policy, override.");
+    expect(err).toContain("--scope must be ingest, read, policy, override, signoff.");
   });
 
   it("reports unknown projects, tokens and commands", async () => {

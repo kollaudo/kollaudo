@@ -25,11 +25,12 @@ Token scopes:
   read      read everything, and ask for verdicts
   policy    send the rules of the verdict (kollaudo policy push)
   override  let a version through a gate, with a reason (kollaudo override)
+  signoff   give a sign-off on a version, as a person (kollaudo signoff)
 
 Options of token create:
   --name <name>          A name for people, such as ci-staging, shown with what the token sends
-  --component <name>     Limit an ingest token to components: repeat it, use * for any characters
-  --environment <name>   Limit an ingest token to environments, such as staging or pr-*
+  --component <name>     Limit an ingest or signoff token to components: repeat it, use * for any characters
+  --environment <name>   Limit an ingest or signoff token to environments, such as staging or pr-*
   --build                Let a token limited to environments also send build-level runs
 
 Environment:
@@ -122,7 +123,7 @@ export async function runAdmin(args: string[], db: Db, io: Io): Promise<number> 
   }
 }
 
-const SCOPES: TokenScope[] = ["ingest", "read", "policy", "override"];
+const SCOPES: TokenScope[] = ["ingest", "read", "policy", "override", "signoff"];
 
 function limits(t: { components: string[] | null; environments: string[] | null; build: boolean }) {
   const parts = [

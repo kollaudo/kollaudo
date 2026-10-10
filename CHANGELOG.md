@@ -6,6 +6,14 @@ the API.
 
 ## [Unreleased]
 
+### Server
+
+- `kollaudo-server token create --scope signoff` makes a token for people who sign off a version, as
+  `override` does for people who let one through. It can be limited to components and environments.
+  Nothing accepts it yet: sign-offs themselves come next ([ADR 0021](docs/adr/0021-signoff-as-a-test-run-with-its-own-scope.md)).
+  The release that adds them needs this migration, which can't be undone: it adds the value to the
+  `token_scope` enum.
+
 ## [0.4.0] - 2026-10-08
 
 The `kollaudo/action` gate and `push` actions run this release of the CLI. `kollaudo verdict --json`
