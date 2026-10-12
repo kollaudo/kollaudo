@@ -17,6 +17,7 @@ export {
   OverrideQuery,
 } from "./overrides.ts";
 export { AppliedPolicy, Policy, PolicyDocument, PolicyInput, Rule } from "./policy.ts";
+export { Signoff, SignoffInput, SignoffList, SignoffQuery } from "./signoffs.ts";
 export {
   TestResult,
   TestRun,

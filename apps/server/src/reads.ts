@@ -33,6 +33,8 @@ export const runColumns = {
   pullRequest: versions.pullRequest,
   digest: versions.digest,
   tool: testRuns.tool,
+  signoff: testRuns.signoff,
+  note: testRuns.note,
   sentByName: apiTokens.name,
   sentByHint: apiTokens.hint,
   startedAt: testRuns.startedAt,

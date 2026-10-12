@@ -41,6 +41,7 @@ components:
 | Field | Meaning | Default |
 |---|---|---|
 | `require` | kinds of test that must have a run that counts | none |
+| `signoff` | kinds of test that need a [sign-off](signoffs.md) from a person: a run of the kind counts only if it was sent with a `signoff` token. They need not be in `require` | none |
 | `deployed` | a run counts only if, when it started, the latest deployment of the component in the environment was the tested version | `false` |
 | `flaky` | `fail`: a flaky test fails its run. `allow`: flaky tests that passed in the end don't | `allow` |
 | `maxAge` | runs received longer ago don't count, such as `30m`, `12h`, `7d` | none |
@@ -95,7 +96,7 @@ Policy revision 4.
 ```
 
 `GET /v1/verdict` returns them in `policy`: `name` (`project` or `default`), `revision`, and the
-`require`, `deployed`, `flaky` and `maxAge` that applied, including the kinds the request added.
+`require`, `signoff`, `deployed`, `flaky` and `maxAge` that applied, including the kinds the request added.
 
 Verdicts are computed when they are asked: a new revision changes the verdict of versions tested
 before it too.

@@ -8,11 +8,16 @@ the API.
 
 ### Server
 
+- Sign-offs ([ADR 0021](docs/adr/0021-signoff-as-a-test-run-with-its-own-scope.md), [docs](docs/signoffs.md)).
+  `POST /v1/signoffs` records that a person checked a version, with an outcome and a note, and
+  `GET /v1/signoffs` lists them. A policy can require a kind to be signed off with `signoff: [uat]`:
+  the kind then counts only from a `signoff` token, so a report from CI doesn't replace it, and
+  the verdict is `unknown` until one comes. Update the server before the policy: older servers
+  reject the new field. `GET /v1/verdict` accepts `signoff` tokens, and its `policy` gives `signoff`.
+  Test runs give `signoff` and `note`.
 - `kollaudo-server token create --scope signoff` makes a token for people who sign off a version, as
   `override` does for people who let one through. It can be limited to components and environments.
-  Nothing accepts it yet: sign-offs themselves come next ([ADR 0021](docs/adr/0021-signoff-as-a-test-run-with-its-own-scope.md)).
-  The release that adds them needs this migration, which can't be undone: it adds the value to the
-  `token_scope` enum.
+  The migration that adds the scope can't be undone: it adds a value to the `token_scope` enum.
 
 ## [0.4.0] - 2026-10-08
 

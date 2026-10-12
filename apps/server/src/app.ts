@@ -19,6 +19,10 @@ import {
   PolicyInput,
   Project,
   Readyz,
+  Signoff,
+  SignoffInput,
+  SignoffList,
+  SignoffQuery,
   TestRunCreated,
   TestRunDetail,
   TestRunInput,
@@ -40,6 +44,7 @@ import { ingestTestRun } from "./ingest.ts";
 import { createOverride, listOverrides, revokeOverride } from "./overrides.ts";
 import { currentPolicy, parsePolicy, pushPolicy } from "./policies.ts";
 import { getHealth, getTestRun, listTestRuns } from "./reads.ts";
+import { createSignoff, listSignoffs } from "./signoffs.ts";
 import { getVerdict } from "./verdict.ts";
 import { listVerdicts, recordVerdict } from "./verdict-log.ts";
 
@@ -354,6 +359,41 @@ export function createApp({ db, webDir }: AppOptions) {
 
   app.openapi(
     createRoute({
+      method: "post",
+      path: "/v1/signoffs",
+      summary: "Sign off a version",
+      description:
+        "Records that a person checked a version in an environment, with an outcome and a note. " +
+        "It is stored and judged as a test run of its kind (ADR 0021), and the latest one counts. " +
+        "It needs a token of the signoff scope, so pipelines can't sign off their own versions.",
+      security: [{ token: [] }],
+      middleware: [requireScope(db, "signoff")] as const,
+      request: { body: { ...json(SignoffInput, "The sign-off"), required: true } },
+      responses: {
+        201: json(Signoff, "The sign-off was recorded"),
+        ...errors,
+        409: json(ApiError, "The version already exists with different metadata"),
+      },
+    }),
+    async (c) => c.json(await createSignoff(db, c.var.token, c.req.valid("json")), 201),
+  );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/v1/signoffs",
+      summary: "List sign-offs",
+      description: "Every sign-off of the project, newest first, earlier ones of a kind too.",
+      security: [{ token: [] }],
+      middleware: [requireScope(db, "read", "signoff")] as const,
+      request: { query: SignoffQuery },
+      responses: { 200: json(SignoffList, "The sign-offs"), ...errors },
+    }),
+    async (c) => c.json(await listSignoffs(db, c.var.projectId, c.req.valid("query")), 200),
+  );
+
+  app.openapi(
+    createRoute({
       method: "get",
       path: "/v1/health",
       summary: "Health of the project",
@@ -378,12 +418,13 @@ export function createApp({ db, webDir }: AppOptions) {
       summary: "Verdict of a version in an environment",
       description:
         "`pass`, `fail` or `unknown`, with the reasons for each kind of test. A version, component " +
-        "or environment Kollaudo has never seen is `unknown`: evidence is missing. Accepts `read` " +
-        "and `ingest` tokens, so a CI gate can use the token it sends results with. Every verdict " +
+        "or environment Kollaudo has never seen is `unknown`: evidence is missing. Accepts `read`, " +
+        "`ingest` and `signoff` tokens, so a CI gate can use the token it sends results with, and " +
+        "`kollaudo signoff` can print the verdict that follows. Every verdict " +
         "given is recorded, with the token that asked: see `GET /v1/verdicts`. With `record=false` " +
         "it is not, as for the web UI.",
       security: [{ token: [] }],
-      middleware: [requireScope(db, "read", "ingest")] as const,
+      middleware: [requireScope(db, "read", "ingest", "signoff")] as const,
       request: { query: VerdictQuery },
       responses: { 200: json(Verdict, "The verdict"), ...errors },
     }),

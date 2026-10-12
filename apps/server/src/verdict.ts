@@ -62,7 +62,8 @@ export async function getVerdict(db: Db, projectId: string, query: Query): Promi
 
   const rule = resolveRule(policy?.document, query.component, query.environment);
   const requested = query.require ? query.require.split(",") : [];
-  const require = [...new Set([...rule.require, ...requested])].sort();
+  // A kind that needs a sign-off is required, even if the policy doesn't list it in `require`.
+  const require = [...new Set([...rule.require, ...rule.signoff, ...requested])].sort();
 
   const evidence = judge(
     candidates(rows.map(toTestRun), rule, query.version, history),
@@ -85,6 +86,7 @@ export async function getVerdict(db: Db, projectId: string, query: Query): Promi
       name: rule.fromPolicy ? "project" : "default",
       revision: policy?.revision ?? null,
       require,
+      signoff: rule.signoff,
       deployed: rule.deployed,
       flaky: rule.flaky,
       maxAge: rule.maxAge,
@@ -106,7 +108,7 @@ export interface Candidate {
  */
 export function candidates(
   runs: TestRun[],
-  rule: Pick<ResolvedRule, "deployed" | "maxAge">,
+  rule: Pick<ResolvedRule, "deployed" | "maxAge"> & Partial<Pick<ResolvedRule, "signoff">>,
   version: string,
   history: { version: string; deployedAt: Date }[],
   now = Date.now(),
@@ -115,6 +117,16 @@ export function candidates(
   for (const run of runs) {
     const current = byKind.get(run.kind);
     if (current?.run) continue;
+    // A report doesn't replace a sign-off: only a person can give one (ADR 0021).
+    if (!run.signoff && rule.signoff?.includes(run.kind)) {
+      if (!current) {
+        byKind.set(run.kind, {
+          run: null,
+          excluded: `Waiting for a sign-off: the latest run was sent as a report${run.sentBy ? ` by ${run.sentBy}` : ""}, and a ${run.kind} run counts only from a signoff token.`,
+        });
+      }
+      continue;
+    }
     const excluded = whyExcluded(run, rule, version, history, now);
     if (!excluded) byKind.set(run.kind, { run });
     // Keep the reason of the latest run, the one people expect to count.
@@ -154,7 +166,7 @@ function whyExcluded(
 export function judge(
   byKind: Map<string, Candidate>,
   require: string[],
-  rule: Pick<ResolvedRule, "flaky">,
+  rule: Pick<ResolvedRule, "flaky"> & Partial<Pick<ResolvedRule, "signoff">>,
 ): Pick<Verdict, "outcome" | "message" | "reasons"> {
   const kinds = [...new Set([...byKind.keys(), ...require])].sort();
   const reasons = kinds.map((kind) => reason(kind, byKind.get(kind), rule));
@@ -183,14 +195,27 @@ export function judge(
 function reason(
   kind: string,
   candidate: Candidate | undefined,
-  rule: Pick<ResolvedRule, "flaky">,
+  rule: Pick<ResolvedRule, "flaky"> & Partial<Pick<ResolvedRule, "signoff">>,
 ): VerdictReason {
   const run = candidate?.run;
   if (!run) {
-    const message = candidate?.excluded ?? "Required, but no run.";
+    const message =
+      candidate?.excluded ??
+      (rule.signoff?.includes(kind) ? "Waiting for a sign-off." : "Required, but no run.");
     return { kind, outcome: "unknown", message, run: null };
   }
   const { tests, failed, flaky } = run.summary;
+  if (run.signoff && tests > 0) {
+    const by = run.sentBy ?? "a deleted token";
+    const said = run.note ? `: ${run.note}` : ".";
+    const verb = failed > 0 ? "Failed" : "Signed off";
+    return {
+      kind,
+      outcome: failed > 0 ? "fail" : "pass",
+      message: `${verb} by ${by} at ${run.createdAt}${said}`,
+      run,
+    };
+  }
   if (tests === 0) {
     return { kind, outcome: "unknown", message: "The latest run has no tests.", run };
   }

@@ -77,6 +77,10 @@ export const TestRun = TestRunCreated.extend({
   pullRequest: z.string().nullable(),
   digest: z.string().nullable(),
   tool: z.string().nullable().meta({ example: "playwright" }),
+  signoff: z.boolean().meta({
+    description: "Whether a person gave it with a signoff token, instead of a pipeline sending it.",
+  }),
+  note: z.string().nullable().meta({ description: "What the person who signed off said." }),
   sentBy: z
     .string()
     .nullable()

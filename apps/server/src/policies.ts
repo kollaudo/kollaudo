@@ -88,6 +88,8 @@ export interface ResolvedRule {
   /** Whether a rule of the policy matched, or the default rules apply. */
   fromPolicy: boolean;
   require: string[];
+  /** Kinds that count only from a run sent with a `signoff` token (ADR 0021). */
+  signoff: string[];
   deployed: boolean;
   flaky: "allow" | "fail";
   maxAge: string | null;
@@ -116,6 +118,7 @@ export function resolveRule(
   return {
     fromPolicy: entries.length > 0,
     require: [...new Set(rule.require ?? [])].sort(),
+    signoff: [...new Set(rule.signoff ?? [])].sort(),
     deployed: rule.deployed ?? false,
     flaky: rule.flaky ?? "allow",
     maxAge: rule.maxAge ?? null,

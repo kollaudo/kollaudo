@@ -232,6 +232,7 @@ describe("resolveRule", () => {
     expect(resolveRule(undefined, "api", "staging")).toEqual({
       fromPolicy: false,
       require: [],
+      signoff: [],
       deployed: false,
       flaky: "allow",
       maxAge: null,

@@ -17,6 +17,14 @@ export const Rule = z
       .array(z.string().regex(new RegExp(`^${KIND_PATTERN}$`), "Use kinds such as e2e or smoke."))
       .optional()
       .meta({ description: "Kinds of test that must have a run, such as e2e and smoke." }),
+    signoff: z
+      .array(z.string().regex(new RegExp(`^${KIND_PATTERN}$`), "Use kinds such as uat or manual."))
+      .optional()
+      .meta({
+        description:
+          "Kinds that need a sign-off from a person, such as uat. A run of one of these kinds " +
+          "counts only if it was sent with a signoff token (ADR 0021). They needn't be in require.",
+      }),
     deployed: z
       .boolean()
       .optional()
@@ -95,6 +103,9 @@ export const AppliedPolicy = z
     require: z.array(z.string()).meta({
       description: "Kinds that must have a run: from the policy, and from the request.",
     }),
+    signoff: z
+      .array(z.string())
+      .meta({ description: "Kinds that count only from a sign-off (ADR 0021)." }),
     deployed: z.boolean(),
     flaky: z.enum(["allow", "fail"]),
     maxAge: z.string().nullable(),
