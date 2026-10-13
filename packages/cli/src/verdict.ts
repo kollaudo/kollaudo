@@ -100,7 +100,7 @@ export async function verdict(args: string[], io: Io): Promise<number> {
  *   pass  e2e    1 passed  https://kollaudo.example.com/test-runs/…
  *   fail  smoke  1 failed, 1 passed  https://kollaudo.example.com/test-runs/…
  */
-function report(result: Verdict, url: string) {
+export function report(result: Verdict, url: string) {
   const { component, version, environment, outcome, message, reasons } = result;
   // An override lets the version through: the gate's log must show it (ADR 0018).
   const label = result.override ? `${outcome.toUpperCase()} (override)` : outcome.toUpperCase();

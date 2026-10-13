@@ -19,6 +19,13 @@ the API.
   `override` does for people who let one through. It can be limited to components and environments.
   The migration that adds the scope can't be undone: it adds a value to the `token_scope` enum.
 
+### CLI
+
+- `kollaudo signoff` records that you checked a version, such as a UAT or a manual check, with an
+  outcome and a note, and prints the verdict that follows. It needs a token of the `signoff` scope and
+  a 0.5 server ([docs](docs/signoffs.md)). It exits with 0 once the sign-off is recorded, whatever
+  the verdict, and doesn't add that verdict to the log.
+
 ## [0.4.0] - 2026-10-08
 
 The `kollaudo/action` gate and `push` actions run this release of the CLI. `kollaudo verdict --json`

@@ -4,6 +4,7 @@ import type { Io } from "./io.ts";
 import { override } from "./override.ts";
 import { policy } from "./policy.ts";
 import { push } from "./push.ts";
+import { signoff } from "./signoff.ts";
 import { verdict } from "./verdict.ts";
 
 /** Same as in package.json: a test checks it, and the release workflow checks the tag. */
@@ -19,6 +20,7 @@ Commands:
   verdict         Ask whether a version is healthy in an environment
   policy          Send, check or show the rules your verdicts apply
   override        Let a version through a gate, with a reason, for a while
+  signoff         Sign off a version you checked, such as a UAT or a manual check
 
 Options:
   -h, --help      Show this help
@@ -39,6 +41,7 @@ export async function run(args: string[], io: Io): Promise<number> {
   if (args[0] === "verdict") return verdict(args.slice(1), io);
   if (args[0] === "policy") return policy(args.slice(1), io);
   if (args[0] === "override") return override(args.slice(1), io);
+  if (args[0] === "signoff") return signoff(args.slice(1), io);
 
   let parsed: ReturnType<typeof parse>;
   try {

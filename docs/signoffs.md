@@ -42,7 +42,30 @@ Older servers reject a policy file with `signoff`: update the server before the 
 
 ## Give one
 
-`POST /v1/signoffs`, with a `signoff` token:
+```bash
+export KOLLAUDO_URL=https://kollaudo.example.com
+export KOLLAUDO_TOKEN=<signoff token>
+kollaudo signoff --component checkout --env staging --version 3f2a9c1 \
+  --kind uat --outcome pass --note "Checked the new payment page with the two test cards"
+```
+
+It records the sign-off and prints the verdict that follows:
+
+```
+Signed off checkout 3f2a9c1 in staging: uat pass, by product-owner: Checked the new payment page with the two test cards
+
+PASS  checkout 3f2a9c1 in staging: e2e, smoke and uat passed.
+...
+```
+
+- `--env` is the environment where you checked the version, and `--outcome` is `pass` or `fail`.
+- The command exits with 0 once the sign-off is recorded, whatever the verdict: it records what you
+  saw, it isn't a gate. To gate on the verdict, use [`kollaudo verdict`](sending-results.md#3-gate-on-the-verdict).
+- That verdict is not added to the [log of verdicts](sending-results.md#3-gate-on-the-verdict), since nothing is waiting
+  for it.
+- `--json` prints the sign-off and the verdict as JSON.
+
+Without the CLI, `POST /v1/signoffs` does the same:
 
 ```bash
 curl -X POST "$KOLLAUDO_URL/v1/signoffs" \
@@ -57,5 +80,3 @@ to filter. A `signoff` or `read` token can read the list. The verdict names the 
 the note in the reason of the kind, and `GET /v1/test-runs` shows a sign-off with `signoff: true`.
 
 A `signoff` token can also ask `GET /v1/verdict`, to see what its sign-off led to.
-
-A `kollaudo signoff` command, which prints that verdict, comes next.
