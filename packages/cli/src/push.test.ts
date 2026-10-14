@@ -232,6 +232,29 @@ describe("kollaudo push", () => {
       );
     });
 
+    it("refuses a report without the fields Kollaudo needs", async () => {
+      const refusal = async (results: object) => {
+        const result = await runWith(run, [...args, "--dry-run"], {
+          files: { "report.json": JSON.stringify({ results }) },
+        });
+        expect(result).toMatchObject({ code: 1, out: "" });
+        return result.err;
+      };
+
+      expect(await refusal({ ...checked.results, tool: {} })).toBe(
+        "Error: report.json: results.tool.name is missing, not a non-empty string.\n",
+      );
+      expect(await refusal({ ...checked.results, tool: { name: "" } })).toBe(
+        'Error: report.json: results.tool.name is "", not a non-empty string.\n',
+      );
+      expect(await refusal({ ...checked.results, summary: {} })).toBe(
+        "Error: report.json: results.summary.tests is missing, not a number of 0 or more.\n",
+      );
+      expect(await refusal({ ...checked.results, summary: { tests: -1 } })).toBe(
+        "Error: report.json: results.summary.tests is -1, not a number of 0 or more.\n",
+      );
+    });
+
     it("refuses a test without the fields Kollaudo needs", async () => {
       const refusal = async (test: object) => {
         const result = await runWith(run, [...args, "--dry-run"], {

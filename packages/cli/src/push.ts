@@ -143,9 +143,18 @@ const STATUSES = ["passed", "failed", "skipped", "pending", "other"] as const;
 function count(report: unknown, file: string | undefined): TestRunSummary {
   const where = file ? `${file}: ` : "";
   // mergeCtrf checks this for several CTRF files, but one file comes as it was written.
-  const tests = (report as CtrfReport | undefined)?.results?.tests;
+  const results = (report as CtrfReport | undefined)?.results;
+  const tests = results?.tests;
   if (!Array.isArray(tests)) {
     throw new ReportError(`${file ?? "The report"} isn't a CTRF report: it has no results.tests.`);
+  }
+  const toolName = results?.tool?.name;
+  if (typeof toolName !== "string" || toolName === "") {
+    throw invalid(`${where}results.tool.name`, toolName, "a non-empty string");
+  }
+  const totalTests = results?.summary?.tests;
+  if (typeof totalTests !== "number" || totalTests < 0) {
+    throw invalid(`${where}results.summary.tests`, totalTests, "a number of 0 or more");
   }
   const counts = {
     tests: tests.length,
