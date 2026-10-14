@@ -135,9 +135,14 @@ export async function push(args: string[], io: Io): Promise<number> {
 
 const STATUSES = ["passed", "failed", "skipped", "pending", "other"] as const;
 
-/** Counts the tests of a report the way Kollaudo does when it stores a run, for a dry run. */
+/**
+ * Counts the tests of a report for a dry run, as `summarize` in apps/server/src/ingest.ts does when
+ * it stores a run: keep the two in step. The published CLI has neither @kollaudo/schema nor zod, so
+ * the fields `CtrfTest` requires (packages/schema/src/ctrf.ts) are checked here by hand.
+ */
 function count(report: unknown, file: string | undefined): TestRunSummary {
   const where = file ? `${file}: ` : "";
+  // mergeCtrf checks this for several CTRF files, but one file comes as it was written.
   const tests = (report as CtrfReport | undefined)?.results?.tests;
   if (!Array.isArray(tests)) {
     throw new ReportError(`${file ?? "The report"} isn't a CTRF report: it has no results.tests.`);
@@ -152,18 +157,30 @@ function count(report: unknown, file: string | undefined): TestRunSummary {
     flaky: 0,
   };
   tests.forEach((test, index) => {
-    const status = test?.status;
+    const at = `${where}results.tests.${index}`;
+    if (typeof test?.name !== "string" || test.name === "") {
+      throw invalid(`${at}.name`, test?.name, "a non-empty string");
+    }
+    const status = test.status;
     // Only the five statuses are counted, so a status such as "__proto__" never indexes `counts`.
     if (!STATUSES.includes(status)) {
-      throw new ReportError(
-        `${where}results.tests.${index}.status is ${JSON.stringify(status)}, ` +
-          "not passed, failed, skipped, pending or other.",
-      );
+      throw invalid(`${at}.status`, status, "passed, failed, skipped, pending or other");
+    }
+    if (typeof test.duration !== "number" || test.duration < 0) {
+      throw invalid(`${at}.duration`, test.duration, "a number of 0 or more");
+    }
+    if (test.flaky !== undefined && typeof test.flaky !== "boolean") {
+      throw invalid(`${at}.flaky`, test.flaky, "true or false");
     }
     counts[status]++;
     if (test.flaky) counts.flaky++;
   });
   return counts;
+}
+
+function invalid(path: string, value: unknown, expected: string) {
+  const found = value === undefined ? "missing" : JSON.stringify(value);
+  return new ReportError(`${path} is ${found}, not ${expected}.`);
 }
 
 function summary(run: Omit<TestRunCreated, "id">, { format, files }: Loaded, verb = "Sent") {

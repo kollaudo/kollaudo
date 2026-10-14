@@ -232,6 +232,33 @@ describe("kollaudo push", () => {
       );
     });
 
+    it("refuses a test without the fields Kollaudo needs", async () => {
+      const refusal = async (test: object) => {
+        const result = await runWith(run, [...args, "--dry-run"], {
+          files: {
+            "report.json": JSON.stringify({
+              results: { ...checked.results, tests: [checked.results.tests[0], test] },
+            }),
+          },
+        });
+        expect(result).toMatchObject({ code: 1, out: "" });
+        return result.err;
+      };
+
+      expect(await refusal({ name: "", status: "passed", duration: 1 })).toBe(
+        'Error: report.json: results.tests.1.name is "", not a non-empty string.\n',
+      );
+      expect(await refusal({ name: "b", status: "passed", duration: -1 })).toBe(
+        "Error: report.json: results.tests.1.duration is -1, not a number of 0 or more.\n",
+      );
+      expect(await refusal({ name: "b", status: "passed" })).toBe(
+        "Error: report.json: results.tests.1.duration is missing, not a number of 0 or more.\n",
+      );
+      expect(await refusal({ name: "b", status: "passed", duration: 1, flaky: "yes" })).toBe(
+        'Error: report.json: results.tests.1.flaky is "yes", not true or false.\n',
+      );
+    });
+
     it("refuses a status that names a property of every object", async () => {
       const proto = await runWith(run, [...args, "--dry-run"], {
         files: {

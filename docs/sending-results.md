@@ -71,7 +71,10 @@ kollaudo push ctrf-report.json \
   judges each kind by its latest run.
 - **`--dry-run`**: reads the reports and prints what `push` would send, without sending anything.
   It needs no `KOLLAUDO_URL` or `KOLLAUDO_TOKEN`, so you can check that a new pipeline finds and
-  reads its reports before it has a token.
+  reads its reports before it has a token. It checks each test as Kollaudo needs it: a name, one of
+  the five statuses, a duration of 0 or more and, if set, a `flaky` of true or false. It doesn't
+  check the token, its scope or the policy, so a dry run that passes doesn't promise that Kollaudo
+  accepts the run.
 
 Send the report **even when tests fail**. In most CI systems a failing test step stops the job,
 so run `push` in a step that runs anyway (`if: ${{ !cancelled() }}` in GitHub Actions, `when: always`
