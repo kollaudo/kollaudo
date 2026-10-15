@@ -153,8 +153,8 @@ function count(report: unknown, file: string | undefined): TestRunSummary {
     throw invalid(`${where}results.tool.name`, toolName, "a non-empty string");
   }
   const totalTests = results?.summary?.tests;
-  if (typeof totalTests !== "number" || totalTests < 0) {
-    throw invalid(`${where}results.summary.tests`, totalTests, "a number of 0 or more");
+  if (typeof totalTests !== "number" || !Number.isInteger(totalTests) || totalTests < 0) {
+    throw invalid(`${where}results.summary.tests`, totalTests, "a whole number of 0 or more");
   }
   const counts = {
     tests: tests.length,

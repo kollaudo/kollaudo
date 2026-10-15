@@ -248,10 +248,13 @@ describe("kollaudo push", () => {
         'Error: report.json: results.tool.name is "", not a non-empty string.\n',
       );
       expect(await refusal({ ...checked.results, summary: {} })).toBe(
-        "Error: report.json: results.summary.tests is missing, not a number of 0 or more.\n",
+        "Error: report.json: results.summary.tests is missing, not a whole number of 0 or more.\n",
       );
       expect(await refusal({ ...checked.results, summary: { tests: -1 } })).toBe(
-        "Error: report.json: results.summary.tests is -1, not a number of 0 or more.\n",
+        "Error: report.json: results.summary.tests is -1, not a whole number of 0 or more.\n",
+      );
+      expect(await refusal({ ...checked.results, summary: { tests: 1.5 } })).toBe(
+        "Error: report.json: results.summary.tests is 1.5, not a whole number of 0 or more.\n",
       );
     });
 
