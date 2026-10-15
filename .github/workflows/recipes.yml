@@ -5,6 +5,7 @@ name: Recipes
 on:
   pull_request:
     paths:
+      - docs/recipes/argo-rollouts/**
       - docs/recipes/argocd/**
       - docs/recipes/kargo/**
       - e2e/kind/**
@@ -57,4 +58,26 @@ jobs:
         run: |
           kubectl -n kollaudo-demo get freight,stages,promotions -o wide
           kubectl -n kargo logs deploy/kargo-controller --tail=100
+          kubectl -n kollaudo logs deploy/kollaudo --tail=100
+
+  argo-rollouts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: azure/setup-helm@v5
+      - uses: helm/kind-action@v1
+        with:
+          cluster_name: kollaudo
+      - name: Build the image and load it into kind
+        run: |
+          docker build -t kollaudo:ci .
+          kind load docker-image kollaudo:ci --name kollaudo
+      - run: e2e/kind/install-kollaudo.sh kollaudo:ci
+      - run: e2e/kind/recipe-argo-rollouts.sh
+      - name: Show what went wrong
+        if: failure()
+        run: |
+          kubectl -n kollaudo-demo get rollouts,analysisruns,replicasets -o wide
+          kubectl -n kollaudo-demo get analysisruns -o yaml | tail -120
+          kubectl -n argo-rollouts logs deploy/argo-rollouts --tail=100
           kubectl -n kollaudo logs deploy/kollaudo --tail=100

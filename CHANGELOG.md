@@ -19,6 +19,13 @@ the API.
   `override` does for people who let one through. It can be limited to components and environments.
   The migration that adds the scope can't be undone: it adds a value to the `token_scope` enum.
 
+### Recipes
+
+- [Argo Rollouts](docs/recipes/argo-rollouts.md): the first step of a canary asks for the verdict, so
+  that a new version gets no pods before it is `pass`. It waits while evidence is missing, and the
+  rollout is aborted on `fail` or when Kollaudo doesn't answer. Tested with Argo Rollouts in a kind
+  cluster.
+
 ### CLI
 
 - `kollaudo signoff` records that you checked a version, such as a UAT or a manual check, with an

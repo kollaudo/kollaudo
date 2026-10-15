@@ -1,0 +1,56 @@
+# An Argo Rollouts analysis that asks Kollaudo for the verdict of a version, and lets the rollout go
+# on only when it is pass. Make it the first step of a canary, or the pre-promotion analysis of a
+# blue-green Rollout, so that the new version gets no traffic before Kollaudo says yes. See
+# docs/recipes/argo-rollouts.md.
+#
+#   kubectl apply -f kollaudo-verdict.yaml
+#
+# - pass: the analysis succeeds at once, and the rollout goes on.
+# - fail: the analysis fails at once, and the rollout is aborted.
+# - unknown: evidence is missing, so the analysis asks again every minute. After an hour without pass
+#   or fail, it is inconclusive: the rollout stays paused, without traffic to the new version.
+# - no answer: Kollaudo out of reach, a 5xx, or a 4xx such as a wrong token, is an error. After five
+#   errors in a row, the analysis errors and the rollout is aborted. A rollout never goes on without a
+#   verdict (ADR 0019).
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterAnalysisTemplate
+metadata:
+  name: kollaudo-verdict
+spec:
+  args:
+    # Component and version, as your CI sends them with "kollaudo push". They go into the URL as they
+    # are: keep them to letters, digits, ".", "-" and "_".
+    - name: component
+    - name: version
+    # The environment the version was tested in, such as staging.
+    - name: environment
+    # The URL of Kollaudo, as the Argo Rollouts controller reaches it.
+    - name: kollaudo-url
+      value: http://kollaudo.kollaudo.svc:8080
+    # The "token" key of the "kollaudo" Secret in the namespace of the Rollout: a read token of your
+    # Kollaudo project.
+    - name: token
+      valueFrom:
+        secretKeyRef:
+          name: kollaudo
+          key: token
+  metrics:
+    - name: verdict
+      provider:
+        web:
+          url: "{{args.kollaudo-url}}/v1/verdict?component={{args.component}}&environment={{args.environment}}&version={{args.version}}"
+          headers:
+            - key: Authorization
+              value: "Bearer {{args.token}}"
+          jsonPath: "{$.outcome}"
+          timeoutSeconds: 30
+      successCondition: result == "pass"
+      failureCondition: result == "fail"
+      # unknown is neither: the analysis asks again every minute, for an hour at most.
+      interval: 1m
+      count: 60
+      inconclusiveLimit: 60
+      # Stop at the first pass, instead of asking until count is reached.
+      consecutiveSuccessLimit: 1
+      # Requests that fail in a row, such as while Kollaudo restarts, before the rollout is aborted.
+      consecutiveErrorLimit: 4

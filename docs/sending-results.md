@@ -236,5 +236,6 @@ Complete examples for one framework and one CI. The table shows which recipes ar
 | [Jenkins](recipes/jenkins.md): a declarative `Jenkinsfile`, test against staging, gate a deployment to production | tried on a local Jenkins, not tested in CI |
 | [Argo CD notifications](recipes/argocd.md): deployments after each sync | tested in kind by [`e2e/kind/recipe-argocd.sh`](../e2e/kind/recipe-argocd.sh) |
 | [Kargo](recipes/kargo.md): a promotion goes on only on `pass` | tested in kind by [`e2e/kind/recipe-kargo.sh`](../e2e/kind/recipe-kargo.sh) |
+| [Argo Rollouts](recipes/argo-rollouts.md): a canary goes on only on `pass` | tested in kind by [`e2e/kind/recipe-argo-rollouts.sh`](../e2e/kind/recipe-argo-rollouts.sh) |
 
 Using another framework or CI? A recipe is one Markdown file: contributions are welcome.

@@ -98,7 +98,8 @@ helm install kollaudo oci://ghcr.io/kollaudo/charts/kollaudo -n kollaudo \
   GitHub Actions, the [Kollaudo gate](https://github.com/marketplace/actions/kollaudo-gate) action is that step: `uses: kollaudo/action@v0`.
 - **With Kargo**, the first step of a promotion asks for the verdict, so that Freight only reaches
   the next stage when it is `pass` ([Kargo recipe](docs/recipes/kargo.md)). With Argo
-  Rollouts, an analysis can call `GET /v1/verdict`.
+  Rollouts, the first step of a canary does the same
+  ([Argo Rollouts recipe](docs/recipes/argo-rollouts.md)).
 - **Kollaudo doesn't deploy**, so if it's down, deployments still work. A gate that asks for a
   verdict gets no answer (`kollaudo verdict` exits with `3`), and decides whether to stop or go
   ahead ([ADR 0002](docs/adr/0002-judge-never-orchestrate.md)). The recipes stop
@@ -276,10 +277,11 @@ Ready-made **recipes** are complete examples for popular tools.
 | [GitLab CI](docs/recipes/gitlab-ci.md) | available |
 | [Argo CD notifications](docs/recipes/argocd.md) | available |
 | [Kargo promotion gate](docs/recipes/kargo.md) | available |
+| [Argo Rollouts analysis](docs/recipes/argo-rollouts.md) | available |
 | [Azure DevOps](docs/recipes/azure-devops.md) | available |
 | [Jenkins](docs/recipes/jenkins.md) | available |
 | Backstage plugin | planned |
-| Flux, Argo Rollouts, Flagger, Spinnaker… | contributions welcome |
+| Flux, Flagger, Spinnaker… | contributions welcome |
 
 ## Roadmap
 

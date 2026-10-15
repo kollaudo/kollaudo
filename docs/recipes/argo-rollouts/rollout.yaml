@@ -1,0 +1,48 @@
+# A canary Rollout gated by Kollaudo: a new version gets traffic in production only when Kollaudo's
+# verdict for it in staging is pass. See docs/recipes/argo-rollouts.md.
+#
+#   kubectl -n <namespace> apply -f rollout.yaml
+#
+# Replace the component, the image and the steps after the gate with your own. Change the "version"
+# label together with the image tag: the gate asks about the version in the label.
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: api
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+        # The version, as your CI sends it with "kollaudo push --version".
+        version: "1.4.0"
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/example/api:1.4.0
+  strategy:
+    canary:
+      steps:
+        # First, the gate: the canary gets no pods, and no traffic, until the verdict is pass.
+        - analysis:
+            templates:
+              - templateName: kollaudo-verdict
+                clusterScope: true
+            args:
+              - name: component
+                value: api
+              - name: environment
+                value: staging
+              - name: version
+                valueFrom:
+                  fieldRef:
+                    fieldPath: spec.template.metadata.labels.version
+        # Then your canary steps.
+        - setWeight: 25
+        - pause: { duration: 10m }
+        - setWeight: 50
+        - pause: { duration: 10m }
