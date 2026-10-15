@@ -32,14 +32,11 @@ the API.
   outcome and a note, and prints the verdict that follows. It needs a token of the `signoff` scope and
   a 0.5 server ([docs](docs/signoffs.md)). It exits with 0 once the sign-off is recorded, whatever
   the verdict, and doesn't add that verdict to the log.
-- `kollaudo push --dry-run` refuses CTRF reports without a non-empty `results.tool.name` or a
-  non-negative `results.summary.tests`, before a real push can be refused by the server.
-
-### CLI
-
 - `kollaudo push --dry-run` reads the reports and prints the summary it would send, with the number
   of tests, failures and flaky tests, without calling Kollaudo. It needs no `KOLLAUDO_URL` or
   `KOLLAUDO_TOKEN`, so a pipeline can be checked before it has a token.
+- `kollaudo push --dry-run` refuses CTRF reports without a non-empty `results.tool.name` or a
+  non-negative `results.summary.tests`, before a real push can be refused by the server.
 
 ## [0.4.0] - 2026-10-08
 

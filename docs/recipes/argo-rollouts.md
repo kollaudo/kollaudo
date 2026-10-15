@@ -105,7 +105,8 @@ The first version of a Rollout is deployed without steps, so without the gate: A
 the steps only when the Rollout changes.
 
 With a blue-green Rollout, use the same template as the pre-promotion analysis: the new version runs
-as the preview, and gets the traffic only on `pass`.
+as the preview, and gets the traffic only on `pass`. The CI test of this recipe runs a canary: this
+variant isn't tested in CI.
 
 ```yaml
 strategy:
