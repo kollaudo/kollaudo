@@ -7,3 +7,5 @@ e2e/ctrf/
 e2e/junit/
 e2e/test-results/
 e2e/playwright-report/
+__pycache__/
+.pytest_cache/
