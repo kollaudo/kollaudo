@@ -230,7 +230,7 @@ Complete examples for one framework and one CI. The table shows which recipes ar
 |---|---|
 | [Kollaudo gate for GitHub Actions](https://github.com/marketplace/actions/kollaudo-gate): the gate in one step | tested against Kollaudo in [kollaudo/action](https://github.com/kollaudo/action) |
 | [Playwright with GitHub Actions](recipes/playwright.md) | tested by [`e2e/`](../e2e/) |
-| [pytest with GitHub Actions](recipes/pytest.md): JUnit XML, unit results at build level, a staging gate | not tested in CI yet |
+| [pytest with GitHub Actions](recipes/pytest.md): JUnit XML, unit results at build level, a staging gate | tested by [`e2e/run.sh`](../e2e/run.sh) |
 | [GitLab CI](recipes/gitlab-ci.md): test against staging, gate a deployment to production | not tested in CI yet |
 | [Azure DevOps](recipes/azure-devops.md): unit tests, a deployment to staging, e2e tests there, a gate before production | tried on a real pipeline, not tested in CI |
 | [Jenkins](recipes/jenkins.md): a declarative `Jenkinsfile`, test against staging, gate a deployment to production | tried on a local Jenkins, not tested in CI |

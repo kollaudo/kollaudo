@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # End-to-end test of Kollaudo, as a team would use it (docs/milestones/v0.1.md, "Done when").
 #
-# Needs Kollaudo running from the sources, and the CLI built:
+# Needs Kollaudo running from the sources, the CLI built, and Python 3 for the pytest recipe:
 #   docker compose --profile app up -d --build --wait
 #   pnpm build
 #   e2e/run.sh
@@ -82,6 +82,18 @@ expect_exit 0 kollaudo push "../packages/cli/src/testdata/junit/*.xml" --compone
 expect_output "Sent 26 tests (unit) from 6 JUnit files for junit-tools 1.0.0 on ci: 13 passed, 8 failed, 5 skipped, 2 flaky"
 expect_exit 1 kollaudo verdict --component junit-tools --env ci --version 1.0.0
 expect_output "unit failed."
+
+echo "## 2c. The pytest recipe: a JUnit report from pytest, sent at environment level"
+python3 -m venv "$OUT/venv"
+"$OUT/venv/bin/pip" install --quiet -r pytest/requirements.txt
+# A workspace kept between runs must not send the report of an earlier one.
+rm -f junit/pytest.xml
+expect_exit 1 "$OUT/venv/bin/pytest" pytest --junitxml=junit/pytest.xml
+expect_exit 0 kollaudo push junit/pytest.xml --tool pytest --component api --version "$VERSION" \
+  --env ci --kind e2e
+expect_output "Sent 2 tests (e2e) from 1 JUnit file for api $VERSION on ci: 1 passed, 1 failed"
+expect_exit 1 kollaudo verdict --component api --env ci --version "$VERSION"
+expect_output "e2e failed."
 
 echo "## 3. The verdict gates on the results"
 expect_exit 0 kollaudo verdict --component kollaudo --env ci --version "$VERSION"
