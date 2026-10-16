@@ -46,6 +46,8 @@ the API.
   `KOLLAUDO_TOKEN`, so a pipeline can be checked before it has a token.
 - `kollaudo push --dry-run` refuses CTRF reports without a non-empty `results.tool.name` or a
   non-negative `results.summary.tests`, before a real push can be refused by the server.
+- `kollaudo verdict list --json` prints the API's answer as JSON, `next` included, for scripts that
+  page through the log. The exit codes are the same as without it.
 
 ## [0.4.0] - 2026-10-08
 

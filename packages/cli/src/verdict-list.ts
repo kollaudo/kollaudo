@@ -15,6 +15,7 @@ Options:
   --version <version>    Only this version
   --outcome <outcome>    Only pass, fail or unknown
   --limit <n>            How many, at most 200 (default: 50)
+  --json                 Print the API's answer as JSON instead of the one-line format
   -h, --help             Show this help
 
 Environment:
@@ -67,6 +68,11 @@ export async function verdictList(args: string[], io: Io): Promise<number> {
   const { response, text } = answer;
   if (!response.ok) return fail(describeError(response, text));
 
+  if (values.json) {
+    io.out(`${text}\n`);
+    return 0;
+  }
+
   const { items } = JSON.parse(text) as GivenVerdictList;
   if (items.length === 0) io.out("No verdicts.\n");
   for (const v of items) io.out(`${line(v)}\n`);
@@ -97,6 +103,7 @@ function parse(args: string[]) {
       version: { type: "string" },
       outcome: { type: "string" },
       limit: { type: "string" },
+      json: { type: "boolean" },
       help: { type: "boolean", short: "h" },
     },
   });

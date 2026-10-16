@@ -86,6 +86,36 @@ describe("kollaudo verdict list", () => {
     });
   });
 
+  it("prints the API's answer as JSON when asked", async () => {
+    const body = { items: [given], next: "0d0d0d0d-8a1b-4c3d-9e0f-123456789abc" };
+    const { requests, fetch } = server(200, body);
+    const result = await runWith(run, ["verdict", "list", "--component", "api", "--json"], {
+      env,
+      fetch,
+    });
+    expect(result).toEqual({ code: 0, out: `${JSON.stringify(body)}\n`, err: "" });
+    expect(requests).toEqual(["https://kollaudo.example.com/v1/verdicts?component=api"]);
+  });
+
+  it("prints an empty answer as JSON too, not as prose", async () => {
+    const body = { items: [], next: null };
+    const { fetch } = server(200, body);
+    expect(await runWith(run, ["verdict", "list", "--json"], { env, fetch })).toEqual({
+      code: 0,
+      out: `${JSON.stringify(body)}\n`,
+      err: "",
+    });
+  });
+
+  it("keeps the exit code when --json can't have the list", async () => {
+    const { fetch } = server(403, {
+      error: { code: "forbidden", message: "This endpoint needs a token with the read scope." },
+    });
+    const result = await runWith(run, ["verdict", "list", "--json"], { env, fetch });
+    expect(result.code).toBe(1);
+    expect(result.err).toContain("read scope");
+  });
+
   it("exits with 1 when the list can't be had", async () => {
     const { fetch } = server(403, {
       error: { code: "forbidden", message: "This endpoint needs a token with the read scope." },
