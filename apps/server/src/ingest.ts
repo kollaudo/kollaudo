@@ -66,7 +66,8 @@ export async function ingestTestRun(
   });
 }
 
-function summarize(tests: CtrfTest[]): TestRunSummary {
+/** summarize returns the per-status counts of a run's tests, the summary the server stores. */
+export function summarize(tests: CtrfTest[]): TestRunSummary {
   const counts = {
     tests: tests.length,
     passed: 0,
