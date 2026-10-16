@@ -54,6 +54,9 @@ jobs:
       - name: Build the image and start it with PostgreSQL
         run: docker compose --profile app up -d --build --wait
       - run: e2e/run.sh
+        env:
+          DOGFOOD_URL: ${{ vars.KOLLAUDO_URL }}
+          DOGFOOD_TOKEN: ${{ secrets.KOLLAUDO_INGEST_TOKEN }}
       - name: Show the logs
         if: failure()
         run: docker compose --profile app logs

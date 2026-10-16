@@ -19,6 +19,12 @@ OUT=$(mktemp -d)
 trap 'rm -rf "$OUT"' EXIT
 
 kollaudo() { node ../packages/cli/dist/main.js "$@"; }
+# Also sends a report to Kollaudo's own instance, when CI has its token (not on forks).
+dogfood() {
+  [[ -n ${DOGFOOD_TOKEN:-} ]] || return 0
+  KOLLAUDO_URL=$DOGFOOD_URL KOLLAUDO_TOKEN=$DOGFOOD_TOKEN kollaudo push "$@" ||
+    echo "::warning::Couldn't send the report to $DOGFOOD_URL."
+}
 # The admin command runs where Kollaudo runs: in compose by default, or with KOLLAUDO_ADMIN, such as
 # "kubectl exec -n kollaudo deploy/kollaudo --" for the Helm chart.
 read -ra ADMIN <<<"${KOLLAUDO_ADMIN:-docker compose -f ../compose.yaml exec -T kollaudo}"
@@ -65,7 +71,11 @@ OTHER_INGEST_TOKEN=$(token ingest "$OUT/blog")
 export KOLLAUDO_TOKEN=$E2E_INGEST_TOKEN E2E_VERSION=$VERSION
 
 echo "## 2. Kollaudo's own API tests, sent with kollaudo push"
-pnpm exec playwright test tests/api.spec.ts
+status=0
+pnpm exec playwright test tests/api.spec.ts || status=$?
+dogfood ctrf/ctrf-report.json --component kollaudo --env ci \
+  --version "$VERSION" --commit "$VERSION" --branch "$BRANCH"
+[[ $status -eq 0 ]] || exit "$status"
 expect_exit 0 kollaudo push ctrf/ctrf-report.json --component kollaudo --env ci \
   --version "$VERSION" --commit "$VERSION" --branch "$BRANCH"
 expect_output "Sent 4 tests (e2e) for kollaudo"
@@ -146,7 +156,11 @@ KOLLAUDO_TOKEN=$OTHER_INGEST_TOKEN expect_exit 2 \
   kollaudo verdict --component kollaudo --env ci --version "$VERSION"
 
 echo "## 6. The UI shows it all, and its tests are sent too"
-pnpm exec playwright test tests/ui.spec.ts
+status=0
+pnpm exec playwright test tests/ui.spec.ts || status=$?
+dogfood ctrf/ctrf-report.json --component kollaudo --env ci \
+  --version "$VERSION" --commit "$VERSION" --branch "$BRANCH" --kind ui
+[[ $status -eq 0 ]] || exit "$status"
 expect_exit 0 kollaudo push ctrf/ctrf-report.json --component kollaudo --env ci \
   --version "$VERSION" --kind ui
 expect_exit 0 kollaudo verdict --component kollaudo --env ci --version "$VERSION" --require e2e,ui

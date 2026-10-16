@@ -1,0 +1,4 @@
+# The rules of Kollaudo's own releases: a tag is published only when its commit passed these in CI.
+environments:
+  ci:
+    require: [e2e, ui]
