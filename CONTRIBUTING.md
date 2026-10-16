@@ -25,6 +25,7 @@ You need Node.js 24 and Docker. The repository is a pnpm monorepo:
 |---|---|
 | [`apps/server`](apps/server) | the API, with Hono and PostgreSQL through Drizzle |
 | [`apps/web`](apps/web) | the web UI, with React and Vite |
+| [`apps/site`](apps/site) | the website: a landing page, and the pages of `docs/` with Starlight. `pnpm --filter @kollaudo/site dev` runs it |
 | [`packages/cli`](packages/cli) | the `kollaudo` command, published on npm as `@kollaudo/cli` |
 | [`packages/schema`](packages/schema) | the types and Zod schemas shared by all of them |
 | [`e2e`](e2e) | the end-to-end test, with the CLI and Playwright against the container |

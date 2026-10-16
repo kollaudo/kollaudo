@@ -5,6 +5,9 @@
     "clientKind": "git",
     "useIgnoreFile": true
   },
+  "files": {
+    "includes": ["**", "!apps/site/**/*.astro"]
+  },
   "formatter": {
     "indentStyle": "space",
     "lineWidth": 100

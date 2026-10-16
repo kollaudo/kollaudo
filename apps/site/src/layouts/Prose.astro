@@ -1,0 +1,251 @@
+---
+// A page of text written in Markdown under src/pages/, such as the FAQ, with a card on the side
+// that lists its sections and questions, unless `toc: false`. The heading in the frontmatter can
+// put a word in *italics*. A <details> in the text is a question that opens when clicked, or when
+// it is picked in the card.
+import type { MarkdownHeading } from "astro";
+import Page from "./Page.astro";
+
+interface Props {
+  frontmatter: {
+    title: string;
+    description?: string;
+    kicker?: string;
+    heading?: string;
+    lead?: string;
+    toc?: boolean;
+  };
+  headings: MarkdownHeading[];
+}
+
+const { frontmatter } = Astro.props;
+const escape = (text: string) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const heading = escape(frontmatter.heading ?? frontmatter.title).replace(/\*([^*]+)\*/g, "<em>$1</em>");
+// The sections (h2) and the questions (<details> and h3) of the page, in their order.
+const html = await Astro.slots.render("default");
+const toc =
+  frontmatter.toc === false
+    ? []
+    : [
+        ...html.matchAll(
+          /<h2 id="([^"]+)"[^>]*>([\s\S]*?)<\/h2>|<(?:h3 id="([^"]+)"[^>]*>([\s\S]*?)<\/h3>|details id="([^"]+)"[^>]*>\s*<summary>([\s\S]*?)<\/summary>)/g,
+        ),
+      ].map((m) => ({
+        section: Boolean(m[1]),
+        id: m[1] ?? m[3] ?? m[5],
+        // The text of the heading, as Markdown wrote it: entities stay escaped.
+        text: (m[2] ?? m[4] ?? m[6]).replace(/<[^>]+>/g, "").trim(),
+      }));
+---
+
+<Page title={`${frontmatter.title} | Kollaudo`} description={frontmatter.description}>
+  <main class="wrap">
+    <header class="page-head">
+      {frontmatter.kicker && <p class="kicker mono">{frontmatter.kicker}</p>}
+      <h1 set:html={heading} />
+      {frontmatter.lead && <p class="sub">{frontmatter.lead}</p>}
+    </header>
+    <div class:list={["with-toc", { single: toc.length === 0 }]}>
+      <article class="prose" set:html={html} />
+      {
+        toc.length > 0 && (
+          <nav class="toc glass" aria-label="On this page">
+            <p class="mono">On this page</p>
+            <ul>
+              {toc.map((item) => (
+                <li class={item.section ? "section" : "question"}>
+                  <a href={`#${item.id}`} set:html={item.text} />
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )
+      }
+    </div>
+  </main>
+
+  <style is:global>
+    .with-toc {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 48px;
+      align-items: start;
+      padding-bottom: 96px;
+    }
+    .with-toc:not(.single) .prose {
+      max-width: none;
+    }
+    @media (max-width: 960px) {
+      .with-toc {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .toc {
+        display: none;
+      }
+    }
+    .with-toc.single {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .with-toc.single .prose {
+      max-width: 820px;
+    }
+    .with-toc .prose > h2:first-child {
+      margin-top: 24px;
+    }
+
+    /* Questions that open when clicked, with a + that turns into a × */
+    :root {
+      interpolate-size: allow-keywords;
+    }
+    .prose details {
+      border-bottom: 1px solid var(--line);
+      scroll-margin-top: calc(var(--top) + 16px);
+    }
+    .prose h2 + details {
+      border-top: 1px solid var(--line);
+      margin-top: 20px;
+    }
+    .prose summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 20px 4px;
+      cursor: pointer;
+      list-style: none;
+      font-size: 1.08rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--fg);
+    }
+    .prose summary::-webkit-details-marker {
+      display: none;
+    }
+    .prose summary::after {
+      content: '+';
+      flex: none;
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      font: 400 1.25rem/1 var(--mono);
+      color: var(--brand);
+      transition: transform 0.25s ease, background 0.2s ease, border-color 0.2s ease;
+    }
+    .prose summary:hover::after {
+      border-color: var(--brand);
+    }
+    .prose details[open] > summary::after {
+      transform: rotate(45deg);
+      background: color-mix(in srgb, var(--brand) 14%, transparent);
+    }
+    .prose summary:focus-visible {
+      outline: 2px solid var(--brand);
+      outline-offset: 2px;
+      border-radius: 8px;
+    }
+    .prose details > :not(summary) {
+      padding-inline: 4px;
+      padding-right: 54px;
+    }
+    .prose details > :last-child {
+      margin-bottom: 22px;
+    }
+    .prose details::details-content {
+      block-size: 0;
+      overflow: hidden;
+      transition:
+        block-size 0.3s ease,
+        content-visibility 0.3s allow-discrete;
+    }
+    .prose details[open]::details-content {
+      block-size: auto;
+    }
+    @media (max-width: 640px) {
+      .prose details > :not(summary) {
+        padding-right: 4px;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .prose details::details-content,
+      .prose summary::after {
+        transition: none;
+      }
+    }
+    /* The card with the sections and questions of the page */
+    .toc {
+      position: sticky;
+      top: calc(var(--top) + 24px);
+      max-height: calc(100vh - var(--top) - 48px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      margin-top: 24px;
+      padding: 20px 14px 14px;
+      font-size: 0.88rem;
+      box-shadow: var(--shadow);
+    }
+    .toc p {
+      margin: 0 8px 12px;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .toc ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .toc li {
+      line-height: 1.35;
+    }
+    .toc a {
+      display: block;
+      padding: 7px 10px;
+      border-radius: 10px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .toc .section {
+      margin-top: 14px;
+    }
+    .toc .section:first-child {
+      margin-top: 0;
+    }
+    .toc .section a {
+      font-weight: 600;
+      color: var(--fg);
+    }
+    .toc .question a:hover {
+      color: var(--fg);
+      background: var(--code);
+    }
+  </style>
+
+  <script is:inline>
+    // A question picked in the card opens before the page scrolls to it, even when its address is
+    // already the page's.
+    const still = matchMedia('(prefers-reduced-motion: reduce)');
+    for (const a of document.querySelectorAll('.toc a')) {
+      a.addEventListener('click', (event) => {
+        const target = document.getElementById(a.hash.slice(1));
+        if (!target) return;
+        event.preventDefault();
+        if (target instanceof HTMLDetailsElement) target.open = true;
+        target.scrollIntoView({ behavior: still.matches ? 'instant' : 'smooth' });
+        history.replaceState(null, '', a.hash);
+      });
+    }
+
+    // A link to a question, such as /faq/#is-kollaudo-open-source, opens it.
+    const openAsked = () => {
+      const asked = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1)));
+      if (!(asked instanceof HTMLDetailsElement)) return;
+      asked.open = true;
+      asked.scrollIntoView({ behavior: 'instant' });
+    };
+    openAsked();
+    addEventListener('hashchange', openAsked);
+  </script>
+</Page>

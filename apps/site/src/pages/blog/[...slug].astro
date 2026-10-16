@@ -1,0 +1,221 @@
+---
+import { render } from "astro:content";
+import Page from "../../layouts/Page.astro";
+import { formatDate, getPosts, type Post } from "../../lib/posts";
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post) => ({ params: { slug: post.slug }, props: { post } }));
+}
+
+const { post } = Astro.props as { post: Post };
+const { Content } = await render(post.entry);
+const hasNote = Boolean(post.entry.body?.trim());
+const host = (url: string) => new URL(url).hostname.replace(/^www\./, "");
+---
+
+<Page title={`${post.title} | Kollaudo`} description={post.excerpt}>
+  <main class="wrap">
+    <article class="post">
+      <header class="page-head">
+        <a class="back mono" href="/blog/">← Blog</a>
+        <p class="post-meta mono">
+          {post.source && <span class="source">{post.source.name}</span>}
+          {post.date && <time datetime={post.date.toISOString()}>{formatDate(post.date)}</time>}
+          {post.author && <span>by {post.author}</span>}
+        </p>
+        <h1>{post.title}</h1>
+      </header>
+
+      {
+        hasNote && (
+          <div class="prose">
+            <Content />
+          </div>
+        )
+      }
+
+      {
+        post.kind === "linked" && post.source ? (
+          <figure class="shared glass">
+            <figcaption class="shared-head mono">
+              <span>
+                {post.source.name}
+                {post.author && <> · {post.author}</>}
+              </span>
+              <a href={post.source.url} rel="noopener">
+                Open on {post.source.name} ↗
+              </a>
+            </figcaption>
+            {post.video?.kind === "frame" && (
+              <div class="player">
+                <iframe
+                  src={post.video.src}
+                  title={post.title}
+                  loading="lazy"
+                  allow="encrypted-media; picture-in-picture; fullscreen"
+                  referrerpolicy="strict-origin-when-cross-origin"
+                />
+              </div>
+            )}
+            {post.video?.kind === "file" && (
+              <video src={post.video.src} poster={post.poster} controls preload="metadata" playsinline />
+            )}
+            {post.images.length > 0 && !post.video && (
+              <div class={`images n${Math.min(post.images.length, 4)}`}>
+                {post.images.map((src) => <img src={src} alt="" loading="lazy" />)}
+              </div>
+            )}
+            {post.paragraphs.length > 0 && (
+              <div class="prose shared-text">
+                {post.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+              </div>
+            )}
+            {post.source.link && (
+              <a class="shared-link mono" href={post.source.link} rel="noopener">
+                {host(post.source.link)} ↗
+              </a>
+            )}
+          </figure>
+        ) : (
+          post.kind === "written" &&
+          post.images.length > 0 &&
+          !hasNote && <img class="cover" src={post.images[0]} alt="" />
+        )
+      }
+
+      <p class="post-foot">
+        <a class="button ghost" href="/blog/">All posts</a>
+        {post.source && <a class="button" href={post.source.url} rel="noopener">Join the discussion on {post.kind === "announcement" ? "GitHub" : post.source.name}</a>}
+      </p>
+    </article>
+  </main>
+
+  <style is:global>
+    .post {
+      max-width: 760px;
+      margin-inline: auto;
+      padding-bottom: 96px;
+    }
+    .post .page-head {
+      padding-top: 48px;
+    }
+    .post .page-head h1 {
+      font-size: clamp(2rem, 4.6vw, 3rem);
+    }
+    .back {
+      display: inline-block;
+      margin-bottom: 28px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-decoration: none;
+    }
+    .back:hover {
+      color: var(--brand);
+    }
+    .post-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      margin: 0 0 12px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .post-meta .source {
+      color: var(--brand);
+    }
+    .post .prose {
+      margin: 24px 0;
+    }
+    .shared {
+      margin: 32px 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    .shared-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--line);
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .shared-head a {
+      text-decoration: none;
+    }
+    /* Not .frame: Starlight's code blocks use that class too. */
+    .player {
+      aspect-ratio: 16 / 9;
+    }
+    .player iframe,
+    .shared video {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+    .shared video {
+      height: auto;
+      max-height: 70vh;
+      background: #000;
+    }
+    .images {
+      display: grid;
+      gap: 2px;
+    }
+    .images.n2,
+    .images.n4 {
+      grid-template-columns: 1fr 1fr;
+    }
+    .images.n3 {
+      grid-template-columns: 2fr 1fr;
+    }
+    .images.n3 img:first-child {
+      grid-row: span 2;
+    }
+    .images img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      max-height: 520px;
+      object-fit: cover;
+    }
+    /* One image is shown whole, such as a card made to be read. */
+    .images.n1 {
+      background: var(--code);
+    }
+    .images.n1 img {
+      width: auto;
+      max-width: 100%;
+      height: auto;
+      max-height: 85vh;
+      margin-inline: auto;
+      object-fit: contain;
+    }
+    .shared-text {
+      padding: 20px 20px 6px;
+      max-width: none;
+      white-space: pre-line;
+    }
+    .shared-link {
+      display: block;
+      padding: 0 20px 18px;
+      font-size: 0.8rem;
+    }
+    .cover {
+      width: 100%;
+      height: auto;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      margin: 16px 0;
+    }
+    .post-foot {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 40px;
+    }
+  </style>
+</Page>

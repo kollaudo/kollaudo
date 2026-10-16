@@ -1,0 +1,65 @@
+name: Site
+
+# Builds the website, with its check of the links, when the site, the docs or the changelog change.
+# On main it also publishes the site on GitHub Pages, and again when an announcement is posted,
+# edited or deleted in GitHub Discussions, since the blog shows them.
+on:
+  pull_request:
+    paths:
+      - apps/site/**
+      - docs/**
+      - packages/cli/package.json
+      - .github/workflows/site.yml
+  push:
+    branches: [main]
+    paths:
+      - apps/site/**
+      - docs/**
+      - packages/cli/package.json
+      - .github/workflows/site.yml
+  discussion:
+    types: [created, edited, deleted, category_changed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  discussions: read
+
+jobs:
+  build:
+    # A discussion in another category doesn't change the site. category_changed rebuilds either way,
+    # since an announcement can leave the category.
+    if: >-
+      github.event_name != 'discussion' || github.event.action == 'category_changed' ||
+      github.event.discussion.category.slug == 'announcements'
+    runs-on: ubuntu-latest
+    env:
+      ASTRO_TELEMETRY_DISABLED: 1
+      # The blog reads the announcements of GitHub Discussions with it, at a higher rate limit.
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @kollaudo/site build
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: apps/site/dist
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

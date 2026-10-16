@@ -1,0 +1,108 @@
+---
+import Page from "../../layouts/Page.astro";
+import { formatDate, getPosts } from "../../lib/posts";
+
+const posts = await getPosts();
+// A video's preview stands for it in the list, since its first frame can be blank.
+const thumbnail = (post: (typeof posts)[number]) => (post.video ? (post.poster ?? post.images[0]) : post.images[0]);
+---
+
+<Page title="Blog | Kollaudo" description="News, releases and posts about Kollaudo, here and around the web.">
+  <main class="wrap">
+    <header class="page-head">
+      <p class="kicker mono">Blog</p>
+      <h1>Notes from the <em>gate.</em></h1>
+      <p class="sub">Releases, ideas and posts about Kollaudo, written here or shared around the web.</p>
+    </header>
+
+    {
+      posts.length === 0 ? (
+        <p class="sub">No posts yet.</p>
+      ) : (
+        <ol class="posts">
+          {posts.map((post) => (
+            <li class="reveal">
+              <a class="post-card glass" href={`/blog/${post.slug}/`}>
+                <div class="post-text">
+                  <p class="post-meta mono">
+                    {post.source && <span class="source">{post.source.name}</span>}
+                    {post.date && <time datetime={post.date.toISOString()}>{formatDate(post.date)}</time>}
+                    {post.video && <span>video</span>}
+                  </p>
+                  <h2>{post.title}</h2>
+                  {post.excerpt && <p class="excerpt">{post.excerpt}</p>}
+                </div>
+                {thumbnail(post) && <img src={thumbnail(post)} alt="" loading="lazy" />}
+              </a>
+            </li>
+          ))}
+        </ol>
+      )
+    }
+  </main>
+
+  <style is:global>
+    .posts {
+      list-style: none;
+      padding: 0;
+      margin: 24px 0 96px;
+      display: grid;
+      gap: 14px;
+    }
+    .post-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 24px;
+      align-items: center;
+      padding: 24px;
+      color: var(--fg);
+      text-decoration: none;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .post-card:hover {
+      border-color: color-mix(in srgb, var(--brand) 60%, transparent);
+      transform: translateY(-2px);
+    }
+    .post-card h2 {
+      font-size: clamp(1.3rem, 2.4vw, 1.7rem);
+      max-width: none;
+      margin: 0 0 8px;
+    }
+    .post-card img {
+      width: 200px;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      object-position: top;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+    }
+    @media (max-width: 640px) {
+      .post-card {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .post-card img {
+        width: 100%;
+        order: -1;
+      }
+    }
+    .post-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      margin: 0 0 10px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .post-meta .source {
+      color: var(--brand);
+    }
+    .excerpt {
+      margin: 0;
+      color: var(--muted);
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  </style>
+</Page>

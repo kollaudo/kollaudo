@@ -6,6 +6,15 @@ the API.
 
 ## [Unreleased]
 
+### Documentation
+
+- A website with a quick start and the documentation. The landing page has the commands to run
+  Kollaudo and get a first verdict, and the guides, recipes and decision records of `docs/` are
+  published with search. It is built from the files in `docs/`, with `pnpm --filter @kollaudo/site dev`.
+  It has an FAQ, and a blog whose posts are written on the site or link to a post elsewhere, such as
+  on LinkedIn, Hacker News or Reddit, and show its text, images and video. The Announcements of
+  GitHub Discussions are posts of the blog too, and the site is published again when one changes.
+
 ### Server
 
 - Sign-offs ([ADR 0021](docs/adr/0021-signoff-as-a-test-run-with-its-own-scope.md), [docs](docs/signoffs.md)).

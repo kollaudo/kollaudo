@@ -1,0 +1,20 @@
+/* Ink violet is Kollaudo, see docs/brand.md. Verdict colors are not used here.
+   The backgrounds match the landing page. */
+:root {
+  --sl-color-accent-low: #e6dff4;
+  --sl-color-accent: #5b3e96;
+  --sl-color-accent-high: #3f2a6c;
+  --sl-color-bg: #f6f2ea;
+  --sl-color-bg-nav: #f6f2ea;
+  --sl-color-bg-sidebar: #f6f2ea;
+}
+
+:root[data-theme="dark"] {
+  --sl-color-accent-low: #2b2144;
+  --sl-color-accent: #8566c9;
+  --sl-color-accent-high: #b49ae6;
+  --sl-color-black: #0b0910;
+  --sl-color-bg: #0b0910;
+  --sl-color-bg-nav: #0b0910;
+  --sl-color-bg-sidebar: #0b0910;
+}

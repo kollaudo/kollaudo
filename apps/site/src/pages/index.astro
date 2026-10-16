@@ -1,0 +1,1116 @@
+---
+import Page from "../layouts/Page.astro";
+import matrixDark from "../../../../docs/assets/screenshots/matrix-dark.png";
+import matrixLight from "../../../../docs/assets/screenshots/matrix-light.png";
+import cli from "../../../../packages/cli/package.json";
+
+const version = cli.version;
+const raw = `https://raw.githubusercontent.com/kollaudo/kollaudo/v${version}`;
+const start = `curl -O ${raw}/deploy/docker-compose.yml && docker compose up -d --wait`;
+const cmd = (...lines: string[]) => lines.join("\n");
+
+const steps = [
+  {
+    title: "Start Kollaudo",
+    text: "It prints an ingest and a read token.",
+    code: cmd(
+      `export KOLLAUDO_VERSION=${version}`,
+      `curl -O ${raw.replace(version, "$KOLLAUDO_VERSION")}/deploy/docker-compose.yml`,
+      "docker compose up -d --wait",
+      "docker compose exec -T kollaudo kollaudo-server project create demo | tee tokens.txt",
+    ),
+  },
+  {
+    title: "Send a test report",
+    text: "An example CTRF report of e2e tests run against staging.",
+    code: cmd(
+      "export KOLLAUDO_URL=http://localhost:8080",
+      "export KOLLAUDO_TOKEN=$(awk '$1 == \"ingest\" { print $2 }' tokens.txt)",
+      `curl -O ${raw.replace(version, "$KOLLAUDO_VERSION")}/docs/examples/ctrf-report.json`,
+      "npx --yes @kollaudo/cli@$KOLLAUDO_VERSION push ctrf-report.json \\",
+      "  --component frontend --env staging --version 1.2.0",
+    ),
+  },
+  {
+    title: "Ask for the verdict",
+    text: "A test failed, so it says FAIL and exits with 1. Your pipeline stops there.",
+    code: "npx --yes @kollaudo/cli@$KOLLAUDO_VERSION verdict --component frontend --env staging --version 1.2.0",
+  },
+];
+
+const tabs = [
+  { id: "docker", label: "Docker", code: start },
+  {
+    id: "helm",
+    label: "Kubernetes",
+    code: cmd(
+      "helm install kollaudo oci://ghcr.io/kollaudo/charts/kollaudo -n kollaudo \\",
+      "  --set database.existingSecret=<secret with the database URI>",
+    ),
+  },
+  {
+    id: "action",
+    label: "GitHub Action",
+    code: cmd(
+      "- uses: kollaudo/action@v0",
+      "  with:",
+      "    url: ${{ vars.KOLLAUDO_URL }}",
+      "    token: ${{ secrets.KOLLAUDO_GATE_TOKEN }}",
+      "    component: frontend",
+      "    environment: staging",
+    ),
+  },
+];
+
+const exits = [
+  { code: "0", label: "pass", tone: "pass", text: "The version goes on." },
+  { code: "1", label: "fail", tone: "fail", text: "A test the policy needs failed." },
+  { code: "2", label: "unknown", tone: "unknown", text: "Evidence is missing. Never a pass." },
+  { code: "3", label: "no verdict", tone: "none", text: "Kollaudo didn't answer, or the token or options are wrong." },
+];
+
+// Ink drops around the stamp in the last section: fixed, so the page is the same on every load.
+const drops = Array.from({ length: 16 }, (_, i) => {
+  const angle = (i / 16) * Math.PI * 2 + (i % 3) * 0.35;
+  const distance = 82 + ((i * 37) % 30);
+  return {
+    x: (110 + Math.cos(angle) * distance).toFixed(1),
+    y: (110 + Math.sin(angle) * distance).toFixed(1),
+    // Where the drop starts, near the stamp, relative to where it lands.
+    dx: (-Math.cos(angle) * distance * 0.6).toFixed(1),
+    dy: (-Math.sin(angle) * distance * 0.6).toFixed(1),
+    r: 2 + ((i * 5) % 6),
+    delay: 420 + ((i * 7) % 16) * 14,
+  };
+});
+
+const recipes = [
+  ["GitHub Actions", "https://github.com/marketplace/actions/kollaudo-gate"],
+  ["GitLab CI", "/docs/recipes/gitlab-ci/"],
+  ["Azure DevOps", "/docs/recipes/azure-devops/"],
+  ["Jenkins", "/docs/recipes/jenkins/"],
+  ["Argo CD", "/docs/recipes/argocd/"],
+  ["Kargo", "/docs/recipes/kargo/"],
+  ["Argo Rollouts", "/docs/recipes/argo-rollouts/"],
+  ["Playwright", "/docs/recipes/playwright/"],
+  ["pytest", "/docs/recipes/pytest/"],
+];
+---
+
+<Page>
+    <main>
+      <section class="hero">
+        <canvas class="ribbons" aria-hidden="true"></canvas>
+        <div class="hero-in">
+          <div class="hero-copy">
+            <p class="pill mono"><span class="led"></span>v{version} / self-hosted / Apache-2.0</p>
+            <h1>Quality gates for every <em>promotion.</em></h1>
+            <p class="lead">
+              Your CI sends test results. Before a version moves on, Kollaudo says <b class="pass">pass</b>, <b class="fail">fail</b> or <b class="unknown">unknown</b>.
+            </p>
+            <p class="cta">
+              <a class="button" href="#quick-start">Quick start</a>
+              <a class="button ghost" href="/docs/">Read the docs</a>
+            </p>
+            <div class="cmd" data-copy={start}>
+              <span class="prompt mono">$</span>
+              <code>{start}</code>
+              <button type="button" class="copy">Copy</button>
+            </div>
+          </div>
+
+          <figure class="gate glass" aria-label="A verdict from kollaudo verdict: checkout 9d07e6b fails in staging. The e2e tests failed and the smoke tests never reported, so the exit code is 1.">
+            <div class="gate-head">
+              <span class="mono">checkout / 9d07e6b / staging</span>
+              <span class="badge fail mono">fail</span>
+            </div>
+            <p class="gate-sub mono">policy revision 1</p>
+            <ol class="evidence">
+              <li class="fail">
+                <span class="node"><b>e2e</b><span class="mono">1 failed, 3 passed, 1 skipped, 1 flaky</span></span>
+                <span class="tag mono">fail</span>
+                <span class="by mono">by ci-staging</span>
+              </li>
+              <li class="unknown">
+                <span class="node"><b>smoke</b><span class="mono">required, but no run</span></span>
+                <span class="tag mono">unknown</span>
+                <span class="by mono">no run in staging</span>
+              </li>
+            </ol>
+            <div class="term mono">
+              <span><i>$</i> kollaudo verdict --component checkout --env staging --version 9d07e6b</span>
+              <span class="fail">FAIL: checkout 9d07e6b in staging: e2e failed.</span>
+              <span class="dim">Evidence is missing for smoke.</span>
+              <span class="exit">exit 1</span>
+            </div>
+          </figure>
+        </div>
+      </section>
+
+      <section class="wrap" id="how">
+        <p class="kicker mono">How it thinks</p>
+        <h2>It judges. Your pipeline <em>decides.</em></h2>
+        <div class="bento">
+          <a class="card glass reveal" href="/docs/adr/0002-judge-never-orchestrate/">
+            <div class="viz flow mono" aria-hidden="true">
+              <span>your CI</span><i></i><span class="me">Kollaudo</span><i></i><span>Argo CD</span>
+            </div>
+            <h3>It judges, it never runs</h3>
+            <p>Your CI sends results. Kollaudo gives a verdict. The tool that promotes does what the verdict says, so if Kollaudo is down your deployments still work.</p>
+          </a>
+          <a class="card glass reveal" href="/docs/adr/0013-verdict-pass-fail-unknown/">
+            <ul class="viz checks mono" aria-hidden="true">
+              <li class="pass"><span>unit</span><b>pass</b></li>
+              <li class="pass"><span>e2e</span><b>pass</b></li>
+              <li class="unknown"><span>smoke</span><b>no run</b></li>
+              <li class="total unknown"><span>verdict</span><b>unknown</b></li>
+            </ul>
+            <h3>Unknown is not <em>pass</em></h3>
+            <p>If a test the policy needs never reported, the answer is unknown, and a promotion stops. Missing evidence never counts as a pass.</p>
+          </a>
+          <a class="card glass reveal" href="/docs/policies/">
+            <dl class="viz record mono" aria-hidden="true">
+              <dt>override</dt><dd>checkout 9d07e6b</dd>
+              <dt>who</dt><dd>release-lead</dd>
+              <dt>why</dt><dd>hotfix for INC-42</dd>
+              <dt>until</dt><dd>tomorrow 18:00</dd>
+            </dl>
+            <h3>The rules are not in the pipeline</h3>
+            <p>Policies live in Kollaudo. A pipeline can make a gate stricter and never looser, and every override records who, why and until when.</p>
+          </a>
+          <figure class="card wide glass reveal">
+            <figcaption>
+              <h3>Health of every component, in every <em>environment</em></h3>
+              <p>One page with components in rows, environments in columns and a verdict in each cell.</p>
+            </figcaption>
+            <picture>
+              <source media="(prefers-color-scheme: dark)" srcset={matrixDark.src} />
+              <img src={matrixLight.src} alt="The matrix in the web UI: components in rows, environments in columns, and a verdict in each cell." width="900" loading="lazy" />
+            </picture>
+          </figure>
+        </div>
+      </section>
+
+      <section class="wrap exits-wrap">
+        <div class="split">
+          <div>
+            <p class="kicker mono">For your gate</p>
+            <h2>Four exit codes. <em>A contract.</em></h2>
+          </div>
+          <p class="sub">Every gate reads them the same way, in any CI. <code>--json</code> adds the details and never changes the code.</p>
+        </div>
+        <ol class="exits">
+          {
+            exits.map((exit) => (
+              <li class={`reveal ${exit.tone}`}>
+                <span class="num">{exit.code}</span>
+                <b class="mono">{exit.label}</b>
+                <span>{exit.text}</span>
+              </li>
+            ))
+          }
+        </ol>
+      </section>
+
+      <section class="wrap" id="quick-start">
+        <p class="kicker mono">Quick start</p>
+        <h2>Three commands, one <em>verdict.</em></h2>
+        <p class="sub">All you need is Docker and Node.js.</p>
+        <ol class="steps">
+          {
+            steps.map((step, i) => (
+              <li class="glass reveal">
+                <span class="step mono">{String(i + 1).padStart(2, "0")}</span>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+                <div class="cmd block" data-copy={step.code}>
+                  <pre><code>{step.code}</code></pre>
+                  <button type="button" class="copy">Copy</button>
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+        <p class="sub">
+          Then open <code>http://localhost:8080</code> and add the project with its <b>read</b> token.
+          To send your own results, see <a href="/docs/sending-results/">sending test results</a>.
+        </p>
+
+        <h3 class="where">Somewhere else?</h3>
+        <div class="tabs">
+          {
+            tabs.map((tab, i) => (
+              <>
+                <input type="radio" name="tab" id={`tab-${tab.id}`} checked={i === 0} />
+                <label for={`tab-${tab.id}`}>{tab.label}</label>
+              </>
+            ))
+          }
+          {
+            tabs.map((tab) => (
+              <div class="panel" data-for={`tab-${tab.id}`}>
+                <div class="cmd block" data-copy={tab.code}>
+                  <pre><code>{tab.code}</code></pre>
+                  <button type="button" class="copy">Copy</button>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+
+      <section class="wrap">
+        <div class="split">
+          <div>
+            <p class="kicker mono">Recipes</p>
+            <h2>Works with what you <em>have.</em></h2>
+          </div>
+          <p class="sub">One page for each CI or tool, with a complete example.</p>
+        </div>
+        <ul class="recipes">
+          {recipes.map(([name, href]) => <li class="reveal"><a class="glass" href={href}>{name}<span aria-hidden="true">→</span></a></li>)}
+        </ul>
+      </section>
+
+      <section class="wrap">
+        <div class="final reveal">
+          <svg class="stamp" viewBox="0 0 220 220" width="150" height="150" aria-hidden="true">
+            <defs>
+              <filter id="stamp-ink" x="-5%" y="-5%" width="110%" height="110%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.07" numOctaves="2" seed="7" result="wobble" />
+                <feDisplacementMap in="SourceGraphic" in2="wobble" scale="2.2" result="shaped" />
+                <feTurbulence type="fractalNoise" baseFrequency="0.18" numOctaves="2" seed="3" result="grain" />
+                <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 14 -9.6" result="specks" />
+                <feComposite in="shaped" in2="specks" operator="out" />
+              </filter>
+              <clipPath id="stamp-letter">
+                <rect x="140" y="150" width="232" height="212" />
+              </clipPath>
+            </defs>
+            <g class="drops">
+              {drops.map((drop) => <circle cx={drop.x} cy={drop.y} r={drop.r} style={`--d: ${drop.delay}ms; --dx: ${drop.dx}px; --dy: ${drop.dy}px`} />)}
+            </g>
+            <g class="mark">
+              <g transform="translate(110 110) scale(0.3125) translate(-256 -256)">
+                <g transform="rotate(-12 256 256)" fill="none" stroke="currentColor" filter="url(#stamp-ink)">
+                  <circle cx="256" cy="256" r="206" stroke-width="22" />
+                  <circle cx="256" cy="256" r="172" stroke-width="9" />
+                  <circle cx="256" cy="256" r="189" stroke-width="10" stroke-dasharray="0 39.6" stroke-linecap="round" />
+                  <g clip-path="url(#stamp-letter)" stroke-width="44">
+                    <line x1="194" y1="140" x2="194" y2="372" />
+                    <line x1="200" y1="286" x2="346" y2="138" />
+                    <line x1="262" y1="226" x2="358" y2="374" />
+                  </g>
+                </g>
+              </g>
+            </g>
+          </svg>
+          <h2>Put a gate in front of <em>production.</em></h2>
+          <p>Self-hosted, one container and PostgreSQL. Your results stay with you.</p>
+          <p class="cta">
+            <a class="button" href="#quick-start">Quick start</a>
+            <a class="button ghost" href="https://github.com/kollaudo/kollaudo">Star on GitHub</a>
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <script is:inline>
+      for (const button of document.querySelectorAll('.copy')) {
+        button.addEventListener('click', async () => {
+          const text = button.closest('[data-copy]').dataset.copy;
+          try {
+            await navigator.clipboard.writeText(text);
+            button.textContent = 'Copied';
+          } catch {
+            button.textContent = 'Select and copy';
+          }
+          setTimeout(() => {
+            button.textContent = 'Copy';
+          }, 1800);
+        });
+      }
+
+      // Strands of light behind the hero. They converge to a point and fan out, and they hold
+      // still for people who reduce motion.
+      const canvas = document.querySelector('.ribbons');
+      const ctx = canvas.getContext('2d');
+      const dark = matchMedia('(prefers-color-scheme: dark)');
+      const still = matchMedia('(prefers-reduced-motion: reduce)');
+      const strands = 72;
+      let width = 0;
+      let height = 0;
+      let visible = true;
+      let frame = 0;
+
+      function size() {
+        const ratio = Math.min(devicePixelRatio || 1, 2);
+        width = canvas.clientWidth;
+        height = canvas.clientHeight;
+        canvas.width = width * ratio;
+        canvas.height = height * ratio;
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      }
+
+      // A cubic curve from the lower left to the upper right, through the middle of the hero.
+      function spine(s) {
+        const narrow = width < 900;
+        const p = narrow
+          ? [[-0.2, 0.55], [0.4, 0.62], [0.6, 0.2], [1.25, 0.05]]
+          : [[0.1, 1.05], [0.38, 0.82], [0.42, 0.28], [1.1, -0.05]];
+        const u = 1 - s;
+        const x = u ** 3 * p[0][0] + 3 * u * u * s * p[1][0] + 3 * u * s * s * p[2][0] + s ** 3 * p[3][0];
+        const y = u ** 3 * p[0][1] + 3 * u * u * s * p[1][1] + 3 * u * s * s * p[2][1] + s ** 3 * p[3][1];
+        return [x * width, y * height];
+      }
+
+      function draw(t) {
+        ctx.clearRect(0, 0, width, height);
+        const isDark = dark.matches;
+        ctx.globalCompositeOperation = isDark ? 'lighter' : 'source-over';
+        const hues = isDark
+          ? ['133, 102, 201', '180, 154, 230', '111, 140, 255']
+          : ['91, 62, 150', '133, 102, 201', '79, 102, 214'];
+        const spread = Math.min(width, 1400) * 0.5;
+        for (let i = 0; i < strands; i++) {
+          const k = i / (strands - 1) - 0.5;
+          const color = hues[i % hues.length];
+          const alpha = (isDark ? 0.42 : 0.3) * (1 - Math.abs(k) * 1.3);
+          ctx.strokeStyle = `rgba(${color}, ${alpha})`;
+          ctx.lineWidth = i % 9 === 0 ? 1.6 : 0.8;
+          ctx.beginPath();
+          for (let j = 0; j <= 90; j++) {
+            const s = j / 90;
+            const [x, y] = spine(s);
+            // Thin at the knot, wide after it, with a slow wave along each strand.
+            const fan = 0.04 + Math.abs(s - 0.32) ** 1.4 * 2.2;
+            const wave = Math.sin(s * 5 + t * 0.0005 + i * 0.17) * 26 * fan;
+            const off = k * spread * fan + wave;
+            const [nx, ny] = [-0.62, -0.78];
+            if (j === 0) ctx.moveTo(x + nx * off, y + ny * off);
+            else ctx.lineTo(x + nx * off, y + ny * off);
+          }
+          ctx.stroke();
+        }
+        // The knot, where the strands meet.
+        const [kx, ky] = spine(0.32);
+        const glow = ctx.createRadialGradient(kx, ky, 0, kx, ky, Math.min(width, 900) * 0.28);
+        glow.addColorStop(0, isDark ? 'rgba(200, 180, 245, 0.55)' : 'rgba(133, 102, 201, 0.22)');
+        glow.addColorStop(1, 'rgba(133, 102, 201, 0)');
+        ctx.globalCompositeOperation = isDark ? 'lighter' : 'source-over';
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, width, height);
+      }
+
+      function loop(t) {
+        draw(t);
+        frame = visible && !still.matches && !document.hidden ? requestAnimationFrame(loop) : 0;
+      }
+
+      function restart() {
+        cancelAnimationFrame(frame);
+        frame = 0;
+        if (still.matches) draw(0);
+        else if (visible && !document.hidden) frame = requestAnimationFrame(loop);
+      }
+
+      size();
+      restart();
+      new ResizeObserver(() => {
+        size();
+        if (!frame) draw(0);
+      }).observe(canvas);
+      new IntersectionObserver(([entry]) => {
+        visible = entry.isIntersecting;
+        restart();
+      }).observe(canvas);
+      document.addEventListener('visibilitychange', restart);
+      dark.addEventListener('change', restart);
+      still.addEventListener('change', restart);
+    </script>
+
+    <style is:global>
+      /* Hero */
+      .hero {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        min-height: calc(100svh - var(--top) - 1px);
+        padding: 48px 0 72px;
+      }
+      .ribbons {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+      .hero::after {
+        content: '';
+        position: absolute;
+        inset: auto 0 0;
+        height: 120px;
+        background: linear-gradient(transparent, var(--bg));
+        pointer-events: none;
+      }
+      .hero-in {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+        gap: 56px;
+        align-items: center;
+      }
+      @media (max-width: 900px) {
+        .hero-in {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0 0 28px;
+        padding: 5px 14px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--glass);
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
+      .led {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--brand);
+        box-shadow: 0 0 12px var(--brand);
+      }
+      h1 {
+        font-size: clamp(2.6rem, 6.4vw, 4.6rem);
+        line-height: 1.02;
+        letter-spacing: -0.035em;
+        font-weight: 650;
+        margin: 0 0 22px;
+      }
+      h1 em {
+        font-size: 1.08em;
+        color: var(--brand);
+      }
+      .lead {
+        font-size: 1.15rem;
+        color: var(--muted);
+        max-width: 40ch;
+        margin: 0 0 30px;
+      }
+      .lead b {
+        font-weight: 600;
+      }
+      .pass {
+        color: var(--pass);
+      }
+      .fail {
+        color: var(--fail);
+      }
+      .unknown {
+        color: var(--unknown);
+      }
+      .cta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 0 0 22px;
+      }
+
+      /* The gate panel */
+      .gate {
+        margin: 0;
+        padding: 22px;
+        background: var(--glass-strong);
+        box-shadow: var(--shadow);
+        font-size: 0.9rem;
+      }
+      .gate-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.82rem;
+        color: var(--muted);
+      }
+      .badge {
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        border: 1px solid currentColor;
+        background: color-mix(in srgb, currentColor 12%, transparent);
+      }
+      .gate-sub {
+        margin: 4px 0 18px;
+        font-size: 0.75rem;
+        color: var(--muted);
+        opacity: 0.8;
+      }
+      .evidence {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 18px;
+        display: grid;
+        gap: 10px;
+      }
+      .evidence li {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 2px 12px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: var(--code);
+        border-left: 3px solid currentColor;
+      }
+      .evidence .node {
+        display: flex;
+        flex-direction: column;
+        color: var(--fg);
+        min-width: 0;
+      }
+      .evidence .node span {
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
+      .evidence .tag {
+        font-size: 0.75rem;
+        align-self: start;
+      }
+      .evidence .by {
+        grid-column: 1 / -1;
+        font-size: 0.72rem;
+        color: var(--muted);
+        opacity: 0.75;
+      }
+      .term {
+        display: grid;
+        gap: 2px;
+        padding: 14px;
+        border-radius: 12px;
+        background: color-mix(in srgb, var(--bg) 70%, transparent);
+        border: 1px solid var(--line);
+        font-size: 0.74rem;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+      }
+      .term i {
+        font-style: normal;
+        color: var(--brand);
+      }
+      .term .dim {
+        color: var(--muted);
+      }
+      .term .exit {
+        justify-self: start;
+        margin-top: 6px;
+        padding: 1px 8px;
+        border-radius: 6px;
+        background: color-mix(in srgb, var(--fail) 15%, transparent);
+        color: var(--fail);
+      }
+      .js .gate .evidence li,
+      .js .gate .term span {
+        animation: rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+      }
+      .js .gate .evidence li:nth-child(1) { animation-delay: 0.35s; }
+      .js .gate .evidence li:nth-child(2) { animation-delay: 0.55s; }
+      .js .gate .term span:nth-child(1) { animation-delay: 0.8s; }
+      .js .gate .term span:nth-child(2) { animation-delay: 1.2s; }
+      .js .gate .term span:nth-child(3) { animation-delay: 1.35s; }
+      .js .gate .term span:nth-child(4) { animation-delay: 1.5s; }
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+      }
+
+      /* Commands */
+      .cmd {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        max-width: 100%;
+        background: var(--code);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 10px 12px 10px 14px;
+        text-align: left;
+      }
+      .hero .cmd {
+        background: var(--glass);
+        backdrop-filter: blur(12px);
+      }
+      .prompt {
+        color: var(--brand);
+      }
+      .cmd code,
+      .cmd pre {
+        font: 0.8rem/1.6 var(--mono);
+        margin: 0;
+        overflow-x: auto;
+        white-space: pre;
+        min-width: 0;
+      }
+      .hero .cmd code {
+        flex: 1;
+        color: var(--muted);
+        scrollbar-width: none;
+      }
+      .cmd.block {
+        align-items: flex-start;
+      }
+      .cmd.block pre {
+        flex: 1;
+      }
+      .copy {
+        flex: none;
+        font: inherit;
+        font-size: 0.75rem;
+        color: var(--fg);
+        background: var(--glass);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 3px 12px;
+        cursor: pointer;
+      }
+      .copy:hover {
+        border-color: var(--brand);
+        color: var(--brand);
+      }
+
+      #how::before,
+      .exits-wrap::before {
+        content: '';
+        position: absolute;
+        inset: 10% -20% auto auto;
+        width: 60%;
+        height: 70%;
+        background: radial-gradient(closest-side, color-mix(in srgb, var(--brand) 16%, transparent), transparent);
+        filter: blur(40px);
+        pointer-events: none;
+        z-index: -1;
+      }
+      .exits-wrap::before {
+        inset: 0 auto auto -20%;
+      }
+
+      /* Bento */
+      .bento {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 40px;
+      }
+      @media (max-width: 900px) {
+        .bento {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      .card {
+        display: flex;
+        flex-direction: column;
+        padding: 24px;
+        color: var(--fg);
+        text-decoration: none;
+        margin: 0;
+        transition: border-color 0.2s ease, transform 0.2s ease;
+      }
+      a.card:hover {
+        border-color: color-mix(in srgb, var(--brand) 60%, transparent);
+        transform: translateY(-2px);
+      }
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.93rem;
+      }
+      .card.wide {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: minmax(0, 0.8fr) minmax(0, 2fr);
+        gap: 28px;
+        align-items: center;
+      }
+      @media (max-width: 900px) {
+        .card.wide {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      .card.wide img {
+        width: 100%;
+        height: auto;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        display: block;
+      }
+      .viz {
+        height: 150px;
+        margin: 0 0 22px;
+        padding: 16px;
+        border-radius: 12px;
+        background: var(--code);
+        border: 1px solid var(--line);
+        font-size: 0.78rem;
+      }
+      .flow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+      }
+      .flow span {
+        padding: 6px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: var(--glass);
+        white-space: nowrap;
+      }
+      .flow .me {
+        color: var(--brand-ink);
+        background: var(--brand);
+        border-color: var(--brand);
+        box-shadow: 0 0 30px -4px var(--brand);
+      }
+      .flow i {
+        flex: 1;
+        height: 1px;
+        min-width: 8px;
+        background: linear-gradient(90deg, transparent, var(--brand), transparent);
+        background-size: 200% 100%;
+        animation: pulse 2.4s linear infinite;
+      }
+      @keyframes pulse {
+        from {
+          background-position: 100% 0;
+        }
+        to {
+          background-position: -100% 0;
+        }
+      }
+      .checks {
+        list-style: none;
+        display: grid;
+        gap: 6px;
+        align-content: center;
+      }
+      .checks li {
+        display: flex;
+        justify-content: space-between;
+      }
+      .checks li span {
+        color: var(--muted);
+      }
+      .checks b {
+        font-weight: 500;
+      }
+      .checks .total {
+        margin-top: 4px;
+        padding-top: 8px;
+        border-top: 1px dashed var(--line);
+      }
+      .checks .total span {
+        color: var(--fg);
+      }
+      .record {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 6px 16px;
+        align-content: center;
+      }
+      .record dt {
+        color: var(--muted);
+      }
+      .record dd {
+        margin: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .record dt:first-child,
+      .record dt:first-child + dd {
+        color: var(--brand);
+      }
+
+      /* Exit codes */
+      .exits {
+        list-style: none;
+        padding: 0;
+        margin: 24px 0 0;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        border-top: 1px solid var(--line);
+      }
+      @media (max-width: 760px) {
+        .exits {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      .exits li {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 28px 20px 8px 0;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      .exits .num {
+        font: 400 clamp(3.6rem, 8vw, 5.5rem) / 1 var(--serif);
+        font-style: italic;
+        color: var(--fg);
+      }
+      .exits b {
+        font-weight: 500;
+        font-size: 0.8rem;
+      }
+      .exits .pass b {
+        color: var(--pass);
+      }
+      .exits .fail b {
+        color: var(--fail);
+      }
+      .exits .unknown b {
+        color: var(--unknown);
+      }
+      .exits .none b {
+        color: var(--none);
+      }
+
+      /* Quick start */
+      .steps {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 28px;
+        display: grid;
+        gap: 14px;
+      }
+      .steps li {
+        position: relative;
+        min-width: 0;
+        padding: 22px 22px 22px 84px;
+      }
+      @media (max-width: 600px) {
+        .steps li {
+          padding: 20px;
+        }
+        .steps .step {
+          position: static;
+          display: block;
+          margin-bottom: 6px;
+        }
+      }
+      .step {
+        position: absolute;
+        left: 24px;
+        top: 22px;
+        color: var(--brand);
+        font-size: 0.85rem;
+      }
+      .steps p {
+        margin: 0 0 12px;
+        color: var(--muted);
+      }
+      .where {
+        margin-top: 40px;
+      }
+      .tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .tabs input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .tabs label {
+        padding: 6px 16px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        cursor: pointer;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      .tabs input:checked + label {
+        color: var(--brand-ink);
+        border-color: var(--brand);
+        background: var(--brand);
+        font-weight: 600;
+      }
+      .tabs input:focus-visible + label {
+        outline: 2px solid var(--brand);
+        outline-offset: 2px;
+      }
+      .panel {
+        min-width: 0;
+        display: none;
+        flex: 0 0 100%;
+        order: 1;
+        margin-top: 8px;
+      }
+      .tabs input:nth-of-type(1):checked ~ .panel:nth-of-type(1),
+      .tabs input:nth-of-type(2):checked ~ .panel:nth-of-type(2),
+      .tabs input:nth-of-type(3):checked ~ .panel:nth-of-type(3) {
+        display: block;
+      }
+
+      /* Recipes */
+      .recipes {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 10px;
+      }
+      .recipes a {
+        display: flex;
+        justify-content: space-between;
+        padding: 16px 18px;
+        border-radius: 14px;
+        color: var(--fg);
+        text-decoration: none;
+        font-weight: 500;
+        transition: border-color 0.2s ease;
+      }
+      .recipes a span {
+        color: var(--muted);
+        transition: transform 0.2s ease, color 0.2s ease;
+      }
+      .recipes a:hover {
+        border-color: var(--brand);
+      }
+      .recipes a:hover span {
+        color: var(--brand);
+        transform: translateX(3px);
+      }
+
+      /* The last call */
+      .final {
+        position: relative;
+        overflow: hidden;
+        padding: clamp(40px, 7vw, 80px);
+        border-radius: 28px;
+        text-align: center;
+        color: #f4f0fb;
+        background:
+          radial-gradient(120% 90% at 50% 120%, rgba(180, 154, 230, 0.55), transparent 60%),
+          radial-gradient(60% 60% at 10% 0%, rgba(111, 140, 255, 0.25), transparent 70%),
+          #2a1d4a;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      /* The stamp lands when the section comes into view, and ink splashes around it. */
+      .stamp {
+        display: block;
+        margin: -12px auto 8px;
+        color: #d6c6f6;
+        overflow: visible;
+      }
+      .stamp .drops circle {
+        fill: currentColor;
+        opacity: 0.85;
+        transform-box: fill-box;
+        transform-origin: center;
+      }
+      .stamp .mark {
+        transform-box: fill-box;
+        transform-origin: center;
+      }
+      .js .final .stamp .mark {
+        opacity: 0;
+      }
+      .js .final .stamp .drops circle {
+        transform: scale(0);
+      }
+      .js .final.in .stamp .mark {
+        animation: stamp 0.55s cubic-bezier(0.3, 0, 0.2, 1) 0.25s both;
+      }
+      .js .final.in .stamp .drops circle {
+        animation: splash 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.3) var(--d) both;
+      }
+      .js .final.in {
+        animation: thud 0.35s ease-out 0.62s;
+      }
+      @keyframes stamp {
+        0% {
+          opacity: 0;
+          transform: scale(2.6) rotate(10deg);
+        }
+        55% {
+          opacity: 1;
+          transform: scale(0.92) rotate(-2deg);
+        }
+        75% {
+          transform: scale(1.04) rotate(0.5deg);
+        }
+        100% {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      @keyframes splash {
+        from {
+          transform: translate(var(--dx), var(--dy)) scale(0);
+        }
+        to {
+          transform: scale(1);
+        }
+      }
+      @keyframes thud {
+        30% {
+          transform: translateY(3px) scale(0.995);
+        }
+      }
+      .final h2 {
+        margin-inline: auto;
+        max-width: 16ch;
+      }
+      .final h2 em {
+        color: #d6c6f6;
+      }
+      .final p {
+        color: rgba(244, 240, 251, 0.75);
+        margin: 0 0 28px;
+      }
+      .final .cta {
+        justify-content: center;
+        margin: 0;
+      }
+      .final .button {
+        background: #f4f0fb;
+        border-color: #f4f0fb;
+        color: #2a1d4a;
+      }
+      .final .button.ghost {
+        background: rgba(255, 255, 255, 0.06);
+        color: #f4f0fb;
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .js .gate .evidence li,
+        .js .gate .term span {
+          opacity: 1;
+          transform: none;
+          animation: none;
+          transition: none;
+        }
+        .flow i {
+          animation: none;
+        }
+        .js .final .stamp .mark,
+        .js .final .stamp .drops circle,
+        .js .final.in {
+          opacity: 1;
+          transform: none;
+          animation: none;
+        }
+      }
+    </style>
+</Page>

@@ -36,6 +36,8 @@ Kollaudo doesn't build, test or deploy anything: there are plenty of great tools
 > **v0.4 is out.** It's young: the API can still change before 1.0, and feedback is very welcome in
 > [Issues](https://github.com/kollaudo/kollaudo/issues).
 
+Website and documentation: **[kollaudo.dev](https://kollaudo.dev)**.
+
 ## Quick start
 
 The commands use the latest release, 0.4.0, so they keep working while `main` changes.
