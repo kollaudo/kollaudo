@@ -40,8 +40,21 @@ jobs:
             { echo "::error::CHANGELOG.md needs a section \"## [$version] - <release date>\"."; exit 1; }
           echo "version=$version" >>"$GITHUB_OUTPUT"
 
-  image:
+  # Kollaudo gates its own releases: the tagged commit must have passed the tests that
+  # kollaudo.yaml requires in ci, as sent by the e2e job of CI.
+  gate:
     needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: kollaudo/action@v0
+        with:
+          url: ${{ vars.KOLLAUDO_URL }}
+          token: ${{ secrets.KOLLAUDO_GATE_TOKEN }}
+          component: kollaudo
+          environment: ci
+
+  image:
+    needs: [check, gate]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -75,7 +88,7 @@ jobs:
           sbom: true
 
   cli:
-    needs: check
+    needs: [check, gate]
     runs-on: ubuntu-latest
     permissions:
       contents: read

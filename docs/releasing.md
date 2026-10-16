@@ -8,6 +8,7 @@ Pushing a tag `v<version>` starts [`release.yml`](../.github/workflows/release.y
 the tag unless:
 
 - it points to a commit on `main`;
+- Kollaudo's verdict of the commit in `ci` is `pass`, under the rules of `kollaudo.yaml`;
 - every `package.json` in `apps/`, `packages/` and `e2e/` has that version (tests check that the
   `VERSION` constants of the server and the CLI match them);
 - `charts/kollaudo/Chart.yaml` has that `version` and `appVersion`;
@@ -26,7 +27,11 @@ marked as a pre-release.
    `charts/kollaudo/Chart.yaml`, and in the quick start of `README.md`. Date the section of
    `CHANGELOG.md`, and move what it adds from "Next" to "Today" in the README.
    Merge the pull request.
-2. Tag the merge commit and push the tag:
+2. Tag the merge commit and push the tag.
+
+   Wait until CI is green on that commit first: the `gate` job asks Kollaudo for the verdict of the
+   commit in `ci`, and stops the release unless its e2e and ui tests passed. If the tag was pushed
+   too early, re-run the `gate` job once CI is done.
 
    ```bash
    git switch main && git pull
