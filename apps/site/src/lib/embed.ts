@@ -288,7 +288,8 @@ function linkedInMedia(
   html: string,
   type?: string,
 ): { video?: Embed["video"]; poster?: string; images: string[] } {
-  const page = html.replace(/\\u0026/g, "&").replace(/&amp;/g, "&");
+  // One pass: two would turn "&amp;" into "&" where the page means "&amp;".
+  const page = html.replace(/\\u0026|&amp;/g, "&");
   if (type !== "VideoObject") {
     const body = page.slice(Math.max(0, page.indexOf("<body")));
     const image = body.match(
@@ -331,7 +332,7 @@ function videoOf(page: URL, og?: string): Embed["video"] {
   const youtube =
     host === "youtu.be"
       ? page.pathname.slice(1)
-      : host.endsWith("youtube.com")
+      : host === "youtube.com" || host.endsWith(".youtube.com")
         ? page.searchParams.get("v")
         : null;
   if (youtube)
@@ -364,11 +365,17 @@ function metaTags(html: string): Map<string, string[]> {
 
 /** Turns the HTML of a post into plain paragraphs. */
 export function paragraphs(html: string): string[] {
-  const text = html
+  const spaced = html
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<\/(p|div|li|h[1-6]|blockquote|pre)>|<p\b[^>]*>/gi, "\n\n")
-    .replace(/<li\b[^>]*>/gi, "• ")
-    .replace(/<[^>]+>/g, "");
+    .replace(/<li\b[^>]*>/gi, "• ");
+  // Until nothing changes: removing a tag can join the pieces around it into a new one, as in
+  // "<scr<b>ipt>".
+  let text = spaced;
+  for (let before = ""; before !== text; ) {
+    before = text;
+    text = text.replace(/<[^>]+>/g, "");
+  }
   return decode(text)
     .split(/\n\s*\n/)
     .map((paragraph) => paragraph.replace(/[ \t]+/g, " ").trim())
