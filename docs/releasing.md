@@ -30,8 +30,9 @@ marked as a pre-release.
 2. Tag the merge commit and push the tag.
 
    Wait until CI is green on that commit first: the `gate` job asks Kollaudo for the verdict of the
-   commit in `ci`, and stops the release unless its e2e and ui tests passed. If the tag was pushed
-   too early, re-run the `gate` job once CI is done.
+   commit in `ci`, and stops the release unless the tests `kollaudo.yaml` requires passed. If the
+   tag was pushed too early, re-run the `gate` job once CI is done. If Kollaudo can't be reached,
+   the gate stops the release too: bring the instance back, then re-run the `gate` job.
 
    ```bash
    git switch main && git pull
