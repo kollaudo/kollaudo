@@ -67,6 +67,21 @@ export function TestRunPage({ id }: { id: string }) {
         <Meta label="Digest" value={run.digest && shortDigest(run.digest)} />
       </dl>
 
+      {run.environment && (
+        <p className="mt-2 text-sm">
+          <Link
+            href={`/verdict?${new URLSearchParams({
+              component: run.component,
+              environment: run.environment,
+              version: run.version,
+            })}`}
+            className="text-brand hover:underline"
+          >
+            Verdict of {shortVersion(run.version)} in {run.environment}
+          </Link>
+        </p>
+      )}
+
       <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
         <span className="font-medium">{run.summary.tests} tests</span>
         <Counts summary={run.summary} />
