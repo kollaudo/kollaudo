@@ -64,6 +64,8 @@ test("shows the health matrix and the tests of a run", async ({ page }) => {
 
   await card.click();
   await expect(page.getByRole("heading", { name: /kollaudo .* on ci/ })).toBeVisible();
+  await expect(page.getByText("answers the health check")).toBeVisible();
+  await expect(page.getByText("serves the web UI on every route")).toBeVisible();
   // From a run in an environment, jump to the verdict of that version there.
   const verdictLink = page.getByRole("link", {
     name: `Verdict of ${version().slice(0, 7)} in ci`,
@@ -71,8 +73,6 @@ test("shows the health matrix and the tests of a run", async ({ page }) => {
   await expect(verdictLink).toBeVisible();
   await verdictLink.click();
   await expect(page.getByRole("heading", { name: /^PASS kollaudo .* in ci$/ })).toBeVisible();
-  await expect(page.getByText("answers the health check")).toBeVisible();
-  await expect(page.getByText("serves the web UI on every route")).toBeVisible();
 });
 
 test("keeps projects apart", async ({ page }) => {
