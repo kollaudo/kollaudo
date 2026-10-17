@@ -37,6 +37,9 @@ the API.
 
 ### CLI
 
+- `kollaudo override list --json` prints the API's full response for scripts, with
+  the same exit codes as the default one-line output.
+
 - `kollaudo signoff` records that you checked a version, such as a UAT or a manual check, with an
   outcome and a note, and prints the verdict that follows. It needs a token of the `signoff` scope and
   a 0.5 server ([docs](docs/signoffs.md)). It exits with 0 once the sign-off is recorded, whatever
