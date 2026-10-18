@@ -4,7 +4,7 @@ import { call, describeError, server } from "./api.ts";
 import type { Io } from "./io.ts";
 
 export const OVERRIDE_HELP = `Usage: kollaudo override --component <name> --env <name> --version <version> --reason <why> [--for 4h]
-       kollaudo override list [--component <name>] [--env <name>] [--version <version>]
+       kollaudo override list [--component <name>] [--env <name>] [--version <version>] [--json]
        kollaudo override revoke <id>
 
 Let one version through the gate of one environment, for a while: the verdict passes, and says it
@@ -17,6 +17,7 @@ Options:
   --version <version>    Version to let through (required)
   --reason <why>         Why, in a few words: what people will read later (required)
   --for <duration>       How long it holds, such as 30m or 4h, at most 24h (default: 4h)
+  --json                 Print the list API's answer as JSON instead of the one-line format
   -h, --help             Show this help
 
 Environment:
@@ -95,6 +96,10 @@ export async function override(args: string[], io: Io): Promise<number> {
   if (!response.ok) return fail(describeError(response, text));
 
   if (action === "list") {
+    if (values.json) {
+      io.out(`${text}\n`);
+      return 0;
+    }
     const { items } = JSON.parse(text) as OverrideList;
     if (items.length === 0) io.out("No overrides.\n");
     for (const o of items) io.out(`${line(o)}\n`);
@@ -124,6 +129,7 @@ function parse(args: string[]) {
       version: { type: "string" },
       reason: { type: "string" },
       for: { type: "string" },
+      json: { type: "boolean" },
       help: { type: "boolean", short: "h" },
     },
   });

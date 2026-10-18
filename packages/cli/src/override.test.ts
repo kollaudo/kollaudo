@@ -103,6 +103,37 @@ describe("kollaudo override", () => {
     });
   });
 
+  it.each([
+    '{ "items": [], "next": null, "extra": "kept" }',
+    JSON.stringify({ items: [held], extra: "kept" }),
+  ])("prints the unchanged list response as JSON, keeping filters: %s", async (text) => {
+    const requests: string[] = [];
+    const fetch = async (url: string | URL | Request) => {
+      requests.push(String(url));
+      return new Response(text);
+    };
+    expect(
+      await runWith(run, ["override", "list", "--env", "staging", "--json"], {
+        env,
+        fetch: fetch as typeof globalThis.fetch,
+      }),
+    ).toEqual({ code: 0, out: `${text}\n`, err: "" });
+    expect(requests).toEqual(["https://kollaudo.example.com/v1/overrides?environment=staging"]);
+  });
+
+  it("preserves API errors in JSON mode", async () => {
+    const refused = server(403, {
+      error: { code: "forbidden", message: "This endpoint needs a token with the override scope." },
+    });
+    expect(
+      await runWith(run, ["override", "list", "--json"], { env, fetch: refused.fetch }),
+    ).toEqual({
+      code: 1,
+      out: "",
+      err: "Error: This endpoint needs a token with the override scope. (403 forbidden)\n",
+    });
+  });
+
   it("shows its help", async () => {
     expect(await runWith(run, ["override", "--help"])).toEqual({
       code: 0,

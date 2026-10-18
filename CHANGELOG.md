@@ -50,6 +50,8 @@ the API.
   page through the log. The exit codes are the same as without it.
 - `kollaudo verdict list --before <id>` continues from the previous JSON answer's `next` value,
   with the same filters and limit, so scripts can read older verdicts too.
+- `kollaudo override list --json` prints the API's full response for scripts, with
+  the same exit codes as the default one-line output.
 
 ## [0.4.0] - 2026-10-08
 
