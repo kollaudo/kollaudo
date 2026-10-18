@@ -28,6 +28,11 @@ the API.
   `override` does for people who let one through. It can be limited to components and environments.
   The migration that adds the scope can't be undone: it adds a value to the `token_scope` enum.
 
+### Web
+
+- The verdict page shows who signed off a kind, when and their note, and says in its rules when a
+  policy requires a sign-off from a person.
+
 ### Recipes
 
 - [Argo Rollouts](docs/recipes/argo-rollouts.md): the first step of a canary asks for the verdict, so

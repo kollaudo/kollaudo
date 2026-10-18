@@ -51,6 +51,7 @@ export function VerdictPage({ query }: { query: URLSearchParams }) {
   const rules = [
     policy.name === "project" ? `policy revision ${policy.revision}` : "default rules",
     policy.require.length > 0 ? `requires ${policy.require.join(", ")}` : null,
+    policy.signoff?.length ? `sign-off from a person for ${policy.signoff.join(", ")}` : null,
     policy.deployed ? "tests of the deployed version only" : null,
     policy.flaky === "fail" ? "flaky tests fail" : null,
     policy.maxAge ? `runs from the last ${policy.maxAge}` : null,
@@ -121,7 +122,17 @@ export function VerdictPage({ query }: { query: URLSearchParams }) {
                 </span>
                 <span className="w-20 font-medium">{reason.kind}</span>
                 <span className="flex-1">{reason.message}</span>
-                {reason.run?.sentBy && <span className="text-muted">by {reason.run.sentBy}</span>}
+                {reason.run?.signoff ? (
+                  <span className="w-full text-muted sm:w-auto">
+                    signed off by {reason.run.sentBy ?? "a deleted token"},{" "}
+                    <span title={new Date(reason.run.createdAt).toLocaleString()}>
+                      {timeAgo(reason.run.createdAt)}
+                    </span>
+                    {reason.run.note && <span className="italic">: “{reason.run.note}”</span>}
+                  </span>
+                ) : (
+                  reason.run?.sentBy && <span className="text-muted">by {reason.run.sentBy}</span>
+                )}
                 {reason.run && (
                   <Link href={`/test-runs/${reason.run.id}`} className="text-brand hover:underline">
                     Test run
