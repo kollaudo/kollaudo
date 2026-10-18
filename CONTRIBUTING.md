@@ -17,6 +17,12 @@ now are use cases, feedback on the design and recipes for the tools you use.
   [`docs/recipes`](docs/recipes): see [the Playwright recipe](docs/recipes/playwright.md) for the
   format.
 
+## Code of Conduct
+
+Everyone who takes part in the project follows the [Code of Conduct](CODE_OF_CONDUCT.md). If
+something in Kollaudo is hard to use because of an accessibility problem, see
+[docs/accessibility.md](docs/accessibility.md) for how to report it.
+
 ## Set up
 
 You need Node.js 24 and Docker. The repository is a pnpm monorepo:
