@@ -8,6 +8,9 @@ the API.
 
 ### Documentation
 
+- Code of Conduct ([`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)) and an
+  [accessibility page](docs/accessibility.md) that says what the web UI does today and what is
+  still unchecked, and how to report a problem.
 - A website with a quick start and the documentation. The landing page has the commands to run
   Kollaudo and get a first verdict, and the guides, recipes and decision records of `docs/` are
   published with search. It is built from the files in `docs/`, with `pnpm --filter @kollaudo/site dev`.
