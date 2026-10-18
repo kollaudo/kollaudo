@@ -165,4 +165,26 @@ expect_exit 0 kollaudo push ctrf/ctrf-report.json --component kollaudo --env ci 
   --version "$VERSION" --kind ui
 expect_exit 0 kollaudo verdict --component kollaudo --env ci --version "$VERSION" --require e2e,ui
 
+echo "## 7. A sign-off from a person, which a report from CI doesn't replace"
+admin token create "$E2E_PROJECT" --scope signoff --name product-owner >"$OUT/signoff-token"
+printf 'environments:\n  staging:\n    signoff: [uat]\n' >"$OUT/signoff-policy.yaml"
+KOLLAUDO_TOKEN=$(token policy "$OUT/policy-token") expect_exit 0 kollaudo policy push "$OUT/signoff-policy.yaml"
+SIGNOFF_ARGS=(--component checkout --env staging --version 3.0.0)
+expect_exit 2 kollaudo verdict "${SIGNOFF_ARGS[@]}"
+expect_output "uat"
+# A uat report sent by the pipeline is kept, but the verdict still waits for a person.
+expect_exit 0 kollaudo push fixtures/passed.json "${SIGNOFF_ARGS[@]}" --kind uat
+expect_exit 2 kollaudo verdict "${SIGNOFF_ARGS[@]}"
+expect_output "sign-off"
+export KOLLAUDO_TOKEN=$(token signoff "$OUT/signoff-token")
+expect_exit 0 kollaudo signoff "${SIGNOFF_ARGS[@]}" --kind uat --outcome fail --note "Payment page is broken"
+expect_output "FAIL"
+expect_exit 0 kollaudo signoff "${SIGNOFF_ARGS[@]}" --kind uat --outcome pass \
+  --note "Checked the new payment page with the two test cards"
+expect_output "PASS"
+expect_exit 0 kollaudo verdict "${SIGNOFF_ARGS[@]}"
+KOLLAUDO_TOKEN=$E2E_INGEST_TOKEN
+E2E_SIGNOFF_NOTE="Checked the new payment page with the two test cards" \
+  pnpm exec playwright test tests/signoff.spec.ts
+
 echo "All end-to-end checks passed."
