@@ -2,6 +2,10 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import {
   ApiError,
+  Bug,
+  BugInput,
+  BugList,
+  BugQuery,
   Deployment,
   DeploymentInput,
   DeploymentList,
@@ -36,6 +40,7 @@ import { bodyLimit } from "hono/body-limit";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { type AuthEnv, requireScope } from "./auth.ts";
+import { listBugs, saveBug } from "./bugs.ts";
 import type { Db } from "./db/client.ts";
 import { projects } from "./db/schema.ts";
 import { listDeployments, recordDeployment } from "./deployments.ts";
@@ -355,6 +360,38 @@ export function createApp({ db, webDir }: AppOptions) {
       responses: { 200: json(OverrideList, "The overrides"), ...errors },
     }),
     async (c) => c.json(await listOverrides(db, c.var.projectId, c.req.valid("query")), 200),
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/v1/bugs",
+      summary: "Link a known bug to failed tests",
+      description:
+        "Says that tests of a component fail because of a bug, by its key. It creates the links " +
+        "that don't exist and updates the others. Sending the bug as closed closes all its " +
+        "links. A link holds for every version and environment until its bug is closed, and it " +
+        "never changes a verdict (ADR 0022).",
+      security: [{ token: [] }],
+      middleware: [requireScope(db, "ingest")] as const,
+      request: { body: { ...json(BugInput, "The bug"), required: true } },
+      responses: { 200: json(Bug, "The links were saved"), ...errors },
+    }),
+    async (c) => c.json(await saveBug(db, c.var.token, c.req.valid("json")), 200),
+  );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/v1/bugs",
+      summary: "List known bugs",
+      description: "The bugs linked to tests, each with its tests, the last one sent first.",
+      security: [{ token: [] }],
+      middleware: [requireScope(db, "read", "ingest")] as const,
+      request: { query: BugQuery },
+      responses: { 200: json(BugList, "The bugs"), ...errors },
+    }),
+    async (c) => c.json(await listBugs(db, c.var.projectId, c.req.valid("query")), 200),
   );
 
   app.openapi(

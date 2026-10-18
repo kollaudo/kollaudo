@@ -1,4 +1,5 @@
 export { ApiError, Project } from "./api.ts";
+export { Bug, BugInput, BugList, BugQuery, BugState } from "./bugs.ts";
 export { CtrfReport, CtrfStatus, CtrfTest } from "./ctrf.ts";
 export {
   Deployment,
