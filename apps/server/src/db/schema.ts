@@ -199,6 +199,31 @@ export const overrides = pgTable(
   (t) => [index().on(t.versionId, t.environmentId)],
 );
 
+export const bugState = pgEnum("bug_state", ["open", "closed"]);
+
+/**
+ * A known bug tied to one test of one component (ADR 0022). It holds for every version and
+ * environment until the bug is closed. It never changes a verdict.
+ */
+export const bugLinks = pgTable(
+  "bug_links",
+  {
+    id: id(),
+    componentId: uuid()
+      .notNull()
+      .references(() => components.id, { onDelete: "cascade" }),
+    key: text().notNull(),
+    url: text().notNull(),
+    state: bugState().notNull().default("open"),
+    /** The suite and the name of the test, joined by " › ". */
+    test: text().notNull(),
+    tokenId: uuid().references(() => apiTokens.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+    updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique().on(t.componentId, t.key, t.test), index().on(t.componentId, t.state)],
+);
+
 export const testStatus = pgEnum("test_status", [
   "passed",
   "failed",

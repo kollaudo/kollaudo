@@ -27,6 +27,10 @@ the API.
 - `kollaudo-server token create --scope signoff` makes a token for people who sign off a version, as
   `override` does for people who let one through. It can be limited to components and environments.
   The migration that adds the scope can't be undone: it adds a value to the `token_scope` enum.
+- Known bugs ([ADR 0022](docs/adr/0022-known-bugs-linked-to-failed-tests.md), [docs](docs/bugs.md)).
+  `POST /v1/bugs` says that tests of a component fail because of a bug, by its key, and closes the
+  links when the bug is sent as closed. `GET /v1/bugs` lists them. A link never changes a verdict,
+  and the verdict doesn't use them yet. Update the server before the tools that send links.
 
 ### Web
 
