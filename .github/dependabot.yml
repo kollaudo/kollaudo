@@ -56,3 +56,14 @@ updates:
     commit-message:
       prefix: chore
       include: scope
+
+  # The pinned pytest of the pytest recipe that e2e/run.sh runs.
+  - package-ecosystem: pip
+    directory: /e2e/pytest
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: chore
+      include: scope
