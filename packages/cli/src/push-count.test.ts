@@ -5,9 +5,10 @@ import { summarize } from "../../../apps/server/src/ingest.ts";
 import { count } from "./push.ts";
 import { ReportError } from "./reports.ts";
 
-/** fixture returns the report named in testdata/ctrf, parsed from JSON. */
-function fixture(name: string): unknown {
-  return JSON.parse(readFileSync(new URL(`testdata/ctrf/${name}`, import.meta.url), "utf8"));
+/** fixture returns the report at path relative to repo root, parsed from JSON. */
+function fixture(path: string): unknown {
+  const repoRoot = new URL("../../..", import.meta.url);
+  return JSON.parse(readFileSync(new URL(path, repoRoot), "utf8"));
 }
 
 /** nodeAt returns the object holding the value at path, inside clone. */
@@ -47,10 +48,11 @@ function counted(report: unknown): TestRunSummary | undefined {
   }
 }
 
-const example = fixture("example.json");
+const example = fixture("docs/examples/ctrf-report.json");
 const valid = [
   { what: "the Playwright example", report: example },
-  { what: "a passing e2e report", report: fixture("passed.json") },
+  { what: "a passing e2e report", report: fixture("e2e/fixtures/passed.json") },
+  { what: "a failing e2e report", report: fixture("e2e/fixtures/failed.json") },
 ];
 
 describe("count", () => {
