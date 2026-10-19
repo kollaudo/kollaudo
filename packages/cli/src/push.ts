@@ -140,7 +140,7 @@ const STATUSES = ["passed", "failed", "skipped", "pending", "other"] as const;
  * it stores a run: keep the two in step. The published CLI has neither @kollaudo/schema nor zod, so
  * the fields `CtrfTest` requires (packages/schema/src/ctrf.ts) are checked here by hand.
  */
-function count(report: unknown, file: string | undefined): TestRunSummary {
+export function count(report: unknown, file: string | undefined): TestRunSummary {
   const where = file ? `${file}: ` : "";
   // mergeCtrf checks this for several CTRF files, but one file comes as it was written.
   const results = (report as CtrfReport | undefined)?.results;
