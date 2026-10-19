@@ -35,9 +35,13 @@ test("shows the health matrix and the tests of a run", async ({ page }) => {
   await expect(page.getByRole("columnheader", { name: "ci" })).toBeVisible();
   // The unit tests sent as JUnit XML, at build level.
   await expect(page.getByRole("columnheader", { name: "Build" })).toBeVisible();
-  await expect(
-    row.getByRole("link", { name: new RegExp(`^${version().slice(0, 7)} unit`) }),
-  ).toBeVisible();
+  const build = row.getByRole("link", { name: new RegExp(`^${version().slice(0, 7)} unit`) });
+  await expect(build).toBeVisible();
+  // A build-level run has no verdict: the link only exists for runs in an environment.
+  await build.click();
+  await expect(page.getByRole("heading", { name: / \(build\)/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Verdict of/ })).toHaveCount(0);
+  await page.getByRole("link", { name: "← Health matrix" }).click();
   // A test run's card starts with its version; the verdict above it starts with the outcome.
   const card = row.getByRole("link", { name: new RegExp(`^${version().slice(0, 7)} e2e`) });
   await expect(card).toContainText("e2e");
@@ -62,6 +66,13 @@ test("shows the health matrix and the tests of a run", async ({ page }) => {
   await expect(page.getByRole("heading", { name: /kollaudo .* on ci/ })).toBeVisible();
   await expect(page.getByText("answers the health check")).toBeVisible();
   await expect(page.getByText("serves the web UI on every route")).toBeVisible();
+  // From a run in an environment, jump to the verdict of that version there.
+  const verdictLink = page.getByRole("link", {
+    name: `Verdict of ${version().slice(0, 7)} in ci`,
+  });
+  await expect(verdictLink).toBeVisible();
+  await verdictLink.click();
+  await expect(page.getByRole("heading", { name: /^PASS kollaudo .* in ci$/ })).toBeVisible();
 });
 
 test("keeps projects apart", async ({ page }) => {

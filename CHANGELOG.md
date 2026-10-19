@@ -65,6 +65,10 @@ the API.
 - `kollaudo override list --json` prints the API's full response for scripts, with
   the same exit codes as the default one-line output.
 
+### Web
+
+- The test run page links to the verdict of its version in its environment ("Verdict of 1.4.0 in staging"), the way the health matrix links to verdicts and verdicts link back to runs. Build-level runs, which have no verdict, show no link.
+
 ## [0.4.0] - 2026-10-08
 
 The `kollaudo/action` gate and `push` actions run this release of the CLI. `kollaudo verdict --json`
