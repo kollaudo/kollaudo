@@ -39,6 +39,8 @@ the API.
 
 - The verdict page shows who signed off a kind, when and their note, and says in its rules when a
   policy requires a sign-off from a person.
+- The test run page links to the verdict of its version in its environment, such as "Verdict of
+  1.4.0 in staging". Build-level runs, which have no verdict, show no link.
 
 ### Recipes
 
@@ -64,10 +66,6 @@ the API.
   with the same filters and limit, so scripts can read older verdicts too.
 - `kollaudo override list --json` prints the API's full response for scripts, with
   the same exit codes as the default one-line output.
-
-### Web
-
-- The test run page links to the verdict of its version in its environment ("Verdict of 1.4.0 in staging"), the way the health matrix links to verdicts and verdicts link back to runs. Build-level runs, which have no verdict, show no link.
 
 ## [0.4.0] - 2026-10-08
 
