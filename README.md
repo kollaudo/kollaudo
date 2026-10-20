@@ -33,7 +33,7 @@ stricter, never looser, and every override is recorded with who, why and until w
 Kollaudo doesn't build, test or deploy anything: there are plenty of great tools for that. It
 **collects their results and judges**, and the tool that promotes does what the verdict says.
 
-> **v0.4 is out.** It's young: the API can still change before 1.0, and feedback is very welcome in
+> **v0.5 is out.** It's young: the API can still change before 1.0, and feedback is very welcome in
 > [Issues](https://github.com/kollaudo/kollaudo/issues).
 
 Website and documentation: **[kollaudo.dev](https://kollaudo.dev)**.
@@ -45,13 +45,13 @@ You can see how the data are made in [kollaudo/demo](https://github.com/kollaudo
 
 ## Quick start
 
-The commands use the latest release, 0.4.0, so they keep working while `main` changes.
+The commands use the latest release, 0.5.0, so they keep working while `main` changes.
 
 1. Start Kollaudo, and create a project. It prints an ingest and a read token, kept in
    `tokens.txt`:
 
    ```bash
-   export KOLLAUDO_VERSION=0.4.0
+   export KOLLAUDO_VERSION=0.5.0
    curl -O https://raw.githubusercontent.com/kollaudo/kollaudo/v$KOLLAUDO_VERSION/deploy/docker-compose.yml
    docker compose up -d --wait
    docker compose exec -T kollaudo kollaudo-server project create demo | tee tokens.txt
@@ -131,7 +131,7 @@ If one CI system does all of this for you and its gates are enough, you probably
 
 ## What it does
 
-**Today** (released in [0.4.0](CHANGELOG.md))
+**Today** (released in [0.5.0](CHANGELOG.md))
 
 - **Receives test results** from any framework, as JUnit XML or [CTRF](https://ctrf.io) reports, for
   a version of a component in an environment, or at build level for unit tests.
@@ -152,6 +152,11 @@ If one CI system does all of this for you and its gates are enough, you probably
 - **Gates a GitHub Actions job in one step**, and sends test results in another: the
   [Kollaudo gate](https://github.com/marketplace/actions/kollaudo-gate) and `kollaudo/action/push`,
   with recipes for Azure DevOps and Jenkins too.
+- **Counts what people decide**: a UAT sign-off or a manual check that a policy can require, given
+  with a token that a pipeline doesn't hold ([sign-offs](docs/signoffs.md)).
+- **Tells a known bug from a new failure**: a failed test can be linked to its bug, and the verdict
+  says which failures are known. It still fails: only an override lets a version through
+  ([bugs](docs/bugs.md)).
 - **Runs anywhere** as one container next to PostgreSQL, with Docker Compose or the
   [Helm chart](charts/kollaudo/README.md), with a readiness check that includes the database,
   several projects and scoped tokens.
@@ -171,8 +176,8 @@ version deployed there, and the tests of each run.
 
 **Next** ([roadmap](#roadmap))
 
-- UAT sign-offs and manual checks that a policy can require, and bugs linked to failed tests, sent
-  from the tools where testers work ([v0.5](docs/milestones/v0.5.md)).
+- A recipe for Jira automation, to send sign-offs and bug links from the tool where testers work. It
+  comes once it has run on a real Jira Cloud site.
 - Build signals as context: coverage, static analysis.
 
 ## What it is not

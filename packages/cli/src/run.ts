@@ -8,7 +8,7 @@ import { signoff } from "./signoff.ts";
 import { verdict } from "./verdict.ts";
 
 /** Same as in package.json: a test checks it, and the release workflow checks the tag. */
-export const VERSION = "0.4.0";
+export const VERSION = "0.5.0";
 
 export const HELP = `Usage: kollaudo <command> [options]
 
