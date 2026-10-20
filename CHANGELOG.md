@@ -6,6 +6,11 @@ the API.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-20
+
+Update the server before the CLI and before any policy that uses `signoff`: older servers reject the new
+field. `kollaudo signoff` needs a 0.5 server. The exit codes of `kollaudo verdict` don't change.
+
 ### Documentation
 
 - Code of Conduct ([`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)) and an
@@ -280,6 +285,7 @@ every component in every environment.
 - [Sending test results](docs/sending-results.md) from any framework and CI, and a
   [Playwright recipe](docs/recipes/playwright.md).
 
+[0.5.0]: https://github.com/kollaudo/kollaudo/releases/tag/v0.5.0
 [0.4.0]: https://github.com/kollaudo/kollaudo/releases/tag/v0.4.0
 [0.3.0]: https://github.com/kollaudo/kollaudo/releases/tag/v0.3.0
 [0.2.0]: https://github.com/kollaudo/kollaudo/releases/tag/v0.2.0
