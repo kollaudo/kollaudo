@@ -8,7 +8,9 @@ cd "$(dirname "$0")/../.."
 
 ROLLOUTS_VERSION=${ROLLOUTS_VERSION:-v1.10.0}
 # The image of the example component. The gate asks about the version in the "version" label.
-IMAGE=public.ecr.aws/nginx/nginx:1.26.0
+# public.ecr.aws throttles anonymous pulls from CI runners, as Argo CD's Redis showed (#116):
+# Docker Hub serves the same image.
+IMAGE=docker.io/library/nginx:1.26.0
 NS=kollaudo-demo
 
 admin() { kubectl exec -n kollaudo deploy/kollaudo -- kollaudo-server "$@"; }

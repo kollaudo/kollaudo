@@ -80,6 +80,8 @@ jobs:
         if: failure()
         run: |
           kubectl -n kollaudo-demo get rollouts,analysisruns,replicasets -o wide
+          kubectl -n kollaudo-demo get pods -o wide
+          kubectl -n kollaudo-demo get events --sort-by=.lastTimestamp | tail -30
           kubectl -n kollaudo-demo get analysisruns -o yaml | tail -120
           kubectl -n argo-rollouts logs deploy/argo-rollouts --tail=100
           kubectl -n kollaudo logs deploy/kollaudo --tail=100
