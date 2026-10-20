@@ -1,12 +1,14 @@
-import type { TestResult, TestRunDetail } from "@kollaudo/schema";
-import { useEffect, useState } from "react";
+import type { BugList, TestResult, TestRunDetail } from "@kollaudo/schema";
+import { useEffect, useMemo, useState } from "react";
+import { BugLink } from "../components/BugLink.tsx";
 import { Counts } from "../components/Counts.tsx";
 import { Message } from "../components/Message.tsx";
 import { type ApiRequestError, apiGet } from "../lib/api.ts";
 import { duration, shortDigest, shortVersion, timeAgo } from "../lib/format.ts";
 import { type SavedProject, selectProject, useProjects } from "../lib/projects.ts";
-import { groupBySuite } from "../lib/results.ts";
+import { bugsByTest, groupBySuite, testName } from "../lib/results.ts";
 import { Link } from "../lib/router.tsx";
+import { useApi } from "../lib/useApi.ts";
 
 type Filter = "all" | "failed" | "flaky" | "skipped";
 
@@ -19,7 +21,17 @@ const FILTERS: Record<Filter, (result: TestResult) => boolean> = {
 
 export function TestRunPage({ id }: { id: string }) {
   const { run, error } = useTestRun(id);
+  const { current } = useProjects();
   const [filter, setFilter] = useState<Filter>("all");
+  // The open bugs of the component, to show next to the tests that fail for them (ADR 0022). A
+  // server before 0.5 has none: the run shows without them.
+  const { data: bugs } = useApi<BugList>(
+    run
+      ? `/v1/bugs?${new URLSearchParams({ component: run.component, state: "open" })}`
+      : undefined,
+    current?.token,
+  );
+  const knownBugs = useMemo(() => bugsByTest(bugs?.items ?? []), [bugs]);
 
   if (error) {
     return (
@@ -112,7 +124,11 @@ export function TestRunPage({ id }: { id: string }) {
             </h2>
             <ul className="divide-y divide-neutral-200 rounded-lg border border-neutral-200 dark:divide-neutral-800 dark:border-neutral-800">
               {group.results.map((result) => (
-                <ResultRow key={result.id} result={result} />
+                <ResultRow
+                  key={result.id}
+                  result={result}
+                  bugs={result.status === "failed" ? knownBugs.get(testName(result)) : undefined}
+                />
               ))}
             </ul>
           </section>
@@ -140,7 +156,13 @@ const ICONS: Record<TestResult["status"], { icon: string; className: string }> =
   other: { icon: "?", className: "text-muted" },
 };
 
-function ResultRow({ result }: { result: TestResult }) {
+function ResultRow({
+  result,
+  bugs = [],
+}: {
+  result: TestResult;
+  bugs?: { key: string; url: string }[];
+}) {
   const { icon, className } = ICONS[result.status];
   const details = result.message || result.trace;
 
@@ -153,6 +175,14 @@ function ResultRow({ result }: { result: TestResult }) {
         <span className="font-medium">{result.name}</span>
         {result.file && <span className="ml-2 text-xs text-muted">{result.file}</span>}
       </span>
+      {bugs.length > 0 && (
+        <span className="flex items-baseline gap-1.5 text-xs">
+          <span className="rounded bg-flaky/10 px-1.5 font-medium text-flaky">known bug</span>
+          {bugs.map((bug) => (
+            <BugLink key={bug.key} bug={bug} />
+          ))}
+        </span>
+      )}
       {result.flaky && (
         <span className="rounded bg-flaky/10 px-1.5 text-xs font-medium text-flaky">flaky</span>
       )}

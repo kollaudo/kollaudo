@@ -154,6 +154,21 @@ KOLLAUDO_TOKEN=$E2E_READ_TOKEN expect_exit 2 \
   kollaudo verdict --component worker --env production --version 1.4.0
 expect_output "without a pass in ci before it."
 
+echo "## 3d. A bug linked to a failed test: the verdict says the failure is known and still fails"
+expect_exit 0 kollaudo push fixtures/failed.json --component checkout --env qa --version 2.0.0
+expect_exit 1 kollaudo verdict --component checkout --env qa --version 2.0.0
+expect_output "1 failed, 1 passed"
+export E2E_BUG_KEY=SHOP-412 E2E_BUG_URL=https://tracker.example.com/browse/SHOP-412
+curl -fsS -X POST "$KOLLAUDO_URL/v1/bugs" \
+  -H "Authorization: Bearer $E2E_INGEST_TOKEN" -H "Content-Type: application/json" \
+  -d "{\"key\": \"$E2E_BUG_KEY\", \"url\": \"$E2E_BUG_URL\", \"component\": \"checkout\", \"tests\": [\"signs in\"]}" \
+  >/dev/null
+expect_exit 1 kollaudo verdict --component checkout --env qa --version 2.0.0
+expect_output "1 failed: 1 known ($E2E_BUG_KEY); 1 passed"
+# A link is per component: the same failure in another environment is known too.
+expect_exit 1 kollaudo verdict --component checkout --env ci --version 2.0.0
+expect_output "1 failed: 1 known ($E2E_BUG_KEY); 1 passed"
+
 echo "## 4. Wrong reports and tokens are refused"
 expect_exit 1 kollaudo push fixtures/invalid.json --component kollaudo --env ci --version "$VERSION"
 expect_output "fixtures/invalid.json: results.tests.0.status"

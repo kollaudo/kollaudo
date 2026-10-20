@@ -1,4 +1,5 @@
 import type { GivenVerdictList, Verdict } from "@kollaudo/schema";
+import { BugLink } from "../components/BugLink.tsx";
 import { Message } from "../components/Message.tsx";
 import { BAR, look, OutcomeLabel, VerdictLabel } from "../components/VerdictLabel.tsx";
 import { shortVersion, timeAgo } from "../lib/format.ts";
@@ -137,6 +138,21 @@ export function VerdictPage({ query }: { query: URLSearchParams }) {
                   <Link href={`/test-runs/${reason.run.id}`} className="text-brand hover:underline">
                     Test run
                   </Link>
+                )}
+                {reason.failures && reason.failures.length > 0 && (
+                  <ul className="w-full space-y-1 pt-1 pl-0 sm:pl-36">
+                    {reason.failures.map((failure) => (
+                      <li key={failure.test} className="flex flex-wrap items-baseline gap-x-3">
+                        {failure.bug ? (
+                          <span className="w-16 text-xs font-medium text-flaky">known</span>
+                        ) : (
+                          <span className="w-16 text-xs font-medium text-failed">new</span>
+                        )}
+                        <span className="min-w-0 break-words">{failure.test}</span>
+                        {failure.bug && <BugLink bug={failure.bug} />}
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </li>
             ))}

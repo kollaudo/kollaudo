@@ -1,6 +1,14 @@
-import type { Deployment, TestResult, TestRun } from "@kollaudo/schema";
+import type { Bug, Deployment, TestResult, TestRun, Verdict } from "@kollaudo/schema";
 import { describe, expect, it } from "vitest";
-import { groupBySuite, outcome, sortEnvironments, versionToJudge } from "./results.ts";
+import {
+  bugsByTest,
+  groupBySuite,
+  knownBugs,
+  outcome,
+  sortEnvironments,
+  testName,
+  versionToJudge,
+} from "./results.ts";
 
 const summary = { tests: 0, passed: 0, failed: 0, skipped: 0, pending: 0, other: 0, flaky: 0 };
 
@@ -89,5 +97,114 @@ describe("versionToJudge", () => {
   it("is the newest tested version when nothing is known to be deployed", () => {
     expect(versionToJudge(runs)).toBe("1.2.0");
     expect(versionToJudge([])).toBeUndefined();
+  });
+});
+
+describe("testName", () => {
+  it("joins the suite and the name as the links to bugs do", () => {
+    expect(testName(result("pays", "failed", ["checkout", "cart"]))).toBe("checkout › cart › pays");
+    expect(testName(result("pays", "failed", []))).toBe("pays");
+  });
+});
+
+const bug = (fields: Partial<Bug>): Bug => ({
+  key: "SHOP-412",
+  url: "https://example.atlassian.net/browse/SHOP-412",
+  state: "open",
+  component: "checkout",
+  tests: ["checkout › pays"],
+  by: null,
+  updatedAt: "2026-10-20T09:00:00.000Z",
+  ...fields,
+});
+
+describe("bugsByTest", () => {
+  it("maps the tests of the open bugs and leaves out the closed ones", () => {
+    const byTest = bugsByTest([
+      bug({ tests: ["checkout › pays", "checkout › refunds"] }),
+      bug({ key: "SHOP-1", url: "https://example.com/1", tests: ["checkout › pays"] }),
+      bug({ key: "SHOP-9", state: "closed", tests: ["checkout › refunds", "checkout › tips"] }),
+    ]);
+
+    expect(byTest.get("checkout › pays")?.map((b) => b.key)).toEqual(["SHOP-412", "SHOP-1"]);
+    expect(byTest.get("checkout › refunds")?.map((b) => b.key)).toEqual(["SHOP-412"]);
+    expect(byTest.has("checkout › tips")).toBe(false);
+  });
+});
+
+function verdictOf(outcome: Verdict["outcome"], reasons: Verdict["reasons"]): Verdict {
+  return {
+    component: "checkout",
+    environment: "qa",
+    version: "2.0.0",
+    outcome,
+    message: "e2e failed.",
+    policy: {
+      name: "default",
+      revision: null,
+      require: [],
+      signoff: [],
+      deployed: false,
+      flaky: "allow",
+      maxAge: null,
+    },
+    reasons,
+    deployed: null,
+    override: null,
+    evidenceOutcome: outcome,
+  };
+}
+
+const known = { key: "SHOP-412", url: "https://example.com/412", state: "open" as const };
+const failing = (kind: string, failures: NonNullable<Verdict["reasons"][number]["failures"]>) => ({
+  kind,
+  outcome: "fail" as const,
+  message: `${failures.length} failed`,
+  run: null,
+  failures,
+});
+
+describe("knownBugs", () => {
+  it("gives the bugs when every failure has one", () => {
+    const verdict = verdictOf("fail", [
+      failing("e2e", [{ test: "a", bug: known }]),
+      failing("smoke", [
+        { test: "b", bug: known },
+        { test: "c", bug: { ...known, key: "SHOP-7" } },
+      ]),
+    ]);
+
+    expect(knownBugs(verdict)).toEqual(["SHOP-412", "SHOP-7"]);
+  });
+
+  it("is undefined as soon as one failure is new", () => {
+    const verdict = verdictOf("fail", [
+      failing("e2e", [
+        { test: "a", bug: known },
+        { test: "b", bug: null },
+      ]),
+    ]);
+
+    expect(knownBugs(verdict)).toBeUndefined();
+  });
+
+  it("is undefined when a failed kind lists no test, or the server doesn't list any", () => {
+    expect(knownBugs(verdictOf("fail", [failing("uat", [])]))).toBeUndefined();
+    const old = { kind: "e2e", outcome: "fail" as const, message: "1 failed", run: null };
+    expect(knownBugs(verdictOf("fail", [old]))).toBeUndefined();
+  });
+
+  it("is undefined when nothing failed", () => {
+    const passing = { kind: "e2e", outcome: "pass" as const, message: "1 passed", run: null };
+    expect(knownBugs(verdictOf("pass", [passing]))).toBeUndefined();
+  });
+
+  it("still gives the bugs under an override, which lets the version through", () => {
+    const verdict = {
+      ...verdictOf("pass", [failing("e2e", [{ test: "a", bug: known }])]),
+      evidenceOutcome: "fail" as const,
+    };
+
+    expect(knownBugs(verdict)).toEqual(["SHOP-412"]);
   });
 });

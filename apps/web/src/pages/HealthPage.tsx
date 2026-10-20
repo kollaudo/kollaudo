@@ -4,7 +4,13 @@ import { Message } from "../components/Message.tsx";
 import { BAR, look, VerdictLabel } from "../components/VerdictLabel.tsx";
 import { shortVersion, timeAgo } from "../lib/format.ts";
 import { useProjects } from "../lib/projects.ts";
-import { type Outcome, outcome, sortEnvironments, versionToJudge } from "../lib/results.ts";
+import {
+  knownBugs,
+  type Outcome,
+  outcome,
+  sortEnvironments,
+  versionToJudge,
+} from "../lib/results.ts";
 import { Link } from "../lib/router.tsx";
 import { useApi } from "../lib/useApi.ts";
 import { ProjectsPage } from "./ProjectsPage.tsx";
@@ -121,6 +127,8 @@ function VerdictStrip(props: {
   // record=false: looking at the matrix isn't a gate, and mustn't count as one (ADR 0019).
   const { data } = useApi<Verdict>(`/v1/verdict?${query}&record=false`, token, REFRESH_MS);
   if (!data) return <div className="h-12 rounded-md bg-neutral-100 dark:bg-neutral-900" />;
+  // It still fails: the mark only tells the cell apart from one with new failures (ADR 0022).
+  const known = knownBugs(data);
   return (
     <Link
       href={`/verdict?${query}`}
@@ -128,7 +136,15 @@ function VerdictStrip(props: {
     >
       <div className="flex items-baseline justify-between gap-2 text-xs">
         <VerdictLabel outcome={data.outcome} overridden={data.override !== null} />
-        <span className="truncate font-mono text-muted" title={data.version}>
+        {known && (
+          <span
+            className="rounded bg-flaky/10 px-1.5 font-medium text-flaky"
+            title={`Every failure has a known bug: ${known.join(", ")}`}
+          >
+            known bugs
+          </span>
+        )}
+        <span className="ml-auto truncate font-mono text-muted" title={data.version}>
           {shortVersion(data.version)}
         </span>
       </div>

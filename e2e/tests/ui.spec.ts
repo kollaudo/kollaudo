@@ -121,6 +121,39 @@ test("shows the verdict of each cell, and why, without being a gate", async ({ p
   expect(await logSize()).toBe(before);
 });
 
+test("shows the bug next to a failed test, in the verdict and on the matrix", async ({ page }) => {
+  const key = env("E2E_BUG_KEY");
+  const url = env("E2E_BUG_URL");
+  await openProject(page, read());
+
+  // Checkout in qa fails for a test with a known bug: the cell says so and still fails.
+  const strip = page.getByRole("row", { name: /^checkout/ }).getByRole("link", { name: /^FAIL/ });
+  await expect(strip).toContainText("known bugs");
+  // The unit tests of junit-tools fail with no bug linked: a plain failure.
+  const plain = page
+    .getByRole("row", { name: /^junit-tools/ })
+    .getByRole("link", { name: /^FAIL/ });
+  await expect(plain).toBeVisible();
+  await expect(plain).not.toContainText("known bugs");
+
+  await strip.click();
+  await expect(page.getByRole("heading", { name: /^FAIL checkout 2\.0\.0 in qa$/ })).toBeVisible();
+  // The reason of the kind is a list item too, with the failures inside: the last is the failure.
+  const failure = page.getByRole("listitem").filter({ hasText: "signs in" }).last();
+  await expect(failure).toContainText("known");
+  await expect(failure.getByRole("link", { name: key })).toHaveAttribute("href", url);
+
+  // The test run lists the same bug next to the test that fails for it.
+  await page.getByRole("link", { name: "Test run" }).click();
+  const test = page.getByRole("listitem").filter({ hasText: "Expected 200, got 500" });
+  await expect(test).toContainText("known bug");
+  await expect(test.getByRole("link", { name: key })).toHaveAttribute("href", url);
+  // A test with no bug has no mark.
+  await expect(
+    page.getByRole("listitem").filter({ hasText: "shows the home page" }),
+  ).not.toContainText("known bug");
+});
+
 test("refuses an ingest token when adding a project", async ({ page }) => {
   await addProject(page, ingest());
   await expect(page.getByText("This token can't read.")).toBeVisible();
