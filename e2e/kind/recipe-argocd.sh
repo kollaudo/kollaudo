@@ -19,9 +19,13 @@ READ=$(awk '$1 == "read" { print $2 }' <<<"$tokens")
 
 echo "## Argo CD $ARGOCD_VERSION"
 kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f - >/dev/null
-kubectl apply -n argocd --server-side --force-conflicts -f \
-  "https://raw.githubusercontent.com/argoproj/argo-cd/$ARGOCD_VERSION/manifests/install.yaml" >/dev/null
-for workload in deploy/argocd-repo-server deploy/argocd-notifications-controller \
+# Argo CD pulls Redis from public.ecr.aws, which throttles anonymous pulls from CI runners: the pod
+# then sits in ImagePullBackOff, and Argo CD runs without its cache, slowly and without filling in
+# the images of the applications. Docker Hub serves the same image.
+curl -fsSL "https://raw.githubusercontent.com/argoproj/argo-cd/$ARGOCD_VERSION/manifests/install.yaml" |
+  sed 's#public\.ecr\.aws/docker/library/redis:#docker.io/library/redis:#' |
+  kubectl apply -n argocd --server-side --force-conflicts -f - >/dev/null
+for workload in deploy/argocd-redis deploy/argocd-repo-server deploy/argocd-notifications-controller \
   statefulset/argocd-application-controller; do
   kubectl -n argocd rollout status "$workload" --timeout=300s
 done
