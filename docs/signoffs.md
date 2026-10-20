@@ -65,7 +65,8 @@ PASS  checkout 3f2a9c1 in staging: e2e, smoke and uat passed.
   for it.
 - `--json` prints the sign-off and the verdict as JSON.
 
-Without the CLI, `POST /v1/signoffs` does the same:
+Without the CLI, `POST /v1/signoffs` does the same (see also [one command for
+testers](without-a-terminal.md), with the values to replace):
 
 ```bash
 curl -X POST "$KOLLAUDO_URL/v1/signoffs" \
