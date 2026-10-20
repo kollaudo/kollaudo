@@ -75,7 +75,7 @@ export const VerdictReason = z
     run: TestRun.nullable().meta({ description: "The latest run of this kind, if any." }),
     failures: z
       .array(FailedTest)
-      .default([])
+      .optional()
       .meta({
         description:
           "The tests that failed in the run, each with the open bug it is linked to, if any " +
@@ -96,7 +96,7 @@ export const Verdict = z
     reasons: z.array(VerdictReason).meta({ description: "One for each kind, by name." }),
     unmatchedBugs: z
       .array(UnmatchedBug)
-      .default([])
+      .optional()
       .meta({
         description:
           "Open bugs of the component whose test didn't fail in any run of this verdict, listed " +

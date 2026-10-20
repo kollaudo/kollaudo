@@ -35,9 +35,9 @@ the API.
   links when the bug is sent as closed. `GET /v1/bugs` lists them. A link never changes a verdict.
   Update the server before the tools that send links.
 - The verdict tells known failures from new ones. Each reason lists its `failures`, with the open
-  bug of each failed test or `null`, and the message says so: `2 failed: 1 known (SHOP-412), 1 new`.
+  bug of each failed test or `null` and the message says so: `2 failed: 1 known (SHOP-412), 1 new`.
   `unmatchedBugs` lists the open bugs whose test didn't fail, as a hint to a test that was renamed
-  or fixed. The outcome and the exit codes of `kollaudo verdict` don't change, and `--json` gives the
+  or fixed. The outcome and the exit codes of `kollaudo verdict` don't change and `--json` gives the
   new fields.
 
 ### Web

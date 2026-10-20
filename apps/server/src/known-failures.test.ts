@@ -26,7 +26,7 @@ function post(path: string, body: unknown) {
   });
 }
 
-type Test = { name: string; status: string; suite?: string | string[] };
+type Test = { name: string; status: string; suite?: string | string[]; flaky?: boolean };
 
 /** Sends a run of "checkout" in staging, where each test takes 10 ms. */
 async function push(version: string, tests: Test[], component = "checkout") {
@@ -109,14 +109,26 @@ describe("known bugs in the verdict", () => {
 
   it("names a test from a suite sent as one string the same way", async () => {
     await push("1.2.0", [{ ...card, suite: "checkout" }]);
-    await push("1.2.1", [{ name: "pays with a saved card", status: "failed", suite: "a > b" }]);
+    await push("1.2.1", [{ ...card, suite: "a > b" }]);
+    await push("1.2.3", [{ ...card, suite: ["a", "b"] }]);
 
     expect((await verdict("1.2.0")).reasons[0]?.failures).toEqual([
       { test: "checkout › pays with a saved card", bug },
     ]);
-    expect((await verdict("1.2.1")).reasons[0]?.failures).toEqual([
-      { test: "a › b › pays with a saved card", bug: null },
-    ]);
+    const asString = (await verdict("1.2.1")).reasons[0]?.failures;
+    expect(asString).toEqual([{ test: "a › b › pays with a saved card", bug: null }]);
+    expect((await verdict("1.2.3")).reasons[0]?.failures).toEqual(asString);
+  });
+
+  it("doesn't list a test that passed on retry", async () => {
+    await push("1.2.2", [{ ...card, status: "passed", flaky: true }, coupon]);
+
+    const result = await verdict("1.2.2");
+
+    expect(result.reasons[0]).toMatchObject({
+      message: "1 failed, 1 passed, 1 flaky",
+      failures: [{ test: "checkout › applies a coupon", bug: null }],
+    });
   });
 
   it("lists an open bug whose test didn't fail as not matching", async () => {
@@ -170,7 +182,7 @@ describe("known bugs in the verdict", () => {
     expect(result.unmatchedBugs).toEqual([]);
   });
 
-  it("answers the schema of an older server without the new fields", () => {
+  it("reads the answer of a server before 0.5, which has no such fields", () => {
     const parsed = Verdict.parse({
       component: "api",
       environment: "staging",
@@ -192,7 +204,7 @@ describe("known bugs in the verdict", () => {
       evidenceOutcome: "unknown",
     });
 
-    expect(parsed.reasons[0]?.failures).toEqual([]);
-    expect(parsed.unmatchedBugs).toEqual([]);
+    expect(parsed.reasons[0]?.failures).toBeUndefined();
+    expect(parsed.unmatchedBugs).toBeUndefined();
   });
 });
