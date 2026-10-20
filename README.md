@@ -38,6 +38,11 @@ Kollaudo doesn't build, test or deploy anything: there are plenty of great tools
 
 Website and documentation: **[kollaudo.dev](https://kollaudo.dev)**.
 
+**Try it live** at **[demo.kollaudo.dev](https://demo.kollaudo.dev)**, without installing anything: a
+made-up shop where a version fails, one waits for missing tests, one goes through an override and
+one reached production around the gate. The read token is: `kol_VQ81iRttbMjk4pck5KXQ9gEbzLTMlgJAxWud2NIJ3us`.
+You can see how the data are made in [kollaudo/demo](https://github.com/kollaudo/demo).
+
 ## Quick start
 
 The commands use the latest release, 0.4.0, so they keep working while `main` changes.
