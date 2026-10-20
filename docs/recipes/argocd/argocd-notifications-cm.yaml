@@ -15,9 +15,12 @@ data:
       - name: Content-Type
         value: application/json
 
-  # Once per synced revision, when the sync succeeded and the application is healthy.
+  # Once per synced revision, when the sync succeeded, the application is healthy and Argo CD knows
+  # its images: the version is the tag of an image, so an application without any image is not sent.
   trigger.on-kollaudo-deployed: |
-    - when: app.status?.operationState?.phase in ['Succeeded'] and app.status.health.status == 'Healthy'
+    - when: >-
+        app.status?.operationState?.phase in ['Succeeded'] and app.status.health.status == 'Healthy'
+        and len(app.status?.summary?.images ?? []) > 0
       oncePer: app.status?.operationState?.syncResult?.revision
       send: [kollaudo-deployed]
 
