@@ -87,7 +87,13 @@ describe("overrides (ADR 0018)", () => {
     expect(overridden.message).toMatch(/^Overridden by on-call until .+: Hotfix for incident 1234/);
     // The evidence is still shown as it is.
     expect(overridden.reasons).toEqual([
-      { kind: "e2e", outcome: "unknown", message: "Required, but no run.", run: null },
+      {
+        kind: "e2e",
+        outcome: "unknown",
+        message: "Required, but no run.",
+        run: null,
+        failures: [],
+      },
     ]);
     // Other versions keep their gate.
     expect((await verdict("1.0.2")).override).toBeNull();

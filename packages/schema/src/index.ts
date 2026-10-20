@@ -30,9 +30,12 @@ export {
   TestRunSummary,
 } from "./test-runs.ts";
 export {
+  FailedTest,
   GivenVerdict,
   GivenVerdictList,
   GivenVerdictQuery,
+  KnownBug,
+  UnmatchedBug,
   Verdict,
   VerdictOutcome,
   VerdictQuery,

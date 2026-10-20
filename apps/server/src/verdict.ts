@@ -1,4 +1,4 @@
-import type { TestRun, Verdict, VerdictQuery, VerdictReason } from "@kollaudo/schema";
+import type { FailedTest, TestRun, Verdict, VerdictQuery, VerdictReason } from "@kollaudo/schema";
 import { and, asc, desc, eq } from "drizzle-orm";
 import type { z } from "zod";
 import type { Db } from "./db/client.ts";
@@ -11,6 +11,7 @@ import {
   versions,
 } from "./db/schema.ts";
 import { currentDeployments } from "./deployments.ts";
+import { type KnownFailures, knownFailures } from "./known-failures.ts";
 import { activeOverride } from "./overrides.ts";
 import { currentPolicy, duration, type ResolvedRule, resolveRule } from "./policies.ts";
 import { runColumns, toTestRun } from "./reads.ts";
@@ -65,16 +66,15 @@ export async function getVerdict(db: Db, projectId: string, query: Query): Promi
   // A kind that needs a sign-off is required, even if the policy doesn't list it in `require`.
   const require = [...new Set([...rule.require, ...rule.signoff, ...requested])].sort();
 
-  const evidence = judge(
-    candidates(rows.map(toTestRun), rule, query.version, history),
-    require,
-    rule,
-  );
+  const byKind = candidates(rows.map(toTestRun), rule, query.version, history);
+  const known = await knownFailures(db, projectId, query.component, byKind);
+  const evidence = judge(byKind, require, rule, known);
   return {
     component: query.component,
     environment: query.environment,
     version: query.version,
     ...evidence,
+    unmatchedBugs: known.unmatched,
     // An override lets the version through, and says so (ADR 0018).
     ...(override && {
       outcome: "pass" as const,
@@ -167,9 +167,12 @@ export function judge(
   byKind: Map<string, Candidate>,
   require: string[],
   rule: Pick<ResolvedRule, "flaky"> & Partial<Pick<ResolvedRule, "signoff">>,
+  known?: KnownFailures,
 ): Pick<Verdict, "outcome" | "message" | "reasons"> {
   const kinds = [...new Set([...byKind.keys(), ...require])].sort();
-  const reasons = kinds.map((kind) => reason(kind, byKind.get(kind), rule));
+  const reasons = kinds.map((kind) =>
+    reason(kind, byKind.get(kind), rule, known?.byKind.get(kind)),
+  );
   if (reasons.length === 0) {
     return {
       outcome: "unknown",
@@ -196,13 +199,14 @@ function reason(
   kind: string,
   candidate: Candidate | undefined,
   rule: Pick<ResolvedRule, "flaky"> & Partial<Pick<ResolvedRule, "signoff">>,
+  failures: FailedTest[] = [],
 ): VerdictReason {
   const run = candidate?.run;
   if (!run) {
     const message =
       candidate?.excluded ??
       (rule.signoff?.includes(kind) ? "Waiting for a sign-off." : "Required, but no run.");
-    return { kind, outcome: "unknown", message, run: null };
+    return { kind, outcome: "unknown", message, run: null, failures };
   }
   const { tests, failed, flaky } = run.summary;
   if (run.signoff && tests > 0) {
@@ -214,23 +218,48 @@ function reason(
       outcome: failed > 0 ? "fail" : "pass",
       message: `${verb} by ${by} at ${run.createdAt}${said}`,
       run,
+      failures,
     };
   }
   if (tests === 0) {
-    return { kind, outcome: "unknown", message: "The latest run has no tests.", run };
+    return {
+      kind,
+      outcome: "unknown",
+      message: "The latest run has no tests.",
+      run,
+      failures,
+    };
   }
   const fails = failed > 0 || (rule.flaky === "fail" && flaky > 0);
   const note = failed === 0 && fails ? " (flaky tests fail it)" : "";
-  return { kind, outcome: fails ? "fail" : "pass", message: `${counts(run)}${note}`, run };
+  return {
+    kind,
+    outcome: fails ? "fail" : "pass",
+    message: `${counts(run, failures)}${note}`,
+    run,
+    failures,
+  };
 }
 
-/** "1 failed, 40 passed, 2 skipped, 3 flaky": failures first, zero counts left out. */
-function counts({ summary }: TestRun) {
+/**
+ * "1 failed, 40 passed, 2 skipped, 3 flaky": failures first, zero counts left out. When a failure
+ * has a known bug, they say which are known: "2 failed: 1 known (SHOP-412), 1 new; 40 passed".
+ */
+function counts({ summary }: TestRun, failures: FailedTest[]) {
   const { failed, passed, skipped, pending, other, flaky } = summary;
-  return Object.entries({ failed, passed, skipped, pending, other, flaky })
+  const rest = Object.entries({ passed, skipped, pending, other, flaky })
     .filter(([, count]) => count > 0)
-    .map(([name, count]) => `${count} ${name}`)
-    .join(", ");
+    .map(([name, count]) => `${count} ${name}`);
+  const bugs = failures.flatMap((f) => (f.bug ? [f.bug.key] : []));
+  if (failed === 0 || bugs.length === 0) {
+    return [...(failed > 0 ? [`${failed} failed`] : []), ...rest].join(", ");
+  }
+  // The failures the verdict lists may be fewer than the run's, so the new ones are what's left.
+  const known = failures.filter((f) => f.bug).length;
+  const split = [`${known} known (${[...new Set(bugs)].join(", ")})`];
+  if (failed > known) split.push(`${failed - known} new`);
+  const headline = `${failed} failed: ${split.join(", ")}`;
+  return rest.length > 0 ? `${headline}; ${rest.join(", ")}` : headline;
 }
 
 /** "e2e", "e2e and smoke", "e2e, smoke and uat". */

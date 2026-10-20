@@ -112,6 +112,7 @@ describe("GET /v1/verdict", () => {
       outcome: "unknown",
       message: "Required, but no run.",
       run: null,
+      failures: [],
     });
   });
 

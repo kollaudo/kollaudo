@@ -44,7 +44,8 @@ function verdict(fields: Partial<Verdict>): Verdict {
       flaky: "allow",
       maxAge: null,
     },
-    reasons: [{ kind: "e2e", outcome: "pass", message: "1 passed", run: e2e }],
+    reasons: [{ kind: "e2e", outcome: "pass", message: "1 passed", run: e2e, failures: [] }],
+    unmatchedBugs: [],
     deployed: null,
     override: null,
     evidenceOutcome: fields.outcome ?? "pass",
@@ -84,8 +85,20 @@ describe("kollaudo verdict", () => {
       outcome: "fail",
       message: "smoke failed. Evidence is missing for uat.",
       reasons: [
-        { kind: "smoke", outcome: "fail", message: "1 failed", run: { ...e2e, kind: "smoke" } },
-        { kind: "uat", outcome: "unknown", message: "Required, but no run.", run: null },
+        {
+          kind: "smoke",
+          outcome: "fail",
+          message: "1 failed",
+          run: { ...e2e, kind: "smoke" },
+          failures: [],
+        },
+        {
+          kind: "uat",
+          outcome: "unknown",
+          message: "Required, but no run.",
+          run: null,
+          failures: [],
+        },
       ],
     });
     const result = await runWith(run, args, { env, fetch: server(200, failed).fetch });
@@ -113,7 +126,13 @@ describe("kollaudo verdict", () => {
       outcome: "fail",
       message: "smoke failed.",
       reasons: [
-        { kind: "smoke", outcome: "fail", message: "1 failed", run: { ...e2e, kind: "smoke" } },
+        {
+          kind: "smoke",
+          outcome: "fail",
+          message: "1 failed",
+          run: { ...e2e, kind: "smoke" },
+          failures: [],
+        },
       ],
     });
     const json = [...args, "--json"];
@@ -130,7 +149,15 @@ describe("kollaudo verdict", () => {
       outcome: "pass",
       message: "Overridden by on-call until 2026-10-02T14:00:00.000Z: Hotfix for incident 1234",
       evidenceOutcome: "unknown",
-      reasons: [{ kind: "e2e", outcome: "unknown", message: "Required, but no run.", run: null }],
+      reasons: [
+        {
+          kind: "e2e",
+          outcome: "unknown",
+          message: "Required, but no run.",
+          run: null,
+          failures: [],
+        },
+      ],
       override: {
         id: "0b0b0b0b-8a1b-4c3d-9e0f-123456789abc",
         component: "api",
@@ -160,6 +187,7 @@ describe("kollaudo verdict", () => {
           outcome: "pass",
           message: "1 passed",
           run: { ...e2e, sentBy: "ci-staging" },
+          failures: [],
         },
       ],
     });
