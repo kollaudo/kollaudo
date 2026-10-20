@@ -8,7 +8,9 @@ cd "$(dirname "$0")/../.."
 KARGO_VERSION=${KARGO_VERSION:-1.11.6}
 CERT_MANAGER_VERSION=${CERT_MANAGER_VERSION:-1.19.3}
 # The image of the example component. Its tag is the version, as CI would send it.
-IMAGE=public.ecr.aws/nginx/nginx
+# public.ecr.aws throttles anonymous pulls from CI runners, as Argo CD's Redis showed (#116):
+# Docker Hub serves the same image.
+IMAGE=docker.io/library/nginx
 VERSION=1.26.0
 NS=kollaudo-demo
 
