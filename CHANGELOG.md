@@ -46,6 +46,10 @@ the API.
   policy requires a sign-off from a person.
 - The test run page links to the verdict of its version in its environment, such as "Verdict of
   1.4.0 in staging". Build-level runs, which have no verdict, show no link.
+- Known bugs ([docs](docs/bugs.md)). The verdict page lists the failed tests of each kind as known,
+  with a link to the bug, or new. The test run page shows the key of the open bug next to a failed
+  test. On the health matrix, a failed cell where every failure is known says "known bugs", so it
+  stands apart from one with new failures. It still shows as failed.
 
 ### Recipes
 

@@ -1,4 +1,11 @@
-import type { Deployment, TestResult, TestRun, TestRunSummary } from "@kollaudo/schema";
+import type {
+  Bug,
+  Deployment,
+  TestResult,
+  TestRun,
+  TestRunSummary,
+  Verdict,
+} from "@kollaudo/schema";
 
 export type Outcome = "failed" | "passed" | "empty";
 
@@ -67,4 +74,34 @@ export function versionToJudge(runs: TestRun[], deployed?: Deployment) {
     (newest, run) => (newest && newest.createdAt >= run.createdAt ? newest : run),
     undefined,
   )?.version;
+}
+
+/** The name a link to a bug uses for a test (ADR 0022): its suite and its name, joined by " › ". */
+export function testName(result: Pick<TestResult, "suite" | "name">) {
+  return [...result.suite, result.name].join(" › ");
+}
+
+/** The open bugs of a component by the name of the test they are linked to. */
+export function bugsByTest(bugs: Bug[]) {
+  const byTest = new Map<string, { key: string; url: string }[]>();
+  for (const bug of bugs) {
+    if (bug.state !== "open") continue;
+    for (const test of bug.tests) {
+      byTest.set(test, [...(byTest.get(test) ?? []), { key: bug.key, url: bug.url }]);
+    }
+  }
+  return byTest;
+}
+
+/**
+ * The keys of the bugs in a failed verdict when every failure has one, else undefined. A failed
+ * kind with no listed test, such as a sign-off or flaky tests that fail the run, isn't known.
+ */
+export function knownBugs(verdict: Verdict) {
+  const failed = verdict.reasons.filter((reason) => reason.outcome === "fail");
+  if (verdict.outcome !== "fail" && verdict.evidenceOutcome !== "fail") return undefined;
+  if (failed.length === 0) return undefined;
+  const failures = failed.map((reason) => reason.failures ?? []);
+  if (failures.some((list) => list.length === 0 || list.some((f) => !f.bug))) return undefined;
+  return [...new Set(failures.flat().flatMap((f) => (f.bug ? [f.bug.key] : [])))];
 }

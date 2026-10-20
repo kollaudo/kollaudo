@@ -80,6 +80,9 @@ fail  e2e  2 failed: 1 known (SHOP-412), 1 new; 40 passed
 - `unmatchedBugs` lists the open bugs of the component whose test didn't fail in any run of the
   verdict. It is filled only when some test failed. A bug there may mean that the test was fixed, or
   renamed: send the link again with the new name.
+- The UI shows it where people look. The verdict page lists the failed tests of each kind as known
+  or new. The test run page shows the key of the bug next to a failed test. On the health matrix, a
+  failed cell where every failure is known says "known bugs" and still shows as failed.
 - `kollaudo verdict --json` has all of it. Servers before 0.5 leave the fields out.
 
 ## List them
