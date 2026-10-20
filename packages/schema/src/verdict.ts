@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { BugState } from "./bugs.ts";
 import { Deployment } from "./deployments.ts";
 import { Override } from "./overrides.ts";
 import { AppliedPolicy } from "./policy.ts";
@@ -38,12 +39,48 @@ export const VerdictQuery = z.object({
     }),
 });
 
+export const KnownBug = z
+  .object({
+    key: z.string().meta({ example: "SHOP-412" }),
+    url: z.string(),
+    state: BugState.meta({ description: "Only an `open` bug marks a failure as known." }),
+  })
+  .meta({ id: "KnownBug" });
+export type KnownBug = z.infer<typeof KnownBug>;
+
+export const FailedTest = z
+  .object({
+    test: z.string().meta({ example: "checkout › pays with a saved card" }),
+    bug: KnownBug.nullable().meta({
+      description: "The open bug the test fails for (ADR 0022), or null when the failure is new.",
+    }),
+  })
+  .meta({ id: "FailedTest" });
+export type FailedTest = z.infer<typeof FailedTest>;
+
+export const UnmatchedBug = z
+  .object({
+    key: z.string(),
+    url: z.string(),
+    test: z.string(),
+  })
+  .meta({ id: "UnmatchedBug" });
+export type UnmatchedBug = z.infer<typeof UnmatchedBug>;
+
 export const VerdictReason = z
   .object({
     kind: z.string(),
     outcome: VerdictOutcome,
     message: z.string().meta({ example: "1 failed, 41 passed" }),
     run: TestRun.nullable().meta({ description: "The latest run of this kind, if any." }),
+    failures: z
+      .array(FailedTest)
+      .optional()
+      .meta({
+        description:
+          "The tests that failed in the run, each with the open bug it is linked to, if any " +
+          "(ADR 0022). A known bug never changes the outcome. Servers before 0.5 leave it out.",
+      }),
   })
   .meta({ id: "VerdictReason" });
 export type VerdictReason = z.infer<typeof VerdictReason>;
@@ -57,6 +94,14 @@ export const Verdict = z
     message: z.string().meta({ example: "e2e failed." }),
     policy: AppliedPolicy.meta({ description: "The rules this verdict applied (ADR 0016)." }),
     reasons: z.array(VerdictReason).meta({ description: "One for each kind, by name." }),
+    unmatchedBugs: z
+      .array(UnmatchedBug)
+      .optional()
+      .meta({
+        description:
+          "Open bugs of the component whose test didn't fail in any run of this verdict, listed " +
+          "only when some test failed: the test may have been fixed or renamed (ADR 0022).",
+      }),
     deployed: Deployment.nullable().meta({
       description:
         "What runs in the environment now, if Kollaudo knows. It doesn't change the outcome: when " +

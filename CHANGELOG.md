@@ -32,8 +32,13 @@ the API.
   The migration that adds the scope can't be undone: it adds a value to the `token_scope` enum.
 - Known bugs ([ADR 0022](docs/adr/0022-known-bugs-linked-to-failed-tests.md), [docs](docs/bugs.md)).
   `POST /v1/bugs` says that tests of a component fail because of a bug, by its key, and closes the
-  links when the bug is sent as closed. `GET /v1/bugs` lists them. A link never changes a verdict,
-  and the verdict doesn't use them yet. Update the server before the tools that send links.
+  links when the bug is sent as closed. `GET /v1/bugs` lists them. A link never changes a verdict.
+  Update the server before the tools that send links.
+- The verdict tells known failures from new ones. Each reason lists its `failures`, with the open
+  bug of each failed test or `null` and the message says so: `2 failed: 1 known (SHOP-412), 1 new`.
+  `unmatchedBugs` lists the open bugs whose test didn't fail, as a hint to a test that was renamed
+  or fixed. The outcome and the exit codes of `kollaudo verdict` don't change and `--json` gives the
+  new fields.
 
 ### Web
 
