@@ -17,6 +17,9 @@ the API.
   It has an FAQ, and a blog whose posts are written on the site or link to a post elsewhere, such as
   on LinkedIn, Hacker News or Reddit, and show its text, images and video. The Announcements of
   GitHub Discussions are posts of the blog too, and the site is published again when one changes.
+- [Sign off or link a bug with one command](docs/without-a-terminal.md): the `curl` commands a
+  tester or a product owner can paste to give a sign-off or link a bug without the CLI, with the
+  values to replace and what to check when Kollaudo refuses.
 
 ### Server
 

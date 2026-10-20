@@ -48,6 +48,7 @@ export default defineConfig({
             { slug: "docs/policies" },
             { slug: "docs/overrides" },
             { slug: "docs/signoffs" },
+            { slug: "docs/without-a-terminal" },
           ],
         },
         { label: "Recipes", items: [{ autogenerate: { directory: "docs/recipes" } }] },
