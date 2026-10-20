@@ -27,8 +27,11 @@ If the Secret already exists, add the `kollaudo-token` key to it.
 
 - a `kollaudo` webhook, which sends the token as `Authorization: Bearer $kollaudo-token`. Set its
   `url` to the address where Argo CD reaches Kollaudo;
-- an `on-kollaudo-deployed` trigger, once per synced revision, when the sync succeeded and the
-  application is healthy;
+- an `on-kollaudo-deployed` trigger, once per synced revision, when the sync succeeded, the
+  application is healthy and Argo CD lists its images. Argo CD can finish a sync before it fills in
+  the images of the application, so the trigger waits for them: otherwise the version would be the
+  Git revision instead of the image tag. An application without any image is not sent to Kollaudo;
+  it has no version to match the one your CI sends;
 - a `kollaudo-deployed` template, which posts the deployment to `/v1/deployments`.
 
 Merge it into the `argocd-notifications-cm` ConfigMap:

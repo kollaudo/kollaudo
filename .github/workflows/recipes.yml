@@ -36,6 +36,8 @@ jobs:
         if: failure()
         run: |
           kubectl -n argocd get applications -o wide
+          kubectl -n argocd get pods
+          kubectl -n argocd logs statefulset/argocd-application-controller --tail=100
           kubectl -n argocd logs deploy/argocd-notifications-controller --tail=100
           kubectl -n kollaudo logs deploy/kollaudo --tail=100
 

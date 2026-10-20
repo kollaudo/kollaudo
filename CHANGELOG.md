@@ -48,6 +48,11 @@ the API.
   that a new version gets no pods before it is `pass`. It waits while evidence is missing, and the
   rollout is aborted on `fail` or when Kollaudo doesn't answer. Tested with Argo Rollouts in a kind
   cluster.
+- [Argo CD](docs/recipes/argocd.md): the notification waits until Argo CD lists the images of the
+  application, so the version is the image tag, not the Git revision of a sync that finished before
+  the images were known ([#109](https://github.com/kollaudo/kollaudo/issues/109)). Applications
+  without any image are no longer sent. An image without a tag still gives the Git revision. Update
+  the `on-kollaudo-deployed` trigger in `argocd-notifications-cm`.
 
 ### CLI
 
