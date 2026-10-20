@@ -4,7 +4,7 @@ labels: [enhancement]
 body:
   - type: markdown
     attributes:
-      value: |
+      value: >-
         Start from the problem: what you need to decide or see, and why it's hard today. Kollaudo
         judges and never deploys or runs tests ([ADR 0002](https://github.com/kollaudo/kollaudo/blob/main/docs/adr/0002-judge-never-orchestrate.md)),
         and support for one tool goes in a recipe rather than in the core.

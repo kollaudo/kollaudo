@@ -4,7 +4,7 @@ labels: [recipe]
 body:
   - type: markdown
     attributes:
-      value: |
+      value: >-
         A recipe is one Markdown file in [`docs/recipes`](https://github.com/kollaudo/kollaudo/tree/main/docs/recipes),
         like the [Playwright](https://github.com/kollaudo/kollaudo/blob/main/docs/recipes/playwright.md)
         or the [Kargo](https://github.com/kollaudo/kollaudo/blob/main/docs/recipes/kargo.md) recipe.
