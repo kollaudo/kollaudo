@@ -1,0 +1,47 @@
+name: Improvement
+description: Docs, tests, CI or code that could be better, without changing what Kollaudo does.
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        For something Kollaudo does wrong, use Bug. For something it should do, use Feature. For a
+        tool you use, use Recipe.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Documentation or website
+        - Tests
+        - CI and workflows
+        - Code, without changing what Kollaudo does
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Where
+      description: The file, page or workflow.
+      placeholder: docs/signoffs.md, e2e/run.sh, .github/workflows/recipes.yml…
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's wrong or missing
+      description: What you tried to do, and where it didn't help or didn't work.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you'd change
+      description: If you have an idea.
+  - type: dropdown
+    id: help
+    attributes:
+      label: Would you work on it?
+      options:
+        - Not now
+        - Yes, with some guidance
+        - "Yes"
