@@ -178,7 +178,7 @@ version deployed there, and the tests of each run.
 
 - A recipe for Jira automation, to send sign-offs and bug links from the tool where testers work. It
   comes once it has run on a real Jira Cloud site: help is welcome in
-  [#127](https://github.com/kollaudo/kollaudo/issues/NNN).
+  [#127](https://github.com/kollaudo/kollaudo/issues/127).
 - Build signals as context: coverage, static analysis.
 
 ## What it is not
