@@ -77,7 +77,8 @@ curl -X POST "$KOLLAUDO_URL/v1/signoffs" \
 ```
 
 `GET /v1/signoffs` lists them, newest first, with `component`, `environment`, `version` and `kind`
-to filter. A `signoff` or `read` token can read the list. The verdict names the author, the time and
+to filter, and `kollaudo signoff list` prints it with the same filters. A `signoff` or `read` token
+can read the list. The verdict names the author, the time and
 the note in the reason of the kind, and `GET /v1/test-runs` shows a sign-off with `signoff: true`.
 
 A `signoff` token can also ask `GET /v1/verdict`, to see what its sign-off led to.
