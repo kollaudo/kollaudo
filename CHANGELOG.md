@@ -19,6 +19,12 @@ the API.
 
 - `GET /v1/deployments` can filter by `version`, including when paging through deployments.
 
+### Web UI
+
+- On `demo.kollaudo.dev`, someone with no project yet sees three steps instead of an empty page. The first
+  is a command that doesn't run: Send shows the read token of the demo, ready to copy. Then paste it in the
+  form and look around.
+
 ## [0.5.0] - 2026-10-20
 
 Update the server before the CLI and before any policy that uses `signoff`: older servers reject the new
