@@ -68,7 +68,7 @@ Yes, under the Apache-2.0 license, and self-hosted: your test results stay with 
 <details id="is-it-ready-for-production">
 <summary>Is it ready for production?</summary>
 
-It's young. Version 0.4 is out, and the API can still change before 1.0. Feedback from your own
+It's young. Version 0.5 is out, and the API can still change before 1.0. Feedback from your own
 delivery is very welcome in [Issues](https://github.com/kollaudo/kollaudo/issues).
 
 </details>
@@ -173,8 +173,8 @@ the token sends, so a surprising verdict says where its evidence came from
 <details id="can-a-person-sign-off-a-version">
 <summary>Can a person sign off a version?</summary>
 
-That's coming in the next release. A policy can ask for a person's word, such as a product owner who
-tries a version in `staging`, and only a token of the `signoff` scope can give it. See
+Yes. A policy can ask for a person's word, such as a product owner who tries a version in `staging`,
+and only a token of the `signoff` scope can give it. Send it with `kollaudo signoff`. See
 [sign-offs](/docs/signoffs/).
 
 </details>
