@@ -141,6 +141,32 @@ describe("GET /v1/deployments", () => {
     const { items } = DeploymentList.parse(await (await get("/v1/deployments", otherRead)).json());
     expect(items).toEqual([]);
   });
+
+  it("filters by version before paging, together with component and environment", async () => {
+    const first = DeploymentList.parse(
+      await (await get("/v1/deployments?component=api&version=3f2a9c2&limit=1")).json(),
+    );
+    expect(first.items.map((d) => `${d.environment} ${d.version}`)).toEqual(["production 3f2a9c2"]);
+    expect(first.next).not.toBeNull();
+
+    const second = DeploymentList.parse(
+      await (
+        await get(`/v1/deployments?component=api&version=3f2a9c2&limit=1&before=${first.next}`)
+      ).json(),
+    );
+    expect(second.items.map((d) => `${d.environment} ${d.version}`)).toEqual(["staging 3f2a9c2"]);
+    expect(second.next).toBeNull();
+
+    const filtered = DeploymentList.parse(
+      await (await get("/v1/deployments?component=api&environment=staging&version=3f2a9c2")).json(),
+    );
+    expect(filtered.items.map((d) => d.version)).toEqual(["3f2a9c2"]);
+
+    const missing = DeploymentList.parse(
+      await (await get("/v1/deployments?version=not-deployed")).json(),
+    );
+    expect(missing.items).toEqual([]);
+  });
 });
 
 describe("what runs now", () => {

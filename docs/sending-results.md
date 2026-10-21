@@ -112,6 +112,17 @@ With Argo CD, a notification does it for you after each sync: see the
 tools did. Use the same ingest token
 as `push`. `--at` gives the time it happened, when you report it later.
 
+To list recorded deployments, use a read token with `deployed list`:
+
+```bash
+kollaudo deployed list --component frontend --env staging
+```
+
+Each line shows when the version started running, its component, version, environment and deployment
+tool. The filters are optional; `--version` narrows the list to one version. `--json` prints the API's
+full response, including the `next` cursor. It exits with `0` when the list is retrieved, or `1` on an
+error.
+
 ## 3. Gate on the verdict
 
 Before promoting a version to the next environment, ask for its verdict in the environment it
