@@ -77,6 +77,7 @@ export type Deployment = z.infer<typeof Deployment>;
 export const DeploymentQuery = z.object({
   component: z.string().optional(),
   environment: z.string().optional(),
+  version: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(200).default(50),
   before: z.uuid().optional().meta({ description: "The `next` value of the previous page." }),
 });

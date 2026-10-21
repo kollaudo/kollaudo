@@ -16,7 +16,7 @@ Send test results to Kollaudo and gate promotions on its verdict, from any CI or
 
 Commands:
   push <report>   Send test results: CTRF or JUnit reports
-  deployed        Record that a version now runs in an environment
+  deployed        Record or list deployments
   verdict         Ask whether a version is healthy in an environment
   policy          Send, check or show the rules your verdicts apply
   override        Let a version through a gate, with a reason, for a while

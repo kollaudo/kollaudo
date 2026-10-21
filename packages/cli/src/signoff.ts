@@ -1,10 +1,11 @@
 import { parseArgs } from "node:util";
-import type { Signoff, SignoffInput, Verdict } from "@kollaudo/schema";
+import type { Signoff, SignoffInput, SignoffList, Verdict } from "@kollaudo/schema";
 import { call, describeError, server } from "./api.ts";
 import type { Io } from "./io.ts";
 import { report } from "./verdict.ts";
 
 export const SIGNOFF_HELP = `Usage: kollaudo signoff --component <name> --env <name> --version <version> --kind <kind> --outcome <pass|fail> [--note <text>]
+       kollaudo signoff list [--component <name>] [--env <name>] [--version <version>] [--kind <kind>] [--json]
 
 Sign off a version you checked yourself, such as a UAT or a manual check, and print the verdict that
 follows. A policy can require a sign-off for a kind ("signoff: [uat]"): a report of that kind sent by
@@ -12,7 +13,8 @@ a pipeline doesn't count, only this does. Sign off again to change your mind: th
 and the earlier ones are kept.
 
 The command exits with 0 once the sign-off is recorded, whatever the verdict. To gate on the verdict,
-use "kollaudo verdict".
+use "kollaudo verdict". "kollaudo signoff list" shows the sign-offs, newest first, and its options
+filter them.
 
 Options:
   --component <name>     Component, such as "checkout" (required)
@@ -21,12 +23,14 @@ Options:
   --kind <kind>          What you checked, such as uat or manual (required)
   --outcome <outcome>    pass or fail (required)
   --note <text>          What you checked, or what is wrong: what people will read later
-  --json                 Print the sign-off and the verdict as JSON instead of the report
+  --json                 Print the sign-off and the verdict as JSON instead of the report, or the
+                         list API's answer instead of the one-line format
   -h, --help             Show this help
 
 Environment:
   KOLLAUDO_URL    URL of your Kollaudo server (required)
-  KOLLAUDO_TOKEN  A token of the signoff scope, held by people, not pipelines (required)
+  KOLLAUDO_TOKEN  A token of the signoff scope, held by people, not pipelines (required).
+                  A token of the read scope can list the sign-offs too
 
 Example:
   kollaudo signoff --component checkout --env staging --version 3f2a9c1 \\
@@ -53,6 +57,7 @@ export async function signoff(args: string[], io: Io): Promise<number> {
     io.out(SIGNOFF_HELP);
     return 0;
   }
+  if (positionals[0] === "list" && positionals.length === 1) return list(values, io);
   if (positionals.length > 0) {
     io.err(`Unknown use of "kollaudo signoff".\n\n${SIGNOFF_HELP}`);
     return 1;
@@ -122,6 +127,47 @@ export async function signoff(args: string[], io: Io): Promise<number> {
     io.out(report(JSON.parse(followed.text) as Verdict, target.url));
   }
   return 0;
+}
+
+async function list(values: ReturnType<typeof parse>["values"], io: Io): Promise<number> {
+  const fail = (message: string) => {
+    io.err(`Error: ${message}\n`);
+    return 1;
+  };
+  const target = server(io, "a token of the read or signoff scope");
+  if (typeof target === "string") return fail(target);
+
+  const query = new URLSearchParams();
+  if (values.component) query.set("component", values.component);
+  if (values.env) query.set("environment", values.env);
+  if (values.version) query.set("version", values.version);
+  if (values.kind) query.set("kind", values.kind);
+
+  let answer: Awaited<ReturnType<typeof call>>;
+  try {
+    answer = await call(io, target, `/v1/signoffs${query.size > 0 ? `?${query}` : ""}`, {
+      timeoutMs: TIMEOUT_MS,
+    });
+  } catch (error) {
+    return fail((error as Error).message);
+  }
+  const { response, text } = answer;
+  if (!response.ok) return fail(describeError(response, text));
+
+  if (values.json) {
+    io.out(`${text}\n`);
+    return 0;
+  }
+  const { items } = JSON.parse(text) as SignoffList;
+  if (items.length === 0) io.out("No sign-offs.\n");
+  for (const s of items) io.out(`${line(s)}\n`);
+  return 0;
+}
+
+/** One sign-off on one line: when, the outcome, what was checked, who gave it and the note. */
+function line(s: Signoff) {
+  const note = s.note ? `: ${s.note}` : "";
+  return `${s.createdAt}  ${s.outcome}  ${s.component} ${s.version} in ${s.environment}, ${s.kind}, by ${s.by ?? "a deleted token"}${note}`;
 }
 
 function parse(args: string[]) {

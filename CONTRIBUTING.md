@@ -6,8 +6,14 @@ now are use cases, feedback on the design and recipes for the tools you use.
 ## Where to start
 
 - **Good first issues**: [issues labeled `good first issue`](https://github.com/kollaudo/kollaudo/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
-  are small, and say what to do, where, and when it's done. Comment on one to take it, so that
-  nobody else works on it at the same time.
+  are small, and say what to do, where and when it's done. They are kept for your first
+  contribution here: once you have a pull request merged, please leave them to newcomers and pick
+  one labeled `help wanted`. If there is none, feel free to ask on a good first issue whether you
+  can take it. Comment on one to take it, so that nobody else works on it at the same time.
+- **Help wanted**: [issues labeled `help wanted`](https://github.com/kollaudo/kollaudo/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
+  are bigger, such as a recipe for a new tool, and need some context on the project. They are a good
+  next step after a first contribution. Comment on one before starting: some ask you to propose an
+  approach first.
 - **Ideas and bugs**: open an [issue](https://github.com/kollaudo/kollaudo/issues) first, so we can
   agree on the approach before you write code.
 - **Design**: read the [architecture decisions](docs/adr). A change that goes against an accepted ADR

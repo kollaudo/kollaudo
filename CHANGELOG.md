@@ -6,6 +6,19 @@ the API.
 
 ## [Unreleased]
 
+### CLI
+
+- `kollaudo deployed list` lists recorded deployments, with optional `--component`, `--env` and
+  `--version` filters. Use a read token; `--json` prints the API's full response.
+- `kollaudo signoff list` shows the sign-offs, newest first, one per line: when, the outcome, the
+  component, version and environment, the kind, who gave it and the note. `--component`, `--env`,
+  `--version` and `--kind` filter them, and `--json` prints the API's answer as it is. A `read` or
+  `signoff` token can list them.
+
+### Server
+
+- `GET /v1/deployments` can filter by `version`, including when paging through deployments.
+
 ### Web UI
 
 - On `demo.kollaudo.dev`, someone with no project yet sees three steps instead of an empty page. The first

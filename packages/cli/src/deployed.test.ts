@@ -126,3 +126,128 @@ describe("kollaudo deployed", () => {
     });
   });
 });
+
+describe("kollaudo deployed list", () => {
+  const readEnv = { ...env, KOLLAUDO_TOKEN: "kol_read" };
+
+  it("lists deployments with their time, component, version, environment and tool", async () => {
+    const { requests, fetch } = server(200, {
+      items: [recorded, { ...recorded, version: "3f2a9c0", tool: null }],
+      next: null,
+    });
+
+    expect(await runWith(run, ["deployed", "list"], { env: readEnv, fetch })).toEqual({
+      code: 0,
+      out:
+        "2026-10-01T07:00:00.000Z  api 3f2a9c1 in staging (helm)\n" +
+        "2026-10-01T07:00:00.000Z  api 3f2a9c0 in staging\n",
+      err: "",
+    });
+    expect(requests[0]?.url).toBe("https://kollaudo.example.com/v1/deployments");
+    expect(requests[0]?.init.method).toBe("GET");
+    expect(requests[0]?.init.body).toBeUndefined();
+    expect(requests[0]?.init.headers).toMatchObject({ authorization: "Bearer kol_read" });
+  });
+
+  it.each([
+    [[], ""],
+    [["--component", "api"], "?component=api"],
+    [["--env", "staging"], "?environment=staging"],
+    [["--version", "release/v1+build"], "?version=release%2Fv1%2Bbuild"],
+    [
+      ["--component", "api", "--env", "staging", "--version", "3f2a9c1"],
+      "?component=api&environment=staging&version=3f2a9c1",
+    ],
+  ])("lists with optional filters: %j", async (filters, query) => {
+    const { requests, fetch } = server(200, { items: [], next: null });
+    expect(
+      await runWith(run, ["deployed", "list", ...(filters as string[])], { env: readEnv, fetch }),
+    ).toEqual({ code: 0, out: "No deployments.\n", err: "" });
+    expect(requests[0]?.url).toBe(`https://kollaudo.example.com/v1/deployments${query}`);
+  });
+
+  it("prints the unchanged JSON response, including the next cursor and extra fields", async () => {
+    const text = `{ "items": [${JSON.stringify(recorded)}], "next": "${recorded.id}", "extra": "kept" }`;
+    const requests: string[] = [];
+    const fetch = async (url: string | URL | Request) => {
+      requests.push(String(url));
+      return new Response(text);
+    };
+
+    expect(
+      await runWith(run, ["deployed", "list", "--env", "staging", "--json"], {
+        env: readEnv,
+        fetch: fetch as typeof globalThis.fetch,
+      }),
+    ).toEqual({ code: 0, out: `${text}\n`, err: "" });
+    expect(requests).toEqual(["https://kollaudo.example.com/v1/deployments?environment=staging"]);
+  });
+
+  it.each([false, true])("reports API errors with JSON mode %j", async (json) => {
+    const refused = server(403, {
+      error: { code: "forbidden", message: "This endpoint needs a token with the read scope." },
+    });
+    expect(
+      await runWith(run, ["deployed", "list", ...(json ? ["--json"] : [])], {
+        env: readEnv,
+        fetch: refused.fetch,
+      }),
+    ).toEqual({
+      code: 1,
+      out: "",
+      err: "Error: This endpoint needs a token with the read scope. (403 forbidden)\n",
+    });
+  });
+
+  it("explains connection and non-JSON errors", async () => {
+    const unreachable = await runWith(run, ["deployed", "list"], { env: readEnv });
+    expect(unreachable).toEqual({
+      code: 1,
+      out: "",
+      err: "Error: Can't reach Kollaudo at https://kollaudo.example.com: No network in tests\n",
+    });
+    expect(await runWith(run, ["deployed", "list"], { env: readEnv, fetch: webPage })).toEqual({
+      code: 1,
+      out: "",
+      err: "Error: Kollaudo at https://kollaudo.example.com answered with a page, not with JSON. Is KOLLAUDO_URL the address of the Kollaudo server?\n",
+    });
+  });
+
+  it("requires a server URL and a read token", async () => {
+    const { requests, fetch } = server(200, { items: [], next: null });
+    const noUrl = await runWith(run, ["deployed", "list"], { fetch });
+    const noToken = await runWith(run, ["deployed", "list"], {
+      env: { KOLLAUDO_URL: env.KOLLAUDO_URL },
+      fetch,
+    });
+
+    expect(noUrl).toEqual({
+      code: 1,
+      out: "",
+      err: "Error: Set KOLLAUDO_URL to the URL of your Kollaudo server.\n",
+    });
+    expect(noToken).toEqual({
+      code: 1,
+      out: "",
+      err: "Error: Set KOLLAUDO_TOKEN to a read token of your project.\n",
+    });
+    expect(requests).toEqual([]);
+  });
+
+  it("shows help without calling the server, and rejects unsupported options", async () => {
+    const { requests, fetch } = server(200, { items: [], next: null });
+    const help = await runWith(run, ["deployed", "list", "--help"], { fetch });
+    expect(help.code).toBe(0);
+    expect(help.err).toBe("");
+    expect(help.out).toContain("Usage: kollaudo deployed list");
+    expect(help.out).toContain("--json");
+
+    const invalid = await runWith(run, ["deployed", "list", "--tool", "helm"], {
+      env: readEnv,
+      fetch,
+    });
+    expect(invalid.code).toBe(1);
+    expect(invalid.err).toContain("Unknown option '--tool'");
+    expect(requests).toEqual([]);
+  });
+});
