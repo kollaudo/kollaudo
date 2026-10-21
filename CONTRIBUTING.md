@@ -11,7 +11,7 @@ now are use cases, feedback on the design and recipes for the tools you use.
   one labeled `help wanted`. If there is none, feel free to ask on a good first issue whether you
   can take it. Comment on one to take it, so that nobody else works on it at the same time.
 - **Help wanted**: [issues labeled `help wanted`](https://github.com/kollaudo/kollaudo/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
-  are bigger, such as a recipe for a new tool and need some context on the project. They are a good
+  are bigger, such as a recipe for a new tool, and need some context on the project. They are a good
   next step after a first contribution. Comment on one before starting: some ask you to propose an
   approach first.
 - **Ideas and bugs**: open an [issue](https://github.com/kollaudo/kollaudo/issues) first, so we can
