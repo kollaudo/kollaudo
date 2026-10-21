@@ -176,6 +176,91 @@ describe("kollaudo signoff", () => {
     );
   });
 
+  it("lists the sign-offs, newest first, with the filters", async () => {
+    const requests: string[] = [];
+    const fetch = async (url: string | URL | Request) => {
+      requests.push(String(url));
+      return new Response(
+        JSON.stringify({ items: [given, { ...given, outcome: "fail", note: null, by: null }] }),
+      );
+    };
+    const result = await runWith(
+      run,
+      [
+        "signoff",
+        "list",
+        "--component",
+        "checkout",
+        "--env",
+        "staging",
+        "--version",
+        "3f2a9c1",
+        "--kind",
+        "uat",
+      ],
+      { env, fetch: fetch as typeof globalThis.fetch },
+    );
+
+    expect(result).toEqual({
+      code: 0,
+      out:
+        "2026-10-12T10:00:00.000Z  pass  checkout 3f2a9c1 in staging, uat, by product-owner: Checked the new payment page\n" +
+        "2026-10-12T10:00:00.000Z  fail  checkout 3f2a9c1 in staging, uat, by a deleted token\n",
+      err: "",
+    });
+    expect(requests).toEqual([
+      "https://kollaudo.example.com/v1/signoffs?component=checkout&environment=staging&version=3f2a9c1&kind=uat",
+    ]);
+  });
+
+  it("says when there are no sign-offs, and sends no filter it wasn't given", async () => {
+    const { requests, fetch } = server(200, { items: [] });
+    expect(await runWith(run, ["signoff", "list"], { env, fetch })).toEqual({
+      code: 0,
+      out: "No sign-offs.\n",
+      err: "",
+    });
+    expect(requests[0]?.url).toBe("https://kollaudo.example.com/v1/signoffs");
+    expect(requests[0]?.init.method).toBe("GET");
+  });
+
+  it("prints the list API's answer unchanged with --json", async () => {
+    const text = JSON.stringify({ items: [given], extra: "kept" });
+    const fetch = async () => new Response(text);
+    expect(
+      await runWith(run, ["signoff", "list", "--env", "staging", "--json"], {
+        env,
+        fetch: fetch as typeof globalThis.fetch,
+      }),
+    ).toEqual({ code: 0, out: `${text}\n`, err: "" });
+  });
+
+  it("explains a missing token, a refused one and an unknown use of list", async () => {
+    const noToken = await runWith(run, ["signoff", "list"], {
+      env: { KOLLAUDO_URL: env.KOLLAUDO_URL },
+    });
+    expect(noToken).toEqual({
+      code: 1,
+      out: "",
+      err: "Error: Set KOLLAUDO_TOKEN to a token of the read or signoff scope of your project.\n",
+    });
+
+    const forbidden = server(403, {
+      error: { code: "forbidden", message: "This endpoint needs a token with the read scope." },
+    });
+    expect(
+      await runWith(run, ["signoff", "list", "--json"], { env, fetch: forbidden.fetch }),
+    ).toEqual({
+      code: 1,
+      out: "",
+      err: "Error: This endpoint needs a token with the read scope. (403 forbidden)\n",
+    });
+
+    const extra = await runWith(run, ["signoff", "list", "checkout"], { env });
+    expect(extra.code).toBe(1);
+    expect(extra.err).toMatch(/^Unknown use of "kollaudo signoff"\./);
+  });
+
   it("shows its help, and the command in the list", async () => {
     expect(await runWith(run, ["signoff", "--help"])).toEqual({
       code: 0,
