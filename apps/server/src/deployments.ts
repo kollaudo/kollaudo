@@ -115,6 +115,7 @@ export async function listDeployments(
     projectId,
     query.component ? eq(components.name, query.component) : undefined,
     query.environment ? eq(environments.name, query.environment) : undefined,
+    query.version ? eq(versions.name, query.version) : undefined,
     // Keyset pagination: deployments older than the cursor, compared in SQL to keep microseconds.
     query.before
       ? sql`(${deployments.deployedAt}, ${deployments.id}) <

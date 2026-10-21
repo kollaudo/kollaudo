@@ -1,12 +1,17 @@
 import { parseArgs } from "node:util";
 import type { Deployment, DeploymentInput } from "@kollaudo/schema";
 import { call, describeError, server } from "./api.ts";
+import { deployedList } from "./deployed-list.ts";
 import type { Io } from "./io.ts";
 
 export const DEPLOYED_HELP = `Usage: kollaudo deployed --component <name> --env <name> --version <version> [options]
+       kollaudo deployed list [options]
 
 Tell Kollaudo that a version now runs in an environment. Kollaudo never deploys anything: run this
 after your deployment tool did, so Kollaudo can show what runs where, next to what was tested.
+
+Use "kollaudo deployed list" with a read token to see recorded deployments
+(see "kollaudo deployed list --help").
 
 Options:
   --component <name>     Component that was deployed, such as "api" (required)
@@ -32,6 +37,7 @@ Example:
 const TIMEOUT_MS = 30_000;
 
 export async function deployed(args: string[], io: Io): Promise<number> {
+  if (args[0] === "list") return deployedList(args.slice(1), io);
   const fail = (message: string) => {
     io.err(`Error: ${message}\n`);
     return 1;

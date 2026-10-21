@@ -6,6 +6,15 @@ the API.
 
 ## [Unreleased]
 
+### CLI
+
+- `kollaudo deployed list` lists recorded deployments, with optional `--component`, `--env` and
+  `--version` filters. Use a read token; `--json` prints the API's full response.
+
+### Server
+
+- `GET /v1/deployments` can filter by `version`, including when paging through deployments.
+
 ## [0.5.0] - 2026-10-20
 
 Update the server before the CLI and before any policy that uses `signoff`: older servers reject the new
