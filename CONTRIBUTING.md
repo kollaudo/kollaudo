@@ -100,3 +100,8 @@ Apache-2.0. Don't copy code from proprietary projects or from projects with inco
 
 Don't open public issues for vulnerabilities. See the
 [security policy](https://github.com/kollaudo/.github/blob/main/SECURITY.md).
+# Contributing Tips
+
+Quick tip: when adding a new recipe, follow the format in [docs/recipes](docs/recipes). Keep recipes focused on one tool integration per file, and include a working example with the CLI command.
+
+See the [Playwright recipe](docs/recipes/playwright.md) for the expected format.
