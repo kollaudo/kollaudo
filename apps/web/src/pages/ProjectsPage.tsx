@@ -1,7 +1,9 @@
 import type { HealthMatrix, Project } from "@kollaudo/schema";
 import { type FormEvent, useState } from "react";
+import { DemoWelcome } from "../components/DemoWelcome.tsx";
 import { Message } from "../components/Message.tsx";
 import { type ApiRequestError, apiGet } from "../lib/api.ts";
+import { isDemoHost } from "../lib/demo.ts";
 import {
   removeProject,
   type SavedProject,
@@ -18,7 +20,9 @@ export function ProjectsPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      {projects.length === 0 ? (
+      {projects.length === 0 && isDemoHost(location.hostname) ? (
+        <DemoWelcome />
+      ) : projects.length === 0 ? (
         <Message title="Welcome to Kollaudo">
           Add a project with its <strong>read</strong> token to see the health of its versions.
           Create one with <code>kollaudo-server project create &lt;name&gt;</code>.
