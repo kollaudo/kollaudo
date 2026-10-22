@@ -1,0 +1,37 @@
+name: GitLab CI recipe
+
+# Runs the pipeline of the GitLab CI recipe with gitlab-ci-local, against Kollaudo and with the CLI
+# from the sources. It runs when the CLI, the schema or the recipe changes, weekly, and on demand.
+on:
+  pull_request:
+    paths:
+      - packages/cli/**
+      - packages/schema/**
+      - docs/recipes/gitlab-ci.md
+      - e2e/recipe-gitlab-ci.sh
+      - .github/workflows/recipe-gitlab-ci.yml
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gitlab-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Build the image and start it with PostgreSQL
+        run: docker compose --profile app up -d --build --wait
+      - run: e2e/recipe-gitlab-ci.sh
+      - name: Show the logs
+        if: failure()
+        run: docker compose --profile app logs kollaudo
