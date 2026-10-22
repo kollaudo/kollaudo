@@ -35,8 +35,8 @@ Kollaudo doesn't build, test or deploy anything: there are plenty of great tools
 
 > **v0.5 is out.** It's young: the API can still change before 1.0 (a [proposed
 > rule](docs/adr/0023-api-compatibility.md) says how) and feedback is very welcome in
-> [Issues](https://github.com/kollaudo/kollaudo/issues). The exit codes of `kollaudo verdict` (0 pass, 1 fail, 2
-> unknown and 3 no verdict) won't change: gates depend on them.
+> [Issues](https://github.com/kollaudo/kollaudo/issues). The exit codes of `kollaudo verdict`
+> (0 pass, 1 fail, 2 unknown and 3 no verdict) won't change: gates depend on them.
 
 Website and documentation: **[kollaudo.dev](https://kollaudo.dev)**.
 
