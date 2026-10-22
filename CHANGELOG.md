@@ -38,6 +38,9 @@ field. `kollaudo signoff` needs a 0.5 server. The exit codes of `kollaudo verdic
 
 ### Documentation
 
+- [Try it without blocking anything](docs/try-without-blocking.md): run the gate for a couple of
+  weeks with `|| true`, record deployments, and see which versions went to production without a
+  `pass`.
 - Code of Conduct ([`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)) and an
   [accessibility page](docs/accessibility.md) that says what the web UI does today and what is
   still unchecked, and how to report a problem.

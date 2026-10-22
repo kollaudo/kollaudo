@@ -45,6 +45,7 @@ export default defineConfig({
           label: "Guides",
           items: [
             { slug: "docs/sending-results" },
+            { slug: "docs/try-without-blocking" },
             { slug: "docs/policies" },
             { slug: "docs/overrides" },
             { slug: "docs/signoffs" },

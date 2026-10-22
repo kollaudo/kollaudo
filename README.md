@@ -81,7 +81,8 @@ The commands use the latest release, 0.5.0, so they keep working while `main` ch
 
 Then open http://localhost:8080, add the project with its **read** token, from `tokens.txt`, and see
 the health of each component in each environment. To send your own results, see
-[sending test results](docs/sending-results.md).
+[sending test results](docs/sending-results.md). To judge it on your own pipeline first, see [try it
+without blocking anything](docs/try-without-blocking.md).
 
 If `docker compose up` doesn't get Kollaudo healthy, or `project create` prints nothing or says it
 can't reach the database, the two containers can't talk to each other.
