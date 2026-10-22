@@ -19,6 +19,12 @@ the API.
 
 - `GET /v1/deployments` can filter by `version`, including when paging through deployments.
 
+### Recipes
+
+- [GitLab CI](docs/recipes/gitlab-ci.md) is tested in CI: its `.gitlab-ci.yml` runs with
+  gitlab-ci-local against Kollaudo and the CLI from the sources, and the gate is checked to stop the
+  deployment on `fail` and to deploy on `pass`.
+
 ### Web UI
 
 - On `demo.kollaudo.dev`, someone with no project yet sees three steps instead of an empty page. The first
