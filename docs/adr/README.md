@@ -22,6 +22,7 @@ accepted: if it changes, a new ADR supersedes it (see [0001](0001-record-archite
 | [0010](0010-self-hosted-api-first.md) | Self-hosted and API-first | accepted |
 | [0011](0011-typescript-monorepo.md) | TypeScript monorepo | accepted |
 | [0012](0012-server-stack.md) | Server stack: Node.js, Hono, Zod, Drizzle and PostgreSQL | accepted |
+| [0023](0023-api-compatibility.md) | The API only grows within a major version | proposed |
 | | **Verdict** | |
 | [0013](0013-verdict-pass-fail-unknown.md) | The verdict is pass, fail or unknown | accepted, extended by [0022](0022-known-bugs-linked-to-failed-tests.md) |
 | [0014](0014-policy.md) | Policies decide what a verdict requires | accepted, extended by [0021](0021-signoff-as-a-test-run-with-its-own-scope.md) |
