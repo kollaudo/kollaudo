@@ -88,11 +88,11 @@ KOLLAUDO_TOKEN: $(token ingest)
 KOLLAUDO_READ_TOKEN: $READ_TOKEN
 EOF
 
-# Each commit is a version: CI_COMMIT_SHORT_SHA comes from it.
+# Each commit is a version: CI_COMMIT_SHORT_SHA, the first 8 characters of its SHA, as in GitLab.
 commit() {
   git -C "$REPO" add -A
   git -C "$REPO" -c user.name=e2e -c user.email=e2e@example.com commit -qm "$1"
-  git -C "$REPO" rev-parse --short HEAD
+  git -C "$REPO" rev-parse HEAD | cut -c1-8
 }
 git -C "$REPO" init -q -b main
 echo ".gitlab-ci-local*" >"$REPO/.gitignore"
