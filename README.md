@@ -33,14 +33,19 @@ stricter, never looser, and every override is recorded with who, why and until w
 Kollaudo doesn't build, test or deploy anything: there are plenty of great tools for that. It
 **collects their results and judges**, and the tool that promotes does what the verdict says.
 
-> **v0.5 is out.** It's young: the API can still change before 1.0, and feedback is very welcome in
-> [Issues](https://github.com/kollaudo/kollaudo/issues).
+> **v0.5 is out.** It's young: the API can still change before 1.0 (a [proposed
+> rule](docs/adr/0023-api-compatibility.md) says how) and feedback is very welcome in
+> [Issues](https://github.com/kollaudo/kollaudo/issues). The exit codes of `kollaudo verdict` (0 pass, 1 fail, 2
+> unknown and 3 no verdict) won't change: gates depend on them.
 
 Website and documentation: **[kollaudo.dev](https://kollaudo.dev)**.
 
 **Try it live** at **[demo.kollaudo.dev](https://demo.kollaudo.dev)**, without installing anything: a
 made-up shop where a version fails, one waits for missing tests, one goes through an override and
-one reached production around the gate. The read token is: `kol_VQ81iRttbMjk4pck5KXQ9gEbzLTMlgJAxWud2NIJ3us`.
+one reached production around the gate. The read token is: 
+```bash
+kol_VQ81iRttbMjk4pck5KXQ9gEbzLTMlgJAxWud2NIJ3us`
+```
 You can see how the data are made in [kollaudo/demo](https://github.com/kollaudo/demo).
 
 ## Quick start
