@@ -21,6 +21,10 @@ the API.
 
 ### Recipes
 
+- [Flagger](docs/recipes/flagger.md): webhooks run by Flagger's load tester ask for the verdict, so
+  that a new version gets traffic only on `pass`. It waits without pods while evidence is missing, and
+  the canary is rolled back on `fail`, after one interval with pods, or when Kollaudo doesn't answer.
+  Tested with Flagger in a kind cluster.
 - [GitLab CI](docs/recipes/gitlab-ci.md) is tested in CI: its `.gitlab-ci.yml` runs with
   gitlab-ci-local against Kollaudo and the CLI from the sources, and the gate is checked to stop the
   deployment on `fail` and to deploy on `pass`.

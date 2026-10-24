@@ -1,0 +1,42 @@
+# The script that Flagger's load tester runs for the webhooks of a gated Canary: it asks Kollaudo for
+# the verdict of the version in the target Deployment, and exits 0 or 1 depending on the webhook.
+# Install it in the namespace of the load tester. See docs/recipes/flagger.md.
+#
+#   kubectl -n <namespace> apply -f kollaudo-verdict.yaml
+#
+#   bash /kollaudo/verdict.sh <webhook> <deployment> <component> <environment>
+#
+# - confirm-rollout succeeds unless the verdict is unknown: without evidence, the canary waits in
+#   Waiting, without pods, and the webhook asks again every interval.
+# - rollback succeeds only on fail: the canary is rolled back before it gets any traffic.
+# - pre-rollout succeeds only on pass. No answer, such as Kollaudo out of reach or a wrong token, is a
+#   failed check, and the canary is rolled back after analysis.threshold of them (ADR 0019).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kollaudo-verdict
+data:
+  verdict.sh: |
+    #!/usr/bin/env bash
+    set -uo pipefail
+    webhook=$1 deployment=$2 component=$3 environment=$4
+
+    # The version label of the Deployment, as your CI sends it with "kollaudo push --version". Flagger
+    # keeps the new version in the target Deployment, and copies it to <name>-primary on promotion.
+    version=$(kubectl get deployment "$deployment" -o jsonpath='{.spec.template.metadata.labels.version}')
+    outcome=""
+    if [[ -n $version ]]; then
+      outcome=$(curl -sS --fail --max-time 20 -H "Authorization: Bearer $KOLLAUDO_TOKEN" \
+        "$KOLLAUDO_URL/v1/verdict?component=$component&environment=$environment&version=$version" |
+        jq -r .outcome) || outcome=""
+    else
+      echo "The Deployment $deployment has no version label"
+    fi
+    echo "Kollaudo: $component ${version:-?} in $environment is ${outcome:-no answer}"
+
+    case $webhook in
+      confirm-rollout) [[ $outcome != unknown ]] ;;
+      rollback) [[ $outcome == fail ]] ;;
+      pre-rollout) [[ $outcome == pass ]] ;;
+      *) echo "Unknown webhook $webhook"; exit 2 ;;
+    esac

@@ -1,0 +1,33 @@
+# Values for Flagger's load tester chart, so that it can run the Kollaudo gate. Install one load
+# tester in each namespace with gated Canaries. See docs/recipes/flagger.md.
+#
+#   helm upgrade --install flagger-loadtester flagger/loadtester -n <namespace> -f loadtester-values.yaml
+
+# The script reads the version label of the target Deployment: the service account of the load tester
+# needs to get Deployments in its namespace, and nothing else.
+rbac:
+  create: true
+  rules:
+    - apiGroups: ["apps"]
+      resources: ["deployments"]
+      verbs: ["get"]
+
+env:
+  # The URL of Kollaudo, as the load tester reaches it.
+  - name: KOLLAUDO_URL
+    value: http://kollaudo.kollaudo.svc:8080
+  # The "token" key of the "kollaudo" Secret: a read token of your Kollaudo project.
+  - name: KOLLAUDO_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: kollaudo
+        key: token
+
+# The script of kollaudo-verdict.yaml, at /kollaudo/verdict.sh.
+volumes:
+  - name: kollaudo-verdict
+    configMap:
+      name: kollaudo-verdict
+volumeMounts:
+  - name: kollaudo-verdict
+    mountPath: /kollaudo
