@@ -7,6 +7,7 @@ on:
     paths:
       - docs/recipes/argo-rollouts/**
       - docs/recipes/argocd/**
+      - docs/recipes/flagger/**
       - docs/recipes/kargo/**
       - e2e/kind/**
       - .github/workflows/recipes.yml
@@ -84,4 +85,28 @@ jobs:
           kubectl -n kollaudo-demo get events --sort-by=.lastTimestamp | tail -30
           kubectl -n kollaudo-demo get analysisruns -o yaml | tail -120
           kubectl -n argo-rollouts logs deploy/argo-rollouts --tail=100
+          kubectl -n kollaudo logs deploy/kollaudo --tail=100
+
+  flagger:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: azure/setup-helm@v5
+      - uses: helm/kind-action@v1
+        with:
+          cluster_name: kollaudo
+      - name: Build the image and load it into kind
+        run: |
+          docker build -t kollaudo:ci .
+          kind load docker-image kollaudo:ci --name kollaudo
+      - run: e2e/kind/install-kollaudo.sh kollaudo:ci
+      - run: e2e/kind/recipe-flagger.sh
+      - name: Show what went wrong
+        if: failure()
+        run: |
+          kubectl -n kollaudo-demo get canaries,deployments -o wide
+          kubectl -n kollaudo-demo get pods -o wide
+          kubectl -n kollaudo-demo get events --sort-by=.lastTimestamp | tail -30
+          kubectl -n flagger-system logs deploy/flagger --tail=100
+          kubectl -n kollaudo-demo logs deploy/flagger-loadtester --tail=100
           kubectl -n kollaudo logs deploy/kollaudo --tail=100

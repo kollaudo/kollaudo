@@ -1,0 +1,52 @@
+# A Canary gated by Kollaudo: a new version of the "api" Deployment gets traffic in production only
+# when Kollaudo's verdict for it in staging is pass. See docs/recipes/flagger.md.
+#
+#   kubectl -n <namespace> apply -f canary.yaml
+#
+# Replace the namespace in the webhook URLs, the component, the service and the analysis with your
+# own. Change the "version" label of the Deployment together with the image tag: the gate asks about
+# the version in the label.
+apiVersion: flagger.app/v1beta1
+kind: Canary
+metadata:
+  name: api
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api
+  service:
+    port: 8080
+  analysis:
+    interval: 1m
+    # Failed checks before a rollback, such as while Kollaudo doesn't answer.
+    threshold: 5
+    maxWeight: 50
+    stepWeight: 10
+    # The webhooks call the load tester of the Canary's namespace, here production.
+    webhooks:
+      # First, the gate: without evidence, the canary waits without pods.
+      - name: kollaudo-wait
+        type: confirm-rollout
+        url: http://flagger-loadtester.production/
+        timeout: 30s
+        metadata:
+          type: bash
+          cmd: bash /kollaudo/verdict.sh confirm-rollout api api staging
+      # On fail, the canary is rolled back before it gets any traffic.
+      - name: kollaudo-fail
+        type: rollback
+        url: http://flagger-loadtester.production/
+        timeout: 30s
+        metadata:
+          type: bash
+          cmd: bash /kollaudo/verdict.sh rollback api api staging
+      # On pass, the canary gets its first step of traffic.
+      - name: kollaudo-pass
+        type: pre-rollout
+        url: http://flagger-loadtester.production/
+        timeout: 30s
+        metadata:
+          type: bash
+          cmd: bash /kollaudo/verdict.sh pre-rollout api api staging
+    # Then your metrics and load tests.
