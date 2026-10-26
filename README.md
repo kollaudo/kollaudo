@@ -113,7 +113,7 @@ helm install kollaudo oci://ghcr.io/kollaudo/charts/kollaudo -n kollaudo \
   the next stage when it is `pass` ([Kargo recipe](docs/recipes/kargo.md)). With Argo
   Rollouts, the first step of a canary does the same
   ([Argo Rollouts recipe](docs/recipes/argo-rollouts.md)), and with Flagger, its webhooks
-  ([Flagger recipe](docs/recipes/flagger.md)).
+  do ([Flagger recipe](docs/recipes/flagger.md)).
 - **Kollaudo doesn't deploy**, so if it's down, deployments still work. A gate that asks for a
   verdict gets no answer (`kollaudo verdict` exits with `3`), and decides whether to stop or go
   ahead ([ADR 0002](docs/adr/0002-judge-never-orchestrate.md)). The recipes stop

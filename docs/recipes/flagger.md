@@ -7,9 +7,9 @@ traffic only when the verdict is `pass`:
 | Verdict | The canary |
 |---|---|
 | `pass` | goes on with the analysis, and gets its first step of traffic |
-| `fail` | is rolled back before it gets any traffic. It gets pods for one interval first: see [below](#why-fail-gets-pods-for-one-interval) |
+| `fail` | is rolled back before it gets any traffic. It gets pods for one interval first: see [below](#why-fail-and-no-answer-get-pods) |
 | `unknown` | waits, without pods: the webhook asks again every interval, with no time limit, until the evidence arrives, an override is given or the Deployment is reverted |
-| no answer | is rolled back after `analysis.threshold` failed checks. Kollaudo out of reach, or a wrong token, never let a version through ([ADR 0019](../adr/0019-when-the-gate-is-skipped-or-kollaudo-is-down.md)) |
+| no answer | is rolled back after `analysis.threshold` failed checks, without traffic. Kollaudo out of reach, or a wrong token, never let a version through ([ADR 0019](../adr/0019-when-the-gate-is-skipped-or-kollaudo-is-down.md)). It gets pods until then, about 5 minutes with the example: see [below](#why-fail-and-no-answer-get-pods) |
 
 The rules are those of your [policy](../policies.md), kept by Kollaudo: Flagger only asks. An urgent
 fix goes through with an [override](../overrides.md), not by removing the webhooks.
@@ -199,17 +199,22 @@ The same verdict, with each reason, is one command away:
 kollaudo verdict --component api --env staging --version 1.4.0
 ```
 
-## Why fail gets pods for one interval
+## Why fail and no answer get pods
 
 Flagger runs the `rollback` webhook only once the canary is progressing, and it starts progressing by
 scaling the new version up. On `fail`, the `confirm-rollout` webhook lets the canary through, so the
 new version gets pods, without traffic, until the next interval, when the `rollback` webhook rolls it
 back. Argo Rollouts aborts before any pod starts: Flagger can't.
 
+When Kollaudo doesn't answer, or the Deployment has no `version` label, the `confirm-rollout` webhook
+lets the canary through too, and the new version keeps its pods, still without traffic, until the
+`pre-rollout` webhook has failed `analysis.threshold` times: about 5 minutes with the example's
+`interval: 1m` and `threshold: 5`.
+
 A version that does something when it starts, such as a database migration, a message sent or a job
-scheduled, does it during that interval. Keep such work out of the start of the Deployment, for
-example in a step of your pipeline that runs after the gate, or gate it with a pipeline step instead
-of Flagger.
+scheduled, does it on `fail` and when there is no answer. Keep such work out of the start of the
+Deployment, for example in a step of your pipeline that runs after the gate, or gate it with a
+pipeline step instead of Flagger.
 
 ## Why unknown waits, and doesn't roll back
 
