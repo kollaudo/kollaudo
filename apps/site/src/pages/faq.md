@@ -108,9 +108,9 @@ and [pytest](/docs/recipes/pytest/) recipes are complete examples.
 Any tool that can run a command or call an HTTP API. Each one has a recipe with a complete example:
 [GitHub Actions](https://github.com/marketplace/actions/kollaudo-gate),
 [GitLab CI](/docs/recipes/gitlab-ci/), [Azure DevOps](/docs/recipes/azure-devops/),
-[Jenkins](/docs/recipes/jenkins/), [Argo CD](/docs/recipes/argocd/), [Kargo](/docs/recipes/kargo/)
-and [Argo Rollouts](/docs/recipes/argo-rollouts/). Support for a specific tool lives in a recipe, not
-in the core ([ADR 0003](/docs/adr/0003-tool-agnostic-core/)).
+[Jenkins](/docs/recipes/jenkins/), [Argo CD](/docs/recipes/argocd/), [Kargo](/docs/recipes/kargo/),
+[Argo Rollouts](/docs/recipes/argo-rollouts/) and [Flagger](/docs/recipes/flagger/). Support for a
+specific tool lives in a recipe, not in the core ([ADR 0003](/docs/adr/0003-tool-agnostic-core/)).
 
 </details>
 
