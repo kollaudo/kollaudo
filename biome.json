@@ -6,7 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!apps/site/**/*.astro"]
+    "includes": ["**", "!apps/site/**/*.astro", "!charts/*/templates"]
   },
   "formatter": {
     "indentStyle": "space",
@@ -15,6 +15,16 @@
   "css": {
     "parser": {
       "tailwindDirectives": true
+    }
+  },
+  "markdown": {
+    "formatter": {
+      "enabled": false
+    }
+  },
+  "yaml": {
+    "formatter": {
+      "enabled": false
     }
   }
 }
