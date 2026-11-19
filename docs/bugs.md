@@ -90,4 +90,11 @@ fail  e2e  2 failed: 1 known (SHOP-412), 1 new; 40 passed
 `GET /v1/bugs` lists the bugs, each with its tests, the last one sent first. It takes `component`,
 `key` and `state` as filters, and accepts `read` and `ingest` tokens.
 
+`kollaudo bug list` does the same, newest first, with the same filters and `--json` for the API's
+answer as it is:
+
+```bash
+kollaudo bug list --component checkout --state open
+```
+
 Update the server before the tools that send links: older servers have no `/v1/bugs`.

@@ -14,6 +14,9 @@ the API.
   component, version and environment, the kind, who gave it and the note. `--component`, `--env`,
   `--version` and `--kind` filter them, and `--json` prints the API's answer as it is. A `read` or
   `signoff` token can list them.
+- `kollaudo bug link`, `bug close` and `bug list` link a failed test to a known bug, close it, or
+  list the bugs with their tests. `link` and `close` need an `ingest` token; `list` accepts a `read`
+  or `ingest` token and `--component`, `--key`, `--state` and `--json`.
 
 ### Server
 
