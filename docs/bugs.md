@@ -25,6 +25,14 @@ Send the bug with an `ingest` token. The limits of the token to components apply
 recorded as the author.
 
 ```bash
+kollaudo bug link SHOP-412 --component checkout \
+  --url https://example.atlassian.net/browse/SHOP-412 \
+  --test "checkout › pays with a saved card"
+```
+
+Or with `curl`:
+
+```bash
 curl -X POST "$KOLLAUDO_URL/v1/bugs" \
   -H "Authorization: Bearer $KOLLAUDO_TOKEN" \
   -H "Content-Type: application/json" \
@@ -42,7 +50,12 @@ curl -X POST "$KOLLAUDO_URL/v1/bugs" \
 
 ## Close a bug
 
-Send the key again with `"state": "closed"`. It closes every link of the bug in that component, so
+```bash
+kollaudo bug close SHOP-412 --component checkout \
+  --url https://example.atlassian.net/browse/SHOP-412
+```
+
+Or send the key again with `"state": "closed"`. It closes every link of the bug in that component, so
 the tests can be left out. Sending the bug as `open` again opens the links you name.
 
 Kollaudo never reads the tracker: if the request is lost, the link stays open until it is sent again.
@@ -89,5 +102,12 @@ fail  e2e  2 failed: 1 known (SHOP-412), 1 new; 40 passed
 
 `GET /v1/bugs` lists the bugs, each with its tests, the last one sent first. It takes `component`,
 `key` and `state` as filters, and accepts `read` and `ingest` tokens.
+
+`kollaudo bug list` does the same, newest first, with the same filters and `--json` for the API's
+answer as it is:
+
+```bash
+kollaudo bug list --component checkout --state open
+```
 
 Update the server before the tools that send links: older servers have no `/v1/bugs`.

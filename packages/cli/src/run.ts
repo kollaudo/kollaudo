@@ -1,4 +1,5 @@
 import { parseArgs } from "node:util";
+import { bug } from "./bug.ts";
 import { deployed } from "./deployed.ts";
 import type { Io } from "./io.ts";
 import { override } from "./override.ts";
@@ -16,6 +17,7 @@ Send test results to Kollaudo and gate promotions on its verdict, from any CI or
 
 Commands:
   push <report>   Send test results: CTRF or JUnit reports
+  bug             Link a known bug to failed tests, close it or list them
   deployed        Record or list deployments
   verdict         Ask whether a version is healthy in an environment
   policy          Send, check or show the rules your verdicts apply
@@ -37,6 +39,7 @@ Run "kollaudo <command> --help" for the options of a command.
 export async function run(args: string[], io: Io): Promise<number> {
   // Commands parse their own options: `push --version` is the version under test, not the CLI's.
   if (args[0] === "push") return push(args.slice(1), io);
+  if (args[0] === "bug") return bug(args.slice(1), io);
   if (args[0] === "deployed") return deployed(args.slice(1), io);
   if (args[0] === "verdict") return verdict(args.slice(1), io);
   if (args[0] === "policy") return policy(args.slice(1), io);
